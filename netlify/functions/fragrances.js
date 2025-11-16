@@ -87,7 +87,7 @@ exports.handler = async (event) => {
 
     // For GET requests
     if (event.httpMethod === 'GET') {
-      // If authenticated, return user's fragrances, otherwise return public
+      // If authenticated, return user's fragrances
       if (userId) {
         const fragrances = await sql`
           SELECT 
@@ -99,6 +99,7 @@ exports.handler = async (event) => {
         `;
         
         if (!id) {
+          // Return user's fragrances (empty array if they have none)
           return {
             statusCode: 200,
             headers,
@@ -120,7 +121,7 @@ exports.handler = async (event) => {
           };
         }
       } else {
-        // Return public mock data for unauthenticated users
+        // Return public mock data for unauthenticated users only
         return {
           statusCode: 200,
           headers,

@@ -247,16 +247,25 @@ const Home = () => {
         availableTypes={availableTypes}
       />
       <div key={`results-${selectedType || 'all'}-${activeSeasonCount}-${activeOccasionCount}`}>
-        {availableTypes.length > 0 && (
-          <div className={styles.resultsCount}>
-            {filteredFragrances.length} {filteredFragrances.length === 1 ? 'fragrance' : 'fragrances'}
-            {selectedType && ` with ${selectedType}`}
+        {filteredFragrances.length === 0 && isAuthenticated ? (
+          <div className={styles.emptyState}>
+            <p>You don't have any fragrances yet.</p>
+            <p>Click the + button to add your first fragrance!</p>
           </div>
+        ) : (
+          <>
+            {availableTypes.length > 0 && (
+              <div className={styles.resultsCount}>
+                {filteredFragrances.length} {filteredFragrances.length === 1 ? 'fragrance' : 'fragrances'}
+                {selectedType && ` with ${selectedType}`}
+              </div>
+            )}
+            <FragranceGrid 
+              fragrances={filteredFragrances}
+              onFragranceClick={handleFragranceClick}
+            />
+          </>
         )}
-        <FragranceGrid 
-          fragrances={filteredFragrances}
-          onFragranceClick={handleFragranceClick}
-        />
       </div>
       
       <button 
