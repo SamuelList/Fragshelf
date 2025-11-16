@@ -32,12 +32,6 @@ const loadFromLocalStorage = (): Fragrance[] | null => {
   }
 };
 
-// Sync localStorage backup to server
-const syncToServer = async (fragrances: Fragrance[]) => {
-  // This will be called after successful operations to keep server in sync
-  console.log('Synced', fragrances.length, 'fragrances to localStorage');
-};
-
 export const fragranceAPI = {
   // Get all fragrances
   getAll: async (): Promise<Fragrance[]> => {
@@ -57,7 +51,7 @@ export const fragranceAPI = {
         console.log('Detected server reset, restoring from backup...');
         // Re-upload all fragrances from backup
         for (const frag of backup) {
-          if (!fragrances.find(f => f.id === frag.id)) {
+          if (!fragrances.find((f: Fragrance) => f.id === frag.id)) {
             try {
               await fetch(`${API_URL}/fragrances`, {
                 method: 'POST',
