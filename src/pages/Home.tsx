@@ -34,10 +34,12 @@ const Home = () => {
     'night out': 0
   });
 
-  // Load fragrances on mount
+  // Load fragrances when authenticated
   useEffect(() => {
-    loadFragrances();
-  }, []);
+    if (isAuthenticated && !authLoading) {
+      loadFragrances();
+    }
+  }, [isAuthenticated, authLoading]);
 
   const loadFragrances = async () => {
     try {
@@ -177,7 +179,7 @@ const Home = () => {
     return result;
   }, [fragrances, selectedType, seasonFilters, occasionFilters]);
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className={styles.home}>
         <FilterBar 
@@ -189,7 +191,7 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
         />
-        <div className={styles.loading}>Loading fragrances...</div>
+        <div className={styles.loading}>Loading...</div>
       </div>
     );
   }
