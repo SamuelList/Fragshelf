@@ -180,10 +180,12 @@ exports.handler = async (event, context) => {
 
     // DELETE /api/fragrances/:id
     if (event.httpMethod === 'DELETE' && id) {
+      console.log('DELETE request - ID:', id, 'Fragrances:', fragrances.map(f => f.id));
       const initialLength = fragrances.length;
-      fragrances = fragrances.filter(f => f.id !== id);
+      const filtered = fragrances.filter(f => f.id !== id);
       
-      if (fragrances.length === initialLength) {
+      if (filtered.length === initialLength) {
+        console.log('Fragrance not found:', id);
         return {
           statusCode: 404,
           headers,
@@ -191,7 +193,8 @@ exports.handler = async (event, context) => {
         };
       }
       
-      userFragrances.set(userId, fragrances); // Update the map
+      userFragrances.set(userId, filtered); // Update the map
+      console.log('Deleted successfully, new count:', filtered.length);
       
       return {
         statusCode: 204,

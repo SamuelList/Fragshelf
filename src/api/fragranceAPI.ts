@@ -58,6 +58,11 @@ export const fragranceAPI = {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete fragrance');
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Delete failed:', error);
+      throw new Error('Failed to delete fragrance');
+    }
+    // 204 No Content - don't try to parse JSON
   },
 };
