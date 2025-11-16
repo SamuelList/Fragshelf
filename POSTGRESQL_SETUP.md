@@ -11,21 +11,11 @@
 3. Click on **Integrations** in the left sidebar
 4. Find **Neon** and click **Configure** (or **Enable** if not yet installed)
 5. Click **Create database** or select an existing database
-6. Copy the connection string (starts with `postgresql://`)
+6. **That's it!** Netlify automatically sets the `NETLIFY_DATABASE_URL` environment variable
 
-## Step 2: Add Environment Variable
+## Step 2: Deploy and Initialize Database
 
-1. In your Netlify site dashboard, go to **Site configuration** → **Environment variables**
-2. Click **Add a variable**
-3. Set:
-   - **Key**: `DATABASE_URL`
-   - **Value**: Your Neon connection string from Step 1
-   - **Scopes**: Check both "Same value for all deploy contexts"
-4. Click **Save**
-
-## Step 3: Deploy and Initialize Database
-
-1. Push your code to trigger a deployment:
+1. Push your code to trigger a deployment (or it may already be deploying):
    ```bash
    git add -A
    git commit -m "Add PostgreSQL integration"
@@ -45,7 +35,7 @@
    }
    ```
 
-## Step 4: Test the Setup
+## Step 3: Test the Setup
 
 1. Sign up for a new account on your site
 2. Add some fragrances
@@ -62,12 +52,16 @@ View current database contents:
 
 To test locally with Neon:
 
-1. Create a `.env` file in the project root:
+1. Get your database URL from Netlify:
+   - Go to **Site configuration** → **Environment variables**
+   - Copy the `NETLIFY_DATABASE_URL` value
+
+2. Create a `.env` file in the project root:
    ```env
-   DATABASE_URL=your_neon_connection_string
+   NETLIFY_DATABASE_URL=your_neon_connection_string
    ```
 
-2. Run your local dev server (if using Netlify Dev, it will pick up the env var)
+3. Run your local dev server (Netlify Dev will pick up the env var)
 
 ## Database Schema
 
@@ -101,13 +95,13 @@ The migration creates two tables:
 
 ## Troubleshooting
 
-**Error: "DATABASE_URL environment variable is not set"**
-- Make sure you added the environment variable in Netlify
-- Redeploy after adding the variable
+**Error: "Cannot connect to database"**
+- Make sure you enabled the Neon integration in Netlify
+- Redeploy after enabling the integration
+- The `NETLIFY_DATABASE_URL` is automatically set by Netlify
 
 **Error: "Failed to initialize schema"**
 - Check that your Neon database is active
-- Verify the connection string is correct
 - Make sure your Neon project has enough resources (check free tier limits)
 
 **Data still disappearing**

@@ -1,12 +1,8 @@
-const { neon } = require('@neondatabase/serverless');
+const { neon } = require('@netlify/neon');
 
-// Initialize database connection
+// Initialize database connection (automatically uses NETLIFY_DATABASE_URL)
 const getDb = () => {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
-  return neon(databaseUrl);
+  return neon();
 };
 
 // Initialize database schema
