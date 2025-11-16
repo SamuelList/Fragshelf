@@ -35,10 +35,12 @@ const Home = () => {
     'night out': 0
   });
 
-  // Load fragrances on mount
+  // Load fragrances on mount and when auth state changes
   useEffect(() => {
-    loadFragrances();
-  }, []);
+    if (!authLoading) {
+      loadFragrances();
+    }
+  }, [authLoading, isAuthenticated]);
 
   const loadFragrances = async () => {
     try {
