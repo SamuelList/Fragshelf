@@ -21,18 +21,18 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
 
   // Season state
-  const [spring, setSpring] = useState(initialData?.seasons.spring || 25);
-  const [summer, setSummer] = useState(initialData?.seasons.summer || 25);
-  const [autumn, setAutumn] = useState(initialData?.seasons.autumn || 25);
-  const [winter, setWinter] = useState(initialData?.seasons.winter || 25);
+  const [spring, setSpring] = useState(initialData?.seasons.spring ?? 0);
+  const [summer, setSummer] = useState(initialData?.seasons.summer ?? 0);
+  const [autumn, setAutumn] = useState(initialData?.seasons.autumn ?? 0);
+  const [winter, setWinter] = useState(initialData?.seasons.winter ?? 0);
 
   // Occasion state
-  const [daily, setDaily] = useState(initialData?.occasions.daily || 20);
-  const [business, setBusiness] = useState(initialData?.occasions.business || 20);
-  const [leisure, setLeisure] = useState(initialData?.occasions.leisure || 20);
-  const [sport, setSport] = useState(initialData?.occasions.sport || 10);
-  const [evening, setEvening] = useState(initialData?.occasions.evening || 20);
-  const [nightOut, setNightOut] = useState(initialData?.occasions['night out'] || 10);
+  const [daily, setDaily] = useState(initialData?.occasions.daily ?? 0);
+  const [business, setBusiness] = useState(initialData?.occasions.business ?? 0);
+  const [leisure, setLeisure] = useState(initialData?.occasions.leisure ?? 0);
+  const [sport, setSport] = useState(initialData?.occasions.sport ?? 0);
+  const [evening, setEvening] = useState(initialData?.occasions.evening ?? 0);
+  const [nightOut, setNightOut] = useState(initialData?.occasions['night out'] ?? 0);
 
   // Type state (using an object for all 20 types)
   const getInitialTypeScores = (): Record<FragranceType, number> => {
@@ -52,8 +52,8 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
     }
     return {
       Animalic: 0, Aquatic: 0, Floral: 0, Chypre: 0, Creamy: 0, Earthy: 0,
-      Fougere: 0, Fresh: 25, Fruity: 0, Gourmand: 0, Green: 0, Woody: 50,
-      Leathery: 0, Oriental: 0, Powdery: 0, Smoky: 0, Resinous: 25,
+      Fougere: 0, Fresh: 0, Fruity: 0, Gourmand: 0, Green: 0, Woody: 0,
+      Leathery: 0, Oriental: 0, Powdery: 0, Smoky: 0, Resinous: 0,
       Sweet: 0, Synthetic: 0, Spicy: 0, Citrus: 0
     };
   };
