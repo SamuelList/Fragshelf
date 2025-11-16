@@ -1,7 +1,4 @@
-// In-memory user storage (will reset on function cold start)
-let users = [
-  { id: '1', username: 'demo', password: 'demo123' } // Demo user for testing
-];
+const { getDb } = require('./db');
 
 // Simple token generation (in production, use JWT)
 const generateToken = (userId) => {
@@ -35,6 +32,8 @@ exports.handler = async (event) => {
   const path = event.path.replace('/.netlify/functions/auth', '').replace('/api/auth', '');
 
   try {
+    const sql = getDb();
+
     // LOGIN
     if (path === '/login' && event.httpMethod === 'POST') {
       const { username, password } = JSON.parse(event.body);
@@ -47,11 +46,12 @@ exports.handler = async (event) => {
         };
       }
 
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
+      const users = await sql`
+        SELECT id, username FROM users 
+        WHERE username = ${username} AND password = ${password}
+      `;
 
-      if (!user) {
+      if (users.length === 0) {
         return {
           statusCode: 401,
           headers,
@@ -59,13 +59,14 @@ exports.handler = async (event) => {
         };
       }
 
-      const token = generateToken(user.id);
+      const user = users[0];
+      const token = generateToken(String(user.id));
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          user: { id: user.id, username: user.username },
+          user: { id: String(user.id), username: user.username },
           token,
         }),
       };
@@ -92,7 +93,11 @@ exports.handler = async (event) => {
       }
 
       // Check if username already exists
-      if (users.find((u) => u.username === username)) {
+      const existing = await sql`
+        SELECT id FROM users WHERE username = ${username}
+      `;
+
+      if (existing.length > 0) {
         return {
           statusCode: 409,
           headers,
@@ -101,21 +106,20 @@ exports.handler = async (event) => {
       }
 
       // Create new user
-      const newUser = {
-        id: String(users.length + 1),
-        username,
-        password, // In production, hash this!
-      };
+      const newUsers = await sql`
+        INSERT INTO users (username, password)
+        VALUES (${username}, ${password})
+        RETURNING id, username
+      `;
 
-      users.push(newUser);
-
-      const token = generateToken(newUser.id);
+      const newUser = newUsers[0];
+      const token = generateToken(String(newUser.id));
 
       return {
         statusCode: 201,
         headers,
         body: JSON.stringify({
-          user: { id: newUser.id, username: newUser.username },
+          user: { id: String(newUser.id), username: newUser.username },
           token,
         }),
       };
@@ -143,8 +147,11 @@ exports.handler = async (event) => {
         };
       }
 
-      const user = users.find((u) => u.id === userId);
-      if (!user) {
+      const users = await sql`
+        SELECT id, username FROM users WHERE id = ${parseInt(userId)}
+      `;
+
+      if (users.length === 0) {
         return {
           statusCode: 401,
           headers,
@@ -152,23 +159,33 @@ exports.handler = async (event) => {
         };
       }
 
+      const user = users[0];
+
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          user: { id: user.id, username: user.username },
+          user: { id: String(user.id), username: user.username },
         }),
       };
     }
 
     // DEBUG: View all users (remove in production!)
     if (path === '/debug' && event.httpMethod === 'GET') {
+      const allUsers = await sql`
+        SELECT id, username, created_at FROM users ORDER BY id
+      `;
+
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          users: users.map(u => ({ id: u.id, username: u.username })),
-          totalUsers: users.length,
+          users: allUsers.map(u => ({ 
+            id: String(u.id), 
+            username: u.username,
+            created_at: u.created_at
+          })),
+          totalUsers: allUsers.length,
           timestamp: new Date().toISOString(),
         }),
       };

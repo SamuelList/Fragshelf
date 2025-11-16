@@ -1,4 +1,6 @@
-// Mock data - each user gets their own copy
+const { getDb } = require('./db');
+
+// Mock data for public viewing
 const MOCK_DATA = [
   {
     id: '1',
@@ -38,9 +40,6 @@ const MOCK_DATA = [
   }
 ];
 
-// In-memory storage per user (will reset on each deployment)
-const userFragrances = new Map();
-
 // Helper to verify token and get userId
 const verifyToken = (token) => {
   try {
@@ -52,15 +51,7 @@ const verifyToken = (token) => {
   }
 };
 
-// Helper to get or initialize user's fragrances
-const getUserFragrances = (userId) => {
-  if (!userFragrances.has(userId)) {
-    userFragrances.set(userId, [...MOCK_DATA]);
-  }
-  return userFragrances.get(userId);
-};
-
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -85,81 +76,111 @@ exports.handler = async (event, context) => {
   // Check for auth token (optional for GET)
   const authHeader = event.headers.authorization || event.headers.Authorization;
   let userId = null;
-  let userFragrancesArray = null;
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     userId = verifyToken(token);
-    if (userId) {
-      userFragrancesArray = getUserFragrances(userId);
-    }
   }
-
-  // For GET requests
-  if (event.httpMethod === 'GET') {
-    // If authenticated, return user's fragrances, otherwise return public
-    const fragrances = userFragrancesArray || [...MOCK_DATA];
-    
-    if (!id) {
-      // Get all fragrances
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(fragrances)
-      };
-    } else {
-      // Get single fragrance
-      const fragrance = fragrances.find(f => f.id === id);
-      
-      if (!fragrance) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Fragrance not found' })
-        };
-      }
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(fragrance)
-      };
-    }
-  }
-
-  // For non-GET requests, require authentication
-  if (!userId) {
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({ error: 'Unauthorized' })
-    };
-  }
-
-  // Get user's fragrance collection
-  let fragrances = getUserFragrances(userId);
 
   try {
+    const sql = getDb();
+
+    // For GET requests
+    if (event.httpMethod === 'GET') {
+      // If authenticated, return user's fragrances, otherwise return public
+      if (userId) {
+        const fragrances = await sql`
+          SELECT 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, types
+          FROM fragrances 
+          WHERE user_id = ${parseInt(userId)}
+          ORDER BY created_at DESC
+        `;
+        
+        if (!id) {
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(fragrances)
+          };
+        } else {
+          const fragrance = fragrances.find(f => String(f.id) === id);
+          if (!fragrance) {
+            return {
+              statusCode: 404,
+              headers,
+              body: JSON.stringify({ error: 'Fragrance not found' })
+            };
+          }
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(fragrance)
+          };
+        }
+      } else {
+        // Return public mock data for unauthenticated users
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(MOCK_DATA)
+        };
+      }
+    }
+
+    // For non-GET requests, require authentication
+    if (!userId) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' })
+      };
+    }
 
     // POST /api/fragrances
     if (event.httpMethod === 'POST') {
-      const newFragrance = JSON.parse(event.body);
-      newFragrance.id = Date.now().toString();
-      fragrances.push(newFragrance);
-      userFragrances.set(userId, fragrances); // Update the map
+      const { brand, name, imageUrl, seasons, occasions, types } = JSON.parse(event.body);
+      
+      const result = await sql`
+        INSERT INTO fragrances 
+          (user_id, brand, name, image_url, seasons, occasions, types)
+        VALUES 
+          (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
+           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)})
+        RETURNING 
+          id, brand, name, image_url as "imageUrl", 
+          seasons, occasions, types
+      `;
       
       return {
         statusCode: 201,
         headers,
-        body: JSON.stringify(newFragrance)
+        body: JSON.stringify(result[0])
       };
     }
 
-    // PUT /api/fragrances/:id
+        // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
-      const index = fragrances.findIndex(f => f.id === id);
+      const { brand, name, imageUrl, seasons, occasions, types } = JSON.parse(event.body);
       
-      if (index === -1) {
+      const result = await sql`
+        UPDATE fragrances 
+        SET 
+          brand = ${brand},
+          name = ${name},
+          image_url = ${imageUrl},
+          seasons = ${JSON.stringify(seasons)},
+          occasions = ${JSON.stringify(occasions)},
+          types = ${JSON.stringify(types)},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+        RETURNING 
+          id, brand, name, image_url as "imageUrl",
+          seasons, occasions, types
+      `;
+      
+      if (result.length === 0) {
         return {
           statusCode: 404,
           headers,
@@ -167,34 +188,28 @@ exports.handler = async (event, context) => {
         };
       }
       
-      const updatedFragrance = JSON.parse(event.body);
-      fragrances[index] = { ...updatedFragrance, id };
-      userFragrances.set(userId, fragrances); // Update the map
-      
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify(fragrances[index])
+        body: JSON.stringify(result[0])
       };
     }
 
     // DELETE /api/fragrances/:id
     if (event.httpMethod === 'DELETE' && id) {
-      console.log('DELETE request - ID:', id, 'Fragrances:', fragrances.map(f => f.id));
-      const initialLength = fragrances.length;
-      const filtered = fragrances.filter(f => f.id !== id);
+      const result = await sql`
+        DELETE FROM fragrances 
+        WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+        RETURNING id
+      `;
       
-      if (filtered.length === initialLength) {
-        console.log('Fragrance not found:', id);
+      if (result.length === 0) {
         return {
           statusCode: 404,
           headers,
           body: JSON.stringify({ error: 'Fragrance not found' })
         };
       }
-      
-      userFragrances.set(userId, filtered); // Update the map
-      console.log('Deleted successfully, new count:', filtered.length);
       
       return {
         statusCode: 204,
@@ -205,20 +220,39 @@ exports.handler = async (event, context) => {
 
     // DEBUG: View all data (remove in production!)
     if (event.path.includes('/debug') && event.httpMethod === 'GET') {
-      const allData = {};
-      for (const [uid, frags] of userFragrances.entries()) {
-        allData[uid] = {
-          count: frags.length,
-          fragrances: frags.map(f => ({ id: f.id, brand: f.brand, name: f.name }))
-        };
+      const allFragrances = await sql`
+        SELECT 
+          f.id, f.user_id, u.username, f.brand, f.name,
+          f.created_at
+        FROM fragrances f
+        JOIN users u ON f.user_id = u.id
+        ORDER BY f.user_id, f.created_at DESC
+      `;
+      
+      const userData = {};
+      for (const frag of allFragrances) {
+        const uid = String(frag.user_id);
+        if (!userData[uid]) {
+          userData[uid] = {
+            username: frag.username,
+            count: 0,
+            fragrances: []
+          };
+        }
+        userData[uid].count++;
+        userData[uid].fragrances.push({
+          id: String(frag.id),
+          brand: frag.brand,
+          name: frag.name
+        });
       }
       
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          totalUsers: userFragrances.size,
-          userData: allData,
+          totalUsers: Object.keys(userData).length,
+          userData,
           timestamp: new Date().toISOString(),
         })
       };
