@@ -20,7 +20,7 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
           className={`${styles.typeChip} ${!selectedType ? styles.selected : ''}`}
           onClick={() => onTypeSelect(null)}
         >
-          <span className={styles.typeIcon}>ALL</span>
+          <span className={styles.typeName}>All</span>
         </button>
         {availableTypes.map((type) => {
           const isSelected = selectedType === type;
@@ -30,7 +30,6 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
               className={`${styles.typeChip} ${isSelected ? styles.selected : ''}`}
               onClick={() => onTypeSelect(type)}
             >
-              <span className={styles.typeIcon}>{getTypeIcon(type)}</span>
               <span className={styles.typeName}>{type}</span>
             </button>
           );
@@ -39,33 +38,5 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
     </div>
   );
 };
-
-// Icon mapping for each type using simple ASCII-safe characters
-function getTypeIcon(type: FragranceType): string {
-  const iconMap: Record<FragranceType, string> = {
-    'Woody': 'W',
-    'Fresh': 'F',
-    'Citrus': 'C',
-    'Spicy': 'S',
-    'Oriental': 'O',
-    'Floral': 'FL',
-    'Fruity': 'FR',
-    'Aquatic': 'AQ',
-    'Gourmand': 'G',
-    'Green': 'GR',
-    'Powdery': 'P',
-    'Leathery': 'L',
-    'Smoky': 'SM',
-    'Resinous': 'R',
-    'Sweet': 'SW',
-    'Earthy': 'E',
-    'Creamy': 'CR',
-    'Fougere': 'FO',
-    'Chypre': 'CH',
-    'Animalic': 'A',
-    'Synthetic': 'SY'
-  };
-  return iconMap[type] || '?';
-}
 
 export default TypeFilter;
