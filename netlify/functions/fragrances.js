@@ -77,7 +77,43 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // Extract and verify auth token
+  // Parse the path to get ID if present
+  const pathParts = event.path.split('/').filter(Boolean);
+  const hasId = pathParts.length > 2;
+  const id = hasId ? pathParts[pathParts.length - 1] : null;
+
+  // For GET requests, return public fragrances (no auth required)
+  if (event.httpMethod === 'GET') {
+    const publicFragrances = [...MOCK_DATA];
+    
+    if (!id) {
+      // Get all fragrances
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(publicFragrances)
+      };
+    } else {
+      // Get single fragrance
+      const fragrance = publicFragrances.find(f => f.id === id);
+      
+      if (!fragrance) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Fragrance not found' })
+        };
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(fragrance)
+      };
+    }
+  }
+
+  // For non-GET requests, require authentication
   const authHeader = event.headers.authorization || event.headers.Authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
@@ -101,41 +137,7 @@ exports.handler = async (event, context) => {
   // Get user's fragrance collection
   let fragrances = getUserFragrances(userId);
 
-  // Parse the path to get ID if present
-  // Path will be like /api/fragrances or /api/fragrances/123
-  const pathParts = event.path.split('/').filter(Boolean);
-  const hasId = pathParts.length > 2; // ['api', 'fragrances', '123']
-  const id = hasId ? pathParts[pathParts.length - 1] : null;
-
   try {
-    // GET /api/fragrances or GET /api/fragrances/:id
-    if (event.httpMethod === 'GET') {
-      if (!id) {
-        // Get all fragrances
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(fragrances)
-        };
-      } else {
-        // Get single fragrance
-        const fragrance = fragrances.find(f => f.id === id);
-        
-        if (!fragrance) {
-          return {
-            statusCode: 404,
-            headers,
-            body: JSON.stringify({ error: 'Fragrance not found' })
-          };
-        }
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(fragrance)
-        };
-      }
-    }
 
     // POST /api/fragrances
     if (event.httpMethod === 'POST') {

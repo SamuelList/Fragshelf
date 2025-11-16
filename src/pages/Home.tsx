@@ -19,6 +19,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<FragranceType | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [seasonFilters, setSeasonFilters] = useState<Record<string, number>>({
     spring: 0,
     summer: 0,
@@ -34,15 +35,10 @@ const Home = () => {
     'night out': 0
   });
 
-  // Load fragrances when authenticated
+  // Load fragrances on mount
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      loadFragrances();
-    } else if (!authLoading) {
-      // Auth check complete but not authenticated, stop loading
-      setIsLoading(false);
-    }
-  }, [isAuthenticated, authLoading]);
+    loadFragrances();
+  }, []);
 
   const loadFragrances = async () => {
     try {
@@ -59,6 +55,11 @@ const Home = () => {
   };
 
   const handleAddFragrance = async (newFragrance: Omit<Fragrance, 'id'>) => {
+    if (!isAuthenticated) {
+      setError('Please login to add or edit fragrances');
+      return;
+    }
+    
     try {
       if (editingFragrance) {
         // Update existing fragrance
@@ -78,6 +79,10 @@ const Home = () => {
   };
 
   const handleEditFragrance = (fragrance: Fragrance) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     setEditingFragrance(fragrance);
     setSelectedFragrance(null);
     setIsFormOpen(true);
@@ -92,6 +97,10 @@ const Home = () => {
   };
 
   const handleDeleteFragrance = async (id: string) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
       await fragranceAPI.delete(id);
       setFragrances(fragrances.filter(f => f.id !== id));
@@ -223,19 +232,6 @@ const Home = () => {
 
   return (
     <div className={styles.home}>
-      {!isAuthenticated && !authLoading && (
-        <AuthModal onClose={() => {}} />
-      )}
-      
-      {isAuthenticated && user && (
-        <div className={styles.userInfo}>
-          <span className={styles.username}>👤 {user.username}</span>
-          <button onClick={logout} className={styles.logoutButton}>
-            Logout
-          </button>
-        </div>
-      )}
-
       <FilterBar 
         seasonFilters={seasonFilters}
         occasionFilters={occasionFilters}
@@ -265,7 +261,13 @@ const Home = () => {
       
       <button 
         className={styles.fab}
-        onClick={() => setIsFormOpen(true)}
+        onClick={() => {
+          if (isAuthenticated) {
+            setIsFormOpen(true);
+          } else {
+            setShowAuthModal(true);
+          }
+        }}
         aria-label="Add fragrance"
       >
         +
@@ -289,6 +291,25 @@ const Home = () => {
           onDelete={handleDeleteFragrance}
           onEdit={handleEditFragrance}
         />
+      )}
+
+      <div className={styles.authSection}>
+        {isAuthenticated && user ? (
+          <div className={styles.loggedIn}>
+            <span className={styles.welcomeText}>Logged in as <strong>{user.username}</strong></span>
+            <button onClick={logout} className={styles.authButton}>
+              Logout
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setShowAuthModal(true)} className={styles.authButton}>
+            Login to add/edit fragrances
+          </button>
+        )}
+      </div>
+
+      {showAuthModal && !isAuthenticated && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
     </div>
   );
