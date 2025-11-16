@@ -20,7 +20,7 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
           className={`${styles.typeChip} ${!selectedType ? styles.selected : ''}`}
           onClick={() => onTypeSelect(null)}
         >
-          <span className={styles.typeIcon}>🌟</span>
+          <span className={styles.typeIcon}>★</span>
           <span className={styles.typeName}>All</span>
         </button>
         {availableTypes.map((type) => {
@@ -31,7 +31,7 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
               className={`${styles.typeChip} ${isSelected ? styles.selected : ''}`}
               onClick={() => onTypeSelect(type)}
             >
-              <span className={styles.typeIcon}>{getTypeEmoji(type)}</span>
+              <span className={styles.typeIcon}>{getTypeIcon(type)}</span>
               <span className={styles.typeName}>{type}</span>
             </button>
           );
@@ -41,32 +41,32 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
   );
 };
 
-// Fun emoji mapping for each type
-function getTypeEmoji(type: FragranceType): string {
-  const emojiMap: Record<FragranceType, string> = {
-    'Woody': '🌲',
-    'Fresh': '💨',
-    'Citrus': '🍋',
-    'Spicy': '🌶️',
-    'Oriental': '🏮',
-    'Floral': '🌸',
-    'Fruity': '🍓',
-    'Aquatic': '🌊',
-    'Gourmand': '🍰',
-    'Green': '🍃',
-    'Powdery': '✨',
-    'Leathery': '🧥',
-    'Smoky': '💨',
-    'Resinous': '🍯',
-    'Sweet': '🍬',
-    'Earthy': '🌍',
-    'Creamy': '🥛',
-    'Fougere': '🌿',
-    'Chypre': '🍂',
-    'Animalic': '🦌',
-    'Synthetic': '⚗️'
+// Icon mapping for each type using safe symbols
+function getTypeIcon(type: FragranceType): string {
+  const iconMap: Record<FragranceType, string> = {
+    'Woody': '▲',
+    'Fresh': '◇',
+    'Citrus': '○',
+    'Spicy': '✦',
+    'Oriental': '◆',
+    'Floral': '❀',
+    'Fruity': '●',
+    'Aquatic': '≈',
+    'Gourmand': '◈',
+    'Green': '♦',
+    'Powdery': '✧',
+    'Leathery': '▪',
+    'Smoky': '~',
+    'Resinous': '◐',
+    'Sweet': '♥',
+    'Earthy': '■',
+    'Creamy': '◯',
+    'Fougere': '♣',
+    'Chypre': '◘',
+    'Animalic': '▼',
+    'Synthetic': '◊'
   };
-  return emojiMap[type] || '🔮';
+  return iconMap[type] || '◆';
 }
 
 export default TypeFilter;
