@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import styles from './SeasonOccasionFilter.module.scss';
 
 interface SeasonOccasionFilterProps {
   type: 'season' | 'occasion';
-  isOpen: boolean;
   onClose: () => void;
   filters: Record<string, number>;
   onChange: (filters: Record<string, number>) => void;
@@ -13,7 +11,7 @@ interface SeasonOccasionFilterProps {
 const SEASON_OPTIONS = ['spring', 'summer', 'autumn', 'winter'];
 const OCCASION_OPTIONS = ['daily', 'business', 'leisure', 'sport', 'evening', 'night out'];
 
-const SeasonOccasionFilter = ({ type, isOpen, onClose, filters, onChange, resultCount }: SeasonOccasionFilterProps) => {
+const SeasonOccasionFilter = ({ type, onClose, filters, onChange, resultCount }: SeasonOccasionFilterProps) => {
   const options = type === 'season' ? SEASON_OPTIONS : OCCASION_OPTIONS;
 
   const handleSliderChange = (option: string, value: number) => {

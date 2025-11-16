@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useTransition } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import FilterBar from '../components/FilterBar/FilterBar';
 import FragranceGrid from '../components/FragranceGrid/FragranceGrid';
 import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
@@ -29,7 +29,6 @@ const Home = () => {
     evening: 0,
     'night out': 0
   });
-  const [isPending, startTransition] = useTransition();
 
   // Load fragrances on mount
   useEffect(() => {
@@ -61,14 +60,22 @@ const Home = () => {
   };
 
   const handleTypeSelect = (type: FragranceType | null) => {
-    console.log('Selected type:', type);
-    startTransition(() => {
-      setSelectedType(type);
-    });
+    setSelectedType(type);
   };
 
   const handleFragranceClick = (fragrance: Fragrance) => {
     setSelectedFragrance(fragrance);
+  };
+
+  const handleDeleteFragrance = async (id: string) => {
+    try {
+      await fragranceAPI.delete(id);
+      setFragrances(fragrances.filter(f => f.id !== id));
+      setSelectedFragrance(null);
+    } catch (err) {
+      setError('Failed to delete fragrance');
+      console.error(err);
+    }
   };
 
   const handleSeasonFilterChange = (filters: Record<string, number>) => {
@@ -238,6 +245,7 @@ const Home = () => {
         <FragranceDetail
           fragrance={selectedFragrance}
           onClose={() => setSelectedFragrance(null)}
+          onDelete={handleDeleteFragrance}
         />
       )}
     </div>

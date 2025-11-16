@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Fragrance } from '../../types/fragrance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import styles from './FragranceDetail.module.scss';
@@ -5,6 +6,7 @@ import styles from './FragranceDetail.module.scss';
 interface FragranceDetailProps {
   fragrance: Fragrance;
   onClose: () => void;
+  onDelete: (id: string) => void;
 }
 
 const COLORS = {
@@ -47,7 +49,22 @@ const COLORS = {
   }
 };
 
-const FragranceDetail = ({ fragrance, onClose }: FragranceDetailProps) => {
+const FragranceDetail = ({ fragrance, onClose, onDelete }: FragranceDetailProps) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(fragrance.id);
+    onClose();
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
+
   // Prepare data for pie charts
   const seasonsData = Object.entries(fragrance.seasons)
     .filter(([_, value]) => value > 0)
@@ -169,6 +186,26 @@ const FragranceDetail = ({ fragrance, onClose }: FragranceDetailProps) => {
               </PieChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div className={styles.actions}>
+          {!showDeleteConfirm ? (
+            <button className={styles.deleteButton} onClick={handleDeleteClick}>
+              Delete Fragrance
+            </button>
+          ) : (
+            <div className={styles.confirmDelete}>
+              <p className={styles.confirmText}>Are you sure you want to delete this fragrance?</p>
+              <div className={styles.confirmButtons}>
+                <button className={styles.cancelButton} onClick={handleCancelDelete}>
+                  Cancel
+                </button>
+                <button className={styles.confirmButton} onClick={handleConfirmDelete}>
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

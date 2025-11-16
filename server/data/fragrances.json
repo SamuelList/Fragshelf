@@ -43,49 +43,6 @@
     }
   },
   {
-    "id": "2",
-    "brand": "Dior",
-    "name": "Sauvage",
-    "imageUrl": "/images/sauvage.jpg",
-    "seasons": {
-      "spring": 25,
-      "summer": 30,
-      "autumn": 25,
-      "winter": 20
-    },
-    "occasions": {
-      "daily": 40,
-      "business": 20,
-      "leisure": 20,
-      "sport": 10,
-      "evening": 10,
-      "night out": 0
-    },
-    "types": {
-      "Fresh": 40,
-      "Citrus": 30,
-      "Spicy": 20,
-      "Woody": 10,
-      "Animalic": 0,
-      "Aquatic": 0,
-      "Floral": 0,
-      "Chypre": 0,
-      "Creamy": 0,
-      "Earthy": 0,
-      "Fougere": 0,
-      "Fruity": 0,
-      "Gourmand": 0,
-      "Green": 0,
-      "Leathery": 0,
-      "Oriental": 0,
-      "Powdery": 0,
-      "Smoky": 0,
-      "Resinous": 0,
-      "Sweet": 0,
-      "Synthetic": 0
-    }
-  },
-  {
     "id": "3",
     "brand": "Chanel",
     "name": "Bleu de Chanel",
