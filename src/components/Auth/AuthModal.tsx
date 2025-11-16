@@ -44,7 +44,9 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      console.error('Auth error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Authentication failed';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

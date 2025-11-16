@@ -54,16 +54,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ username, password })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Signup failed');
+        console.error('Signup error response:', data);
+        throw new Error(data.message || data.error || 'Signup failed');
       }
 
-      const data = await response.json();
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
     } catch (error) {
+      console.error('Signup catch error:', error);
       throw error;
     }
   };
