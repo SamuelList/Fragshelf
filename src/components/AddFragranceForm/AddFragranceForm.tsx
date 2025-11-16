@@ -18,7 +18,7 @@ const allFragranceTypes: FragranceType[] = [
 const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormProps) => {
   const [brand, setBrand] = useState(initialData?.brand || '');
   const [name, setName] = useState(initialData?.name || '');
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400');
 
   // Season state
   const [spring, setSpring] = useState(initialData?.seasons.spring ?? 0);
