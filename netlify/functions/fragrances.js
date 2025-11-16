@@ -1,4 +1,4 @@
-// Mock data
+// Mock data - each user gets their own copy
 const MOCK_DATA = [
   {
     id: '1',
@@ -38,13 +38,32 @@ const MOCK_DATA = [
   }
 ];
 
-// In-memory storage (will reset on each deployment)
-let fragrances = [...MOCK_DATA];
+// In-memory storage per user (will reset on each deployment)
+const userFragrances = new Map();
+
+// Helper to verify token and get userId
+const verifyToken = (token) => {
+  try {
+    const decoded = Buffer.from(token, 'base64').toString();
+    const [userId] = decoded.split(':');
+    return userId;
+  } catch {
+    return null;
+  }
+};
+
+// Helper to get or initialize user's fragrances
+const getUserFragrances = (userId) => {
+  if (!userFragrances.has(userId)) {
+    userFragrances.set(userId, [...MOCK_DATA]);
+  }
+  return userFragrances.get(userId);
+};
 
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Content-Type': 'application/json'
   };
@@ -57,6 +76,30 @@ exports.handler = async (event, context) => {
       body: ''
     };
   }
+
+  // Extract and verify auth token
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Unauthorized' })
+    };
+  }
+
+  const token = authHeader.substring(7);
+  const userId = verifyToken(token);
+
+  if (!userId) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Invalid token' })
+    };
+  }
+
+  // Get user's fragrance collection
+  let fragrances = getUserFragrances(userId);
 
   // Parse the path to get ID if present
   // Path will be like /api/fragrances or /api/fragrances/123
@@ -99,6 +142,7 @@ exports.handler = async (event, context) => {
       const newFragrance = JSON.parse(event.body);
       newFragrance.id = Date.now().toString();
       fragrances.push(newFragrance);
+      userFragrances.set(userId, fragrances); // Update the map
       
       return {
         statusCode: 201,
@@ -121,6 +165,7 @@ exports.handler = async (event, context) => {
       
       const updatedFragrance = JSON.parse(event.body);
       fragrances[index] = { ...updatedFragrance, id };
+      userFragrances.set(userId, fragrances); // Update the map
       
       return {
         statusCode: 200,
@@ -141,6 +186,8 @@ exports.handler = async (event, context) => {
           body: JSON.stringify({ error: 'Fragrance not found' })
         };
       }
+      
+      userFragrances.set(userId, fragrances); // Update the map
       
       return {
         statusCode: 204,

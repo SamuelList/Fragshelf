@@ -1,4 +1,9 @@
 [[redirects]]
+  from = "/api/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/fragrances"
   to = "/.netlify/functions/fragrances"
   status = 200

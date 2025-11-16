@@ -4,11 +4,14 @@ import FragranceGrid from '../components/FragranceGrid/FragranceGrid';
 import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
 import FragranceDetail from '../components/FragranceDetail/FragranceDetail';
 import TypeFilter from '../components/TypeFilter/TypeFilter';
+import AuthModal from '../components/Auth/AuthModal';
 import { Fragrance, FragranceType } from '../types/fragrance';
 import { fragranceAPI } from '../api/fragranceAPI';
+import { useAuth } from '../context/AuthContext';
 import styles from './Home.module.scss';
 
 const Home = () => {
+  const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const [fragrances, setFragrances] = useState<Fragrance[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedFragrance, setSelectedFragrance] = useState<Fragrance | null>(null);
@@ -199,6 +202,19 @@ const Home = () => {
 
   return (
     <div className={styles.home}>
+      {!isAuthenticated && !authLoading && (
+        <AuthModal onClose={() => {}} />
+      )}
+      
+      {isAuthenticated && user && (
+        <div className={styles.userInfo}>
+          <span className={styles.username}>👤 {user.username}</span>
+          <button onClick={logout} className={styles.logoutButton}>
+            Logout
+          </button>
+        </div>
+      )}
+
       <FilterBar 
         seasonFilters={seasonFilters}
         occasionFilters={occasionFilters}
