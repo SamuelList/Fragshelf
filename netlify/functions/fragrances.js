@@ -58,13 +58,16 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const path = event.path.replace('/.netlify/functions/fragrances', '');
-  const segments = path.split('/').filter(Boolean);
+  // Parse the path to get ID if present
+  // Path will be like /api/fragrances or /api/fragrances/123
+  const pathParts = event.path.split('/').filter(Boolean);
+  const hasId = pathParts.length > 2; // ['api', 'fragrances', '123']
+  const id = hasId ? pathParts[pathParts.length - 1] : null;
 
   try {
     // GET /api/fragrances or GET /api/fragrances/:id
     if (event.httpMethod === 'GET') {
-      if (segments.length === 0) {
+      if (!id) {
         // Get all fragrances
         return {
           statusCode: 200,
@@ -73,7 +76,6 @@ exports.handler = async (event, context) => {
         };
       } else {
         // Get single fragrance
-        const id = segments[0];
         const fragrance = fragrances.find(f => f.id === id);
         
         if (!fragrance) {
@@ -106,8 +108,7 @@ exports.handler = async (event, context) => {
     }
 
     // PUT /api/fragrances/:id
-    if (event.httpMethod === 'PUT') {
-      const id = segments[0];
+    if (event.httpMethod === 'PUT' && id) {
       const index = fragrances.findIndex(f => f.id === id);
       
       if (index === -1) {
@@ -129,8 +130,7 @@ exports.handler = async (event, context) => {
     }
 
     // DELETE /api/fragrances/:id
-    if (event.httpMethod === 'DELETE') {
-      const id = segments[0];
+    if (event.httpMethod === 'DELETE' && id) {
       const initialLength = fragrances.length;
       fragrances = fragrances.filter(f => f.id !== id);
       
