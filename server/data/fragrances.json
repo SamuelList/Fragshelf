@@ -170,5 +170,48 @@
       "Citrus": 0
     },
     "id": "1763313351712"
+  },
+  {
+    "brand": "Rasasi",
+    "name": "Hawas Ice",
+    "imageUrl": "https://media.parfumo.com/perfumes/43/436fef-hawas-ice-rasasi_1200.jpg?width=720&aspect_ratio=1:1",
+    "seasons": {
+      "spring": 35,
+      "summer": 36,
+      "autumn": 20,
+      "winter": 9
+    },
+    "occasions": {
+      "daily": 24,
+      "business": 13,
+      "leisure": 24,
+      "sport": 17,
+      "evening": 10,
+      "night out": 12
+    },
+    "types": {
+      "Animalic": 0,
+      "Aquatic": 15,
+      "Floral": 0,
+      "Chypre": 0,
+      "Creamy": 0,
+      "Earthy": 0,
+      "Fougere": 0,
+      "Fresh": 20,
+      "Fruity": 19,
+      "Gourmand": 0,
+      "Green": 0,
+      "Woody": 0,
+      "Leathery": 0,
+      "Oriental": 0,
+      "Powdery": 0,
+      "Smoky": 0,
+      "Resinous": 0,
+      "Sweet": 19,
+      "Synthetic": 15,
+      "Spicy": 0,
+      "Citrus": 12
+    },
+    "id": "1763317264047"
   }
 ]
