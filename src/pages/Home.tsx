@@ -38,6 +38,9 @@ const Home = () => {
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       loadFragrances();
+    } else if (!authLoading) {
+      // Auth check complete but not authenticated, stop loading
+      setIsLoading(false);
     }
   }, [isAuthenticated, authLoading]);
 
