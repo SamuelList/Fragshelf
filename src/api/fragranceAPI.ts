@@ -1,6 +1,7 @@
 import { Fragrance } from '../types/fragrance';
 
 const API_URL = '/api';
+const STORAGE_KEY = 'user_fragrances';
 
 // Get auth token from localStorage
 const getAuthHeaders = () => {
@@ -11,14 +12,85 @@ const getAuthHeaders = () => {
   };
 };
 
+// Save fragrances to localStorage as backup
+const saveToLocalStorage = (fragrances: Fragrance[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fragrances));
+  } catch (error) {
+    console.error('Failed to save to localStorage:', error);
+  }
+};
+
+// Load fragrances from localStorage
+const loadFromLocalStorage = (): Fragrance[] | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.error('Failed to load from localStorage:', error);
+    return null;
+  }
+};
+
+// Sync localStorage backup to server
+const syncToServer = async (fragrances: Fragrance[]) => {
+  // This will be called after successful operations to keep server in sync
+  console.log('Synced', fragrances.length, 'fragrances to localStorage');
+};
+
 export const fragranceAPI = {
   // Get all fragrances
   getAll: async (): Promise<Fragrance[]> => {
-    const response = await fetch(`${API_URL}/fragrances`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to fetch fragrances');
-    return response.json();
+    try {
+      const response = await fetch(`${API_URL}/fragrances`, {
+        headers: getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch fragrances');
+      const fragrances = await response.json();
+      
+      // Check if server has reset (only has default mock data)
+      const hasToken = !!localStorage.getItem('token');
+      const backup = loadFromLocalStorage();
+      
+      if (hasToken && backup && backup.length > fragrances.length && fragrances.length === 4) {
+        // Server likely reset, restore from backup
+        console.log('Detected server reset, restoring from backup...');
+        // Re-upload all fragrances from backup
+        for (const frag of backup) {
+          if (!fragrances.find(f => f.id === frag.id)) {
+            try {
+              await fetch(`${API_URL}/fragrances`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ ...frag, id: undefined }),
+              });
+            } catch (err) {
+              console.error('Failed to restore fragrance:', err);
+            }
+          }
+        }
+        // Fetch again to get restored data
+        const restored = await fetch(`${API_URL}/fragrances`, {
+          headers: getAuthHeaders(),
+        });
+        const restoredFragrances = await restored.json();
+        saveToLocalStorage(restoredFragrances);
+        return restoredFragrances;
+      }
+      
+      // Save to localStorage as backup
+      if (hasToken) {
+        saveToLocalStorage(fragrances);
+      }
+      
+      return fragrances;
+    } catch (error) {
+      // If server fails, try to use localStorage backup
+      console.warn('Server fetch failed, using localStorage backup');
+      const backup = loadFromLocalStorage();
+      if (backup) return backup;
+      throw error;
+    }
   },
 
   // Get single fragrance
@@ -38,7 +110,14 @@ export const fragranceAPI = {
       body: JSON.stringify(fragrance),
     });
     if (!response.ok) throw new Error('Failed to create fragrance');
-    return response.json();
+    const newFragrance = await response.json();
+    
+    // Update localStorage backup
+    const stored = loadFromLocalStorage() || [];
+    stored.push(newFragrance);
+    saveToLocalStorage(stored);
+    
+    return newFragrance;
   },
 
   // Update fragrance
@@ -49,7 +128,17 @@ export const fragranceAPI = {
       body: JSON.stringify(fragrance),
     });
     if (!response.ok) throw new Error('Failed to update fragrance');
-    return response.json();
+    const updated = await response.json();
+    
+    // Update localStorage backup
+    const stored = loadFromLocalStorage() || [];
+    const index = stored.findIndex(f => f.id === id);
+    if (index !== -1) {
+      stored[index] = updated;
+      saveToLocalStorage(stored);
+    }
+    
+    return updated;
   },
 
   // Delete fragrance
@@ -64,5 +153,10 @@ export const fragranceAPI = {
       throw new Error('Failed to delete fragrance');
     }
     // 204 No Content - don't try to parse JSON
+    
+    // Update localStorage backup
+    const stored = loadFromLocalStorage() || [];
+    const filtered = stored.filter(f => f.id !== id);
+    saveToLocalStorage(filtered);
   },
 };
