@@ -14,6 +14,7 @@ const Home = () => {
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const [fragrances, setFragrances] = useState<Fragrance[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingFragrance, setEditingFragrance] = useState<Fragrance | null>(null);
   const [selectedFragrance, setSelectedFragrance] = useState<Fragrance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,12 +55,27 @@ const Home = () => {
 
   const handleAddFragrance = async (newFragrance: Omit<Fragrance, 'id'>) => {
     try {
-      const created = await fragranceAPI.create(newFragrance);
-      setFragrances([...fragrances, created]);
+      if (editingFragrance) {
+        // Update existing fragrance
+        const updated = await fragranceAPI.update(editingFragrance.id, { ...newFragrance, id: editingFragrance.id });
+        setFragrances(fragrances.map(f => f.id === editingFragrance.id ? updated : f));
+        setEditingFragrance(null);
+      } else {
+        // Create new fragrance
+        const created = await fragranceAPI.create(newFragrance);
+        setFragrances([...fragrances, created]);
+      }
+      setIsFormOpen(false);
     } catch (err) {
-      setError('Failed to add fragrance');
+      setError(editingFragrance ? 'Failed to update fragrance' : 'Failed to add fragrance');
       console.error(err);
     }
+  };
+
+  const handleEditFragrance = (fragrance: Fragrance) => {
+    setEditingFragrance(fragrance);
+    setSelectedFragrance(null);
+    setIsFormOpen(true);
   };
 
   const handleTypeSelect = (type: FragranceType | null) => {
@@ -252,8 +268,12 @@ const Home = () => {
 
       {isFormOpen && (
         <AddFragranceForm
-          onClose={() => setIsFormOpen(false)}
+          onClose={() => {
+            setIsFormOpen(false);
+            setEditingFragrance(null);
+          }}
           onSubmit={handleAddFragrance}
+          initialData={editingFragrance || undefined}
         />
       )}
 
@@ -262,6 +282,7 @@ const Home = () => {
           fragrance={selectedFragrance}
           onClose={() => setSelectedFragrance(null)}
           onDelete={handleDeleteFragrance}
+          onEdit={handleEditFragrance}
         />
       )}
     </div>

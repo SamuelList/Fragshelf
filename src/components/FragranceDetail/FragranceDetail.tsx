@@ -7,6 +7,7 @@ interface FragranceDetailProps {
   fragrance: Fragrance;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onEdit: (fragrance: Fragrance) => void;
 }
 
 const COLORS = {
@@ -56,8 +57,12 @@ function getColor(category: keyof typeof COLORS, key: string): string {
   return colorMap[lowerKey] || colorMap[key] || '#8884d8';
 }
 
-const FragranceDetail = ({ fragrance, onClose, onDelete }: FragranceDetailProps) => {
+const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDetailProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleEditClick = () => {
+    onEdit(fragrance);
+  };
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);
@@ -197,9 +202,14 @@ const FragranceDetail = ({ fragrance, onClose, onDelete }: FragranceDetailProps)
 
         <div className={styles.actions}>
           {!showDeleteConfirm ? (
-            <button className={styles.deleteButton} onClick={handleDeleteClick}>
-              Delete Fragrance
-            </button>
+            <>
+              <button className={styles.editButton} onClick={handleEditClick}>
+                Edit Fragrance
+              </button>
+              <button className={styles.deleteButton} onClick={handleDeleteClick}>
+                Delete Fragrance
+              </button>
+            </>
           ) : (
             <div className={styles.confirmDelete}>
               <p className={styles.confirmText}>Are you sure you want to delete this fragrance?</p>

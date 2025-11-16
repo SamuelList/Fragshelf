@@ -5,6 +5,7 @@ import styles from './AddFragranceForm.module.scss';
 interface AddFragranceFormProps {
   onClose: () => void;
   onSubmit: (fragrance: Omit<Fragrance, 'id'>) => void;
+  initialData?: Fragrance;
 }
 
 const allFragranceTypes: FragranceType[] = [
@@ -14,32 +15,50 @@ const allFragranceTypes: FragranceType[] = [
   'Sweet', 'Synthetic', 'Spicy', 'Citrus'
 ];
 
-const AddFragranceForm = ({ onClose, onSubmit }: AddFragranceFormProps) => {
-  const [brand, setBrand] = useState('');
-  const [name, setName] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormProps) => {
+  const [brand, setBrand] = useState(initialData?.brand || '');
+  const [name, setName] = useState(initialData?.name || '');
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
 
   // Season state
-  const [spring, setSpring] = useState(25);
-  const [summer, setSummer] = useState(25);
-  const [autumn, setAutumn] = useState(25);
-  const [winter, setWinter] = useState(25);
+  const [spring, setSpring] = useState(initialData?.seasons.spring || 25);
+  const [summer, setSummer] = useState(initialData?.seasons.summer || 25);
+  const [autumn, setAutumn] = useState(initialData?.seasons.autumn || 25);
+  const [winter, setWinter] = useState(initialData?.seasons.winter || 25);
 
   // Occasion state
-  const [daily, setDaily] = useState(20);
-  const [business, setBusiness] = useState(20);
-  const [leisure, setLeisure] = useState(20);
-  const [sport, setSport] = useState(10);
-  const [evening, setEvening] = useState(20);
-  const [nightOut, setNightOut] = useState(10);
+  const [daily, setDaily] = useState(initialData?.occasions.daily || 20);
+  const [business, setBusiness] = useState(initialData?.occasions.business || 20);
+  const [leisure, setLeisure] = useState(initialData?.occasions.leisure || 20);
+  const [sport, setSport] = useState(initialData?.occasions.sport || 10);
+  const [evening, setEvening] = useState(initialData?.occasions.evening || 20);
+  const [nightOut, setNightOut] = useState(initialData?.occasions['night out'] || 10);
 
   // Type state (using an object for all 20 types)
-  const [typeScores, setTypeScores] = useState<Record<FragranceType, number>>({
-    Animalic: 0, Aquatic: 0, Floral: 0, Chypre: 0, Creamy: 0, Earthy: 0,
-    Fougere: 0, Fresh: 25, Fruity: 0, Gourmand: 0, Green: 0, Woody: 50,
-    Leathery: 0, Oriental: 0, Powdery: 0, Smoky: 0, Resinous: 25,
-    Sweet: 0, Synthetic: 0, Spicy: 0, Citrus: 0
-  });
+  const getInitialTypeScores = (): Record<FragranceType, number> => {
+    if (initialData?.types) {
+      const scores: any = {
+        Animalic: 0, Aquatic: 0, Floral: 0, Chypre: 0, Creamy: 0, Earthy: 0,
+        Fougere: 0, Fresh: 0, Fruity: 0, Gourmand: 0, Green: 0, Woody: 0,
+        Leathery: 0, Oriental: 0, Powdery: 0, Smoky: 0, Resinous: 0,
+        Sweet: 0, Synthetic: 0, Spicy: 0, Citrus: 0
+      };
+      // Map from lowercase API data to capitalized UI keys
+      Object.entries(initialData.types).forEach(([key, value]) => {
+        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+        scores[capitalizedKey] = value;
+      });
+      return scores;
+    }
+    return {
+      Animalic: 0, Aquatic: 0, Floral: 0, Chypre: 0, Creamy: 0, Earthy: 0,
+      Fougere: 0, Fresh: 25, Fruity: 0, Gourmand: 0, Green: 0, Woody: 50,
+      Leathery: 0, Oriental: 0, Powdery: 0, Smoky: 0, Resinous: 25,
+      Sweet: 0, Synthetic: 0, Spicy: 0, Citrus: 0
+    };
+  };
+
+  const [typeScores, setTypeScores] = useState<Record<FragranceType, number>>(getInitialTypeScores());
 
   const handleTypeChange = (type: FragranceType, value: number) => {
     setTypeScores(prev => ({ ...prev, [type]: value }));
@@ -68,10 +87,8 @@ const AddFragranceForm = ({ onClose, onSubmit }: AddFragranceFormProps) => {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2>Add New Fragrance</h2>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
-        </div>
+        <button className={styles.closeButton} onClick={onClose}>×</button>
+        <h2 className={styles.title}>{initialData ? 'Edit Fragrance' : 'Add New Fragrance'}</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {/* Basic Info */}
