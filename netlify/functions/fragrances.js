@@ -197,11 +197,15 @@ exports.handler = async (event) => {
 
     // DELETE /api/fragrances/:id
     if (event.httpMethod === 'DELETE' && id) {
+      console.log('DELETE request:', { id, userId, parsedId: parseInt(id), parsedUserId: parseInt(userId) });
+      
       const result = await sql`
         DELETE FROM fragrances 
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING id
       `;
+      
+      console.log('DELETE result:', result);
       
       if (result.length === 0) {
         return {
@@ -264,6 +268,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   } catch (error) {
+    console.error('Fragrances function error:', error);
     return {
       statusCode: 500,
       headers,

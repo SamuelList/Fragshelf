@@ -1,4 +1,4 @@
-const { getDb } = require('./db');
+const { getDb, initSchema } = require('./db');
 
 // Simple token generation (in production, use JWT)
 const generateToken = (userId) => {
@@ -34,8 +34,90 @@ exports.handler = async (event) => {
   try {
     const sql = getDb();
 
-    // LOGIN
-    if (path === '/login' && event.httpMethod === 'POST') {
+    // SIGNUP
+    if (path === '/signup' && event.httpMethod === 'POST') {
+      const { username, password } = JSON.parse(event.body);
+
+      if (!username || !password) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ message: 'Username and password required' }),
+        };
+      }
+
+      if (password.length < 6) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ message: 'Password must be at least 6 characters' }),
+        };
+      }
+
+      try {
+        // Check if username already exists
+        const existing = await sql`
+          SELECT id FROM users WHERE username = ${username}
+        `;
+
+        if (existing.length > 0) {
+          return {
+            statusCode: 409,
+            headers,
+            body: JSON.stringify({ message: 'Username already exists' }),
+          };
+        }
+
+        // Create new user
+        const newUsers = await sql`
+          INSERT INTO users (username, password)
+          VALUES (${username}, ${password})
+          RETURNING id, username
+        `;
+
+        const newUser = newUsers[0];
+        const token = generateToken(String(newUser.id));
+
+        return {
+          statusCode: 201,
+          headers,
+          body: JSON.stringify({
+            user: { id: String(newUser.id), username: newUser.username },
+            token,
+          }),
+        };
+      } catch (dbError) {
+        // If error is "relation does not exist", tables need to be created
+        if (dbError.message && dbError.message.includes('relation') && dbError.message.includes('does not exist')) {
+          console.log('Tables do not exist, initializing schema...');
+          try {
+            await initSchema();
+            // Retry the signup after creating tables
+            const newUsers = await sql`
+              INSERT INTO users (username, password)
+              VALUES (${username}, ${password})
+              RETURNING id, username
+            `;
+
+            const newUser = newUsers[0];
+            const token = generateToken(String(newUser.id));
+
+            return {
+              statusCode: 201,
+              headers,
+              body: JSON.stringify({
+                user: { id: String(newUser.id), username: newUser.username },
+                token,
+              }),
+            };
+          } catch (retryError) {
+            console.error('Failed to initialize schema or create user:', retryError);
+            throw retryError;
+          }
+        }
+        throw dbError;
+      }
+    }
       const { username, password } = JSON.parse(event.body);
 
       if (!username || !password) {
@@ -120,6 +202,44 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify({
           user: { id: String(newUser.id), username: newUser.username },
+          token,
+        }),
+      }
+    }
+
+    // LOGIN
+    if (path === '/login' && event.httpMethod === 'POST') {
+      const { username, password } = JSON.parse(event.body);
+
+      if (!username || !password) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ message: 'Username and password required' }),
+        };
+      }
+
+      const users = await sql`
+        SELECT id, username FROM users 
+        WHERE username = ${username} AND password = ${password}
+      `;
+
+      if (users.length === 0) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ message: 'Invalid username or password' }),
+        };
+      }
+
+      const user = users[0];
+      const token = generateToken(String(user.id));
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          user: { id: String(user.id), username: user.username },
           token,
         }),
       };
