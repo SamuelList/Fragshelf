@@ -1,0 +1,247 @@
+import { useState, useEffect, useMemo, useTransition } from 'react';
+import FilterBar from '../components/FilterBar/FilterBar';
+import FragranceGrid from '../components/FragranceGrid/FragranceGrid';
+import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
+import FragranceDetail from '../components/FragranceDetail/FragranceDetail';
+import TypeFilter from '../components/TypeFilter/TypeFilter';
+import { Fragrance, FragranceType } from '../types/fragrance';
+import { fragranceAPI } from '../api/fragranceAPI';
+import styles from './Home.module.scss';
+
+const Home = () => {
+  const [fragrances, setFragrances] = useState<Fragrance[]>([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedFragrance, setSelectedFragrance] = useState<Fragrance | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<FragranceType | null>(null);
+  const [seasonFilters, setSeasonFilters] = useState<Record<string, number>>({
+    spring: 0,
+    summer: 0,
+    autumn: 0,
+    winter: 0
+  });
+  const [occasionFilters, setOccasionFilters] = useState<Record<string, number>>({
+    daily: 0,
+    business: 0,
+    leisure: 0,
+    sport: 0,
+    evening: 0,
+    'night out': 0
+  });
+  const [isPending, startTransition] = useTransition();
+
+  // Load fragrances on mount
+  useEffect(() => {
+    loadFragrances();
+  }, []);
+
+  const loadFragrances = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fragranceAPI.getAll();
+      setFragrances(data);
+    } catch (err) {
+      setError('Failed to load fragrances. Make sure the server is running.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddFragrance = async (newFragrance: Omit<Fragrance, 'id'>) => {
+    try {
+      const created = await fragranceAPI.create(newFragrance);
+      setFragrances([...fragrances, created]);
+    } catch (err) {
+      setError('Failed to add fragrance');
+      console.error(err);
+    }
+  };
+
+  const handleTypeSelect = (type: FragranceType | null) => {
+    console.log('Selected type:', type);
+    startTransition(() => {
+      setSelectedType(type);
+    });
+  };
+
+  const handleFragranceClick = (fragrance: Fragrance) => {
+    setSelectedFragrance(fragrance);
+  };
+
+  const handleSeasonFilterChange = (filters: Record<string, number>) => {
+    setSeasonFilters(filters);
+  };
+
+  const handleOccasionFilterChange = (filters: Record<string, number>) => {
+    setOccasionFilters(filters);
+  };
+
+  const activeSeasonCount = useMemo(() => {
+    return Object.values(seasonFilters).filter(v => v > 0).length;
+  }, [seasonFilters]);
+
+  const activeOccasionCount = useMemo(() => {
+    return Object.values(occasionFilters).filter(v => v > 0).length;
+  }, [occasionFilters]);
+
+  // Calculate available types and their popularity
+  const availableTypes = useMemo(() => {
+    const typeScores: Record<string, number> = {};
+    
+    fragrances.forEach(fragrance => {
+      Object.entries(fragrance.types).forEach(([type, percentage]) => {
+        if (percentage > 0) {
+          typeScores[type] = (typeScores[type] || 0) + percentage;
+        }
+      });
+    });
+    
+    // Sort by total score (most popular first)
+    return Object.entries(typeScores)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type]) => type as FragranceType);
+  }, [fragrances]);
+
+  // Filter and sort fragrances based on selected type, seasons, and occasions
+  const filteredFragrances = useMemo(() => {
+    let result = [...fragrances];
+    
+    // Apply type filter
+    if (selectedType) {
+      result = result.filter(fragrance => {
+        const typeValue = fragrance.types[selectedType];
+        return typeValue && typeValue > 0;
+      });
+    }
+    
+    // Apply season filters
+    const activeSeasonFilters = Object.entries(seasonFilters).filter(([_, value]) => value > 0);
+    if (activeSeasonFilters.length > 0) {
+      result = result.filter(fragrance => {
+        return activeSeasonFilters.every(([season, threshold]) => {
+          const seasonValue = fragrance.seasons[season as keyof typeof fragrance.seasons] || 0;
+          return seasonValue >= threshold;
+        });
+      });
+    }
+    
+    // Apply occasion filters
+    const activeOccasionFilters = Object.entries(occasionFilters).filter(([_, value]) => value > 0);
+    if (activeOccasionFilters.length > 0) {
+      result = result.filter(fragrance => {
+        return activeOccasionFilters.every(([occasion, threshold]) => {
+          const occasionValue = fragrance.occasions[occasion as keyof typeof fragrance.occasions] || 0;
+          return occasionValue >= threshold;
+        });
+      });
+    }
+    
+    // Sort by the selected type percentage if a type is selected
+    if (selectedType) {
+      result.sort((a, b) => {
+        const aValue = a.types[selectedType] || 0;
+        const bValue = b.types[selectedType] || 0;
+        return bValue - aValue;
+      });
+    }
+    
+    return result;
+  }, [fragrances, selectedType, seasonFilters, occasionFilters]);
+
+  if (isLoading) {
+    return (
+      <div className={styles.home}>
+        <FilterBar 
+          seasonFilters={seasonFilters}
+          occasionFilters={occasionFilters}
+          onSeasonFilterChange={handleSeasonFilterChange}
+          onOccasionFilterChange={handleOccasionFilterChange}
+          activeSeasonCount={activeSeasonCount}
+          activeOccasionCount={activeOccasionCount}
+          resultCount={0}
+        />
+        <div className={styles.loading}>Loading fragrances...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.home}>
+        <FilterBar 
+          seasonFilters={seasonFilters}
+          occasionFilters={occasionFilters}
+          onSeasonFilterChange={handleSeasonFilterChange}
+          onOccasionFilterChange={handleOccasionFilterChange}
+          activeSeasonCount={activeSeasonCount}
+          activeOccasionCount={activeOccasionCount}
+          resultCount={0}
+        />
+        <div className={styles.error}>
+          {error}
+          <button onClick={loadFragrances} className={styles.retryButton}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.home}>
+      <FilterBar 
+        seasonFilters={seasonFilters}
+        occasionFilters={occasionFilters}
+        onSeasonFilterChange={handleSeasonFilterChange}
+        onOccasionFilterChange={handleOccasionFilterChange}
+        activeSeasonCount={activeSeasonCount}
+        activeOccasionCount={activeOccasionCount}
+        resultCount={filteredFragrances.length}
+      />
+      <TypeFilter 
+        selectedType={selectedType}
+        onTypeSelect={handleTypeSelect}
+        availableTypes={availableTypes}
+      />
+      <div key={`results-${selectedType || 'all'}-${activeSeasonCount}-${activeOccasionCount}`}>
+        {availableTypes.length > 0 && (
+          <div className={styles.resultsCount}>
+            {filteredFragrances.length} {filteredFragrances.length === 1 ? 'fragrance' : 'fragrances'}
+            {selectedType && ` with ${selectedType}`}
+          </div>
+        )}
+        <FragranceGrid 
+          fragrances={filteredFragrances}
+          onFragranceClick={handleFragranceClick}
+        />
+      </div>
+      
+      <button 
+        className={styles.fab}
+        onClick={() => setIsFormOpen(true)}
+        aria-label="Add fragrance"
+      >
+        +
+      </button>
+
+      {isFormOpen && (
+        <AddFragranceForm
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleAddFragrance}
+        />
+      )}
+
+      {selectedFragrance && (
+        <FragranceDetail
+          fragrance={selectedFragrance}
+          onClose={() => setSelectedFragrance(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Home;
