@@ -243,11 +243,13 @@ const Home = () => {
         activeOccasionCount={activeOccasionCount}
         resultCount={filteredFragrances.length}
       />
-      <TypeFilter 
-        selectedType={selectedType}
-        onTypeSelect={handleTypeSelect}
-        availableTypes={availableTypes}
-      />
+      {fragrances.length > 0 && (
+        <TypeFilter 
+          selectedType={selectedType}
+          onTypeSelect={handleTypeSelect}
+          availableTypes={availableTypes}
+        />
+      )}
       <div key={`results-${selectedType || 'all'}-${activeSeasonCount}-${activeOccasionCount}`}>
         {filteredFragrances.length === 0 && isAuthenticated ? (
           <div className={styles.emptyState}>
