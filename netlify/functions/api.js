@@ -12,6 +12,46 @@ const DATA_FILE = path.join(__dirname, '../../data/fragrances.json');
 
 app.use(express.json());
 
+// Mock data for initial setup
+const MOCK_DATA = [
+  {
+    id: '1',
+    brand: 'Dior',
+    name: 'Sauvage',
+    imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400',
+    seasons: { spring: 20, summer: 35, autumn: 25, winter: 20 },
+    occasions: { daily: 30, business: 20, leisure: 25, sport: 10, evening: 10, 'night out': 5 },
+    types: { fresh: 40, spicy: 30, woody: 20, citrus: 10 }
+  },
+  {
+    id: '2',
+    brand: 'Chanel',
+    name: 'Bleu de Chanel',
+    imageUrl: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=400',
+    seasons: { spring: 25, summer: 25, autumn: 25, winter: 25 },
+    occasions: { daily: 20, business: 35, leisure: 20, sport: 5, evening: 15, 'night out': 5 },
+    types: { woody: 35, fresh: 25, citrus: 20, spicy: 20 }
+  },
+  {
+    id: '3',
+    brand: 'Creed',
+    name: 'Aventus',
+    imageUrl: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400',
+    seasons: { spring: 30, summer: 40, autumn: 20, winter: 10 },
+    occasions: { daily: 15, business: 25, leisure: 20, sport: 10, evening: 20, 'night out': 10 },
+    types: { fruity: 35, fresh: 25, woody: 20, spicy: 20 }
+  },
+  {
+    id: '4',
+    brand: 'Tom Ford',
+    name: 'Oud Wood',
+    imageUrl: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400',
+    seasons: { spring: 10, summer: 10, autumn: 35, winter: 45 },
+    occasions: { daily: 5, business: 15, leisure: 15, sport: 0, evening: 35, 'night out': 30 },
+    types: { woody: 50, oriental: 30, spicy: 15, resinous: 5 }
+  }
+];
+
 // Ensure data directory exists
 async function ensureDataDir() {
   const dataDir = path.join(__dirname, '../../data');
@@ -28,7 +68,9 @@ async function readFragrances() {
     const data = await fs.readFile(DATA_FILE, 'utf-8');
     return JSON.parse(data);
   } catch (error) {
-    return [];
+    // Initialize with mock data if file doesn't exist
+    await writeFragrances(MOCK_DATA);
+    return MOCK_DATA;
   }
 }
 
@@ -39,7 +81,7 @@ async function writeFragrances(fragrances) {
 }
 
 // GET all fragrances
-app.get('/api/fragrances', async (req, res) => {
+app.get('/fragrances', async (req, res) => {
   try {
     const fragrances = await readFragrances();
     res.json(fragrances);
@@ -49,7 +91,7 @@ app.get('/api/fragrances', async (req, res) => {
 });
 
 // GET single fragrance by ID
-app.get('/api/fragrances/:id', async (req, res) => {
+app.get('/fragrances/:id', async (req, res) => {
   try {
     const fragrances = await readFragrances();
     const fragrance = fragrances.find(f => f.id === req.params.id);
@@ -65,7 +107,7 @@ app.get('/api/fragrances/:id', async (req, res) => {
 });
 
 // POST new fragrance
-app.post('/api/fragrances', async (req, res) => {
+app.post('/fragrances', async (req, res) => {
   try {
     const fragrances = await readFragrances();
     const newFragrance = {
@@ -83,7 +125,7 @@ app.post('/api/fragrances', async (req, res) => {
 });
 
 // PUT update fragrance
-app.put('/api/fragrances/:id', async (req, res) => {
+app.put('/fragrances/:id', async (req, res) => {
   try {
     const fragrances = await readFragrances();
     const index = fragrances.findIndex(f => f.id === req.params.id);
@@ -102,7 +144,7 @@ app.put('/api/fragrances/:id', async (req, res) => {
 });
 
 // DELETE fragrance
-app.delete('/api/fragrances/:id', async (req, res) => {
+app.delete('/fragrances/:id', async (req, res) => {
   try {
     const fragrances = await readFragrances();
     const filteredFragrances = fragrances.filter(f => f.id !== req.params.id);
