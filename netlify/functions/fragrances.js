@@ -82,20 +82,34 @@ exports.handler = async (event, context) => {
   const hasId = pathParts.length > 2;
   const id = hasId ? pathParts[pathParts.length - 1] : null;
 
-  // For GET requests, return public fragrances (no auth required)
+  // Check for auth token (optional for GET)
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  let userId = null;
+  let userFragrances = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    userId = verifyToken(token);
+    if (userId) {
+      userFragrances = getUserFragrances(userId);
+    }
+  }
+
+  // For GET requests
   if (event.httpMethod === 'GET') {
-    const publicFragrances = [...MOCK_DATA];
+    // If authenticated, return user's fragrances, otherwise return public
+    const fragrances = userFragrances || [...MOCK_DATA];
     
     if (!id) {
       // Get all fragrances
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify(publicFragrances)
+        body: JSON.stringify(fragrances)
       };
     } else {
       // Get single fragrance
-      const fragrance = publicFragrances.find(f => f.id === id);
+      const fragrance = fragrances.find(f => f.id === id);
       
       if (!fragrance) {
         return {
@@ -114,23 +128,11 @@ exports.handler = async (event, context) => {
   }
 
   // For non-GET requests, require authentication
-  const authHeader = event.headers.authorization || event.headers.Authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({ error: 'Unauthorized' })
-    };
-  }
-
-  const token = authHeader.substring(7);
-  const userId = verifyToken(token);
-
   if (!userId) {
     return {
       statusCode: 401,
       headers,
-      body: JSON.stringify({ error: 'Invalid token' })
+      body: JSON.stringify({ error: 'Unauthorized' })
     };
   }
 
