@@ -203,6 +203,27 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // DEBUG: View all data (remove in production!)
+    if (event.path.includes('/debug') && event.httpMethod === 'GET') {
+      const allData = {};
+      for (const [uid, frags] of userFragrances.entries()) {
+        allData[uid] = {
+          count: frags.length,
+          fragrances: frags.map(f => ({ id: f.id, brand: f.brand, name: f.name }))
+        };
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          totalUsers: userFragrances.size,
+          userData: allData,
+          timestamp: new Date().toISOString(),
+        })
+      };
+    }
+
     return {
       statusCode: 405,
       headers,

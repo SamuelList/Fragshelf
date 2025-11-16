@@ -161,6 +161,19 @@ exports.handler = async (event) => {
       };
     }
 
+    // DEBUG: View all users (remove in production!)
+    if (path === '/debug' && event.httpMethod === 'GET') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          users: users.map(u => ({ id: u.id, username: u.username })),
+          totalUsers: users.length,
+          timestamp: new Date().toISOString(),
+        }),
+      };
+    }
+
     return {
       statusCode: 404,
       headers,

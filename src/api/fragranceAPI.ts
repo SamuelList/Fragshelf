@@ -51,7 +51,7 @@ export const fragranceAPI = {
         console.log('Detected server reset, restoring from backup...');
         // Re-upload all fragrances from backup
         for (const frag of backup) {
-          if (!fragrances.find((f: Fragrance) => f.id === frag.id)) {
+          if (!fragrances.find((f) => f.id === frag.id)) {
             try {
               await fetch(`${API_URL}/fragrances`, {
                 method: 'POST',
