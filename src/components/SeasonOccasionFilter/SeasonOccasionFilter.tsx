@@ -50,13 +50,13 @@ const SeasonOccasionFilter = ({ type, onClose, filters, onChange, resultCount }:
                 value={filters[option]}
                 onChange={(e) => handleSliderChange(option, Number(e.target.value))}
               />
-              <div className={styles.marks}>
+              {/* <div className={styles.marks}>
                 <span>0%</span>
                 <span>15%</span>
                 <span>25%</span>
                 <span>35%</span>
                 <span>50%</span>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>

@@ -55,7 +55,6 @@ const FilterBar = ({
       {openDropdown === 'season' && (
         <SeasonOccasionFilter
           type="season"
-          isOpen={true}
           onClose={handleClose}
           filters={seasonFilters}
           onChange={onSeasonFilterChange}
@@ -66,7 +65,6 @@ const FilterBar = ({
       {openDropdown === 'occasion' && (
         <SeasonOccasionFilter
           type="occasion"
-          isOpen={true}
           onClose={handleClose}
           filters={occasionFilters}
           onChange={onOccasionFilterChange}
