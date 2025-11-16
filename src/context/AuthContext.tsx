@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check for existing session
     const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('token', data.token);
     } catch (error) {
       throw error;
     }
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('token', data.token);
     } catch (error) {
       throw error;
     }
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
   };
 
   return (
