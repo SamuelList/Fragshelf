@@ -85,20 +85,20 @@ exports.handler = async (event, context) => {
   // Check for auth token (optional for GET)
   const authHeader = event.headers.authorization || event.headers.Authorization;
   let userId = null;
-  let userFragrances = null;
+  let userFragrancesArray = null;
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     userId = verifyToken(token);
     if (userId) {
-      userFragrances = getUserFragrances(userId);
+      userFragrancesArray = getUserFragrances(userId);
     }
   }
 
   // For GET requests
   if (event.httpMethod === 'GET') {
     // If authenticated, return user's fragrances, otherwise return public
-    const fragrances = userFragrances || [...MOCK_DATA];
+    const fragrances = userFragrancesArray || [...MOCK_DATA];
     
     if (!id) {
       // Get all fragrances
