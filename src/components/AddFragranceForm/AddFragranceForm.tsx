@@ -60,6 +60,50 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
 
   const [typeScores, setTypeScores] = useState<Record<FragranceType, number>>(getInitialTypeScores());
 
+  const handlePasteData = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const data = JSON.parse(text);
+      
+      // Validate and set the data
+      if (data.brand) setBrand(data.brand);
+      if (data.name) setName(data.name);
+      if (data.imageUrl) setImageUrl(data.imageUrl);
+      
+      if (data.seasons) {
+        if (data.seasons.spring !== undefined) setSpring(data.seasons.spring);
+        if (data.seasons.summer !== undefined) setSummer(data.seasons.summer);
+        if (data.seasons.autumn !== undefined) setAutumn(data.seasons.autumn);
+        if (data.seasons.winter !== undefined) setWinter(data.seasons.winter);
+      }
+      
+      if (data.occasions) {
+        if (data.occasions.daily !== undefined) setDaily(data.occasions.daily);
+        if (data.occasions.business !== undefined) setBusiness(data.occasions.business);
+        if (data.occasions.leisure !== undefined) setLeisure(data.occasions.leisure);
+        if (data.occasions.sport !== undefined) setSport(data.occasions.sport);
+        if (data.occasions.evening !== undefined) setEvening(data.occasions.evening);
+        if (data.occasions['night out'] !== undefined) setNightOut(data.occasions['night out']);
+      }
+      
+      if (data.types) {
+        const newTypes: any = { ...typeScores };
+        Object.entries(data.types).forEach(([key, value]) => {
+          const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+          if (capitalizedKey in newTypes) {
+            newTypes[capitalizedKey] = value;
+          }
+        });
+        setTypeScores(newTypes);
+      }
+      
+      alert('✅ Data imported successfully!');
+    } catch (error) {
+      alert('❌ Failed to paste data. Make sure you copied JSON from the Parfumo scraper.');
+      console.error('Paste error:', error);
+    }
+  };
+
   const handleTypeChange = (type: FragranceType, value: number) => {
     setTypeScores(prev => ({ ...prev, [type]: value }));
   };
@@ -89,6 +133,15 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={onClose}>×</button>
         <h2 className={styles.title}>{initialData ? 'Edit Fragrance' : 'Add New Fragrance'}</h2>
+
+        <button 
+          type="button" 
+          onClick={handlePasteData}
+          className={styles.pasteButton}
+          title="Paste data from Parfumo scraper"
+        >
+          📋 Paste from Parfumo
+        </button>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {/* Basic Info */}
