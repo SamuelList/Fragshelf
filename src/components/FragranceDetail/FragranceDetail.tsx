@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Fragrance } from '../../types/fragrance';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { getChartColor } from '../../constants/colors';
 import styles from './FragranceDetail.module.scss';
 
@@ -60,10 +60,6 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
       value
     }))
     .sort((a, b) => b.value - a.value);
-
-  const renderCustomLabel = (entry: any) => {
-    return `${entry.value}%`;
-  };
 
   const renderLegendList = (data: any[], category: 'seasons' | 'occasions' | 'types') => {
     return (
