@@ -68,6 +68,14 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   // Aggregate data from all filtered fragrances
   const aggregatedData = useMemo(() => {
     const seasons: Record<string, number> = {};
