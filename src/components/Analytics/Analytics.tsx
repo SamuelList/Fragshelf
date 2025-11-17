@@ -1,58 +1,12 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Fragrance } from '../../types/fragrance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { CHART_COLORS, getChartColor } from '../../constants/colors';
 import styles from './Analytics.module.scss';
 
 interface AnalyticsProps {
   fragrances: Fragrance[];
   onClose: () => void;
-}
-
-const COLORS = {
-  seasons: {
-    spring: '#badc82',  // Light green
-    summer: '#fed766',  // Gold/Yellow
-    autumn: '#d9b1be',  // Dark orange
-    winter: '#a2cbff'   // Steel blue
-  },
-  occasions: {
-    daily: '#a7ddf3',       // Sky blue
-    business: '#c1c1c1',    // Slate gray
-    leisure: '#f6ea86',     // Mint green
-    sport: '#98e5d1',       // Tomato red
-    evening: '#f480ac',     // Medium purple (lighter)
-    'night out': '#a096e8'  // Deep pink (brighter)
-  },
-  types: {
-    woody: '#8B4513',       // Saddle brown
-    fresh: '#8fb5ff',       // Dark turquoise
-    citrus: '#ebe25b',      // Orange
-    spicy: '#DC143C',       // Crimson
-    oriental: '#DAA520',    // Goldenrod
-    floral: '#FF69B4',      // Hot pink
-    fruity: '#fe95db',      // Deep pink
-    aquatic: '#1E90FF',     // Dodger blue
-    gourmand: '#D2691E',    // Chocolate
-    green: '#32CD32',       // Lime green (brighter)
-    powdery: '#E6E6FA',     // Lavender
-    leathery: '#8B4513',    // Saddle brown
-    smoky: '#808080',       // Gray (lighter)
-    resinous: '#CD853F',    // Peru
-    sweet: '#FFB6C1',       // Light pink
-    earthy: '#A0522D',      // Sienna
-    creamy: '#F5DEB3',      // Wheat (darker)
-    fougere: '#6B8E23',     // Olive drab
-    chypre: '#556B2F',      // Dark olive green
-    animalic: '#A0522D',    // Sienna
-    synthetic: '#C0C0C0'    // Silver
-  }
-};
-
-// Helper function to get color with case-insensitive key lookup
-function getColor(category: keyof typeof COLORS, key: string): string {
-  const colorMap = COLORS[category] as Record<string, string>;
-  const lowerKey = key.toLowerCase();
-  return colorMap[lowerKey] || colorMap[key] || '#8884d8';
 }
 
 const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
@@ -129,14 +83,14 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
     return { seasonsData, occasionsData, typesData };
   }, [fragrances]);
 
-  const renderLegendList = (data: any[], category: keyof typeof COLORS) => {
+  const renderLegendList = (data: any[], category: keyof typeof CHART_COLORS) => {
     return (
       <div className={styles.legendList}>
         {data.map((entry, index) => (
           <div key={`legend-${index}`} className={styles.legendItem}>
             <span 
               className={styles.legendColor} 
-              style={{ backgroundColor: getColor(category, entry.name) }}
+              style={{ backgroundColor: getChartColor(category, entry.name) }}
             />
             <span className={styles.legendText}>{entry.name}</span>
             <span className={styles.legendValue}>{entry.value}%</span>
@@ -178,7 +132,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                         dataKey="value"
                       >
                         {aggregatedData.seasonsData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColor('seasons', entry.name)} />
+                          <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => `${value}%`} />
@@ -211,7 +165,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                         dataKey="value"
                       >
                         {aggregatedData.occasionsData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColor('occasions', entry.name)} />
+                          <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => `${value}%`} />
@@ -244,7 +198,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                         dataKey="value"
                       >
                         {aggregatedData.typesData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColor('types', entry.name)} />
+                          <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => `${value}%`} />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Fragrance } from '../../types/fragrance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { getChartColor } from '../../constants/colors';
 import styles from './FragranceDetail.module.scss';
 
 interface FragranceDetailProps {
@@ -8,53 +9,6 @@ interface FragranceDetailProps {
   onClose: () => void;
   onDelete: (id: string) => void;
   onEdit: (fragrance: Fragrance) => void;
-}
-
-const COLORS = {
-  seasons: {
-    spring: '#90EE90',  // Light green
-    summer: '#FFD700',  // Gold/Yellow
-    autumn: '#FF8C00',  // Dark orange
-    winter: '#4682B4'   // Steel blue
-  },
-  occasions: {
-    daily: '#87CEEB',       // Sky blue
-    business: '#708090',    // Slate gray
-    leisure: '#98D8C8',     // Mint green
-    sport: '#FF6347',       // Tomato red
-    evening: '#9370DB',     // Medium purple (lighter)
-    'night out': '#FF1493'  // Deep pink (brighter)
-  },
-  types: {
-    woody: '#8B4513',       // Saddle brown
-    fresh: '#00CED1',       // Dark turquoise
-    citrus: '#FFA500',      // Orange
-    spicy: '#DC143C',       // Crimson
-    oriental: '#DAA520',    // Goldenrod
-    floral: '#FF69B4',      // Hot pink
-    fruity: '#FF1493',      // Deep pink
-    aquatic: '#1E90FF',     // Dodger blue
-    gourmand: '#D2691E',    // Chocolate
-    green: '#32CD32',       // Lime green (brighter)
-    powdery: '#E6E6FA',     // Lavender
-    leathery: '#8B4513',    // Saddle brown
-    smoky: '#808080',       // Gray (lighter)
-    resinous: '#CD853F',    // Peru
-    sweet: '#FFB6C1',       // Light pink
-    earthy: '#A0522D',      // Sienna
-    creamy: '#F5DEB3',      // Wheat (darker)
-    fougere: '#6B8E23',     // Olive drab
-    chypre: '#556B2F',      // Dark olive green
-    animalic: '#A0522D',    // Sienna
-    synthetic: '#C0C0C0'    // Silver
-  }
-};
-
-// Helper function to get color with case-insensitive key lookup
-function getColor(category: keyof typeof COLORS, key: string): string {
-  const colorMap = COLORS[category] as Record<string, string>;
-  const lowerKey = key.toLowerCase();
-  return colorMap[lowerKey] || colorMap[key] || '#8884d8';
 }
 
 const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDetailProps) => {
@@ -140,7 +94,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDeta
                   dataKey="value"
                 >
                   {seasonsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getColor('seasons', entry.name)} />
+                    <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => `${value}%`} />
@@ -165,7 +119,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDeta
                   dataKey="value"
                 >
                   {occasionsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getColor('occasions', entry.name)} />
+                    <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => `${value}%`} />
@@ -190,7 +144,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDeta
                   dataKey="value"
                 >
                   {typesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getColor('types', entry.name)} />
+                    <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => `${value}%`} />
