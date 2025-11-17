@@ -40,7 +40,7 @@ const QuickPicker = ({ fragrances, onClose }: QuickPickerProps) => {
     const nightOut = frag.occasions['night out'] || 0;
 
     const professional = business + (daily / 2);
-    const casual = daily + leisure + sport;
+    const casual = (daily + leisure + sport) / 2;
     const specialOccasion = (evening + nightOut) / 2;
 
     return {
@@ -63,9 +63,9 @@ const QuickPicker = ({ fragrances, onClose }: QuickPickerProps) => {
 
     const filtered = fragrances
       .filter(frag => {
-        // Must have at least 10% of selected season
+        // Must have at least 20% of selected season
         const seasonScore = frag.seasons[selectedSeason] || 0;
-        return seasonScore >= 10;
+        return seasonScore >= 20;
       })
       .map(frag => {
         const scores = categorizeFragrance(frag);
