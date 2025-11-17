@@ -58,10 +58,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
     const seasonScore = frag.seasons[season] || 0;
-    const allSeasons = Object.entries(frag.seasons)
-      .filter(([_, value]) => value > 0)
-      .sort((a, b) => b[1] - a[1]);
-    
     const occasionScores = {
       daily: frag.occasions.daily || 0,
       business: frag.occasions.business || 0,
@@ -71,126 +67,93 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       nightOut: frag.occasions['night out'] || 0
     };
 
+    // Calculate the relevant occasion score
+    let relevantScore = 0;
+    let scoreName = '';
+    if (occasion === 'Professional') {
+      relevantScore = Math.round(occasionScores.business + (occasionScores.daily / 2));
+      scoreName = 'professional';
+    } else if (occasion === 'Casual') {
+      relevantScore = Math.round((occasionScores.daily + occasionScores.leisure + occasionScores.sport) / 2);
+      scoreName = 'casual';
+    } else {
+      relevantScore = Math.round((occasionScores.evening + occasionScores.nightOut) / 2);
+      scoreName = 'special occasion';
+    }
+
     const topType = Object.entries(frag.types)
       .filter(([_, value]) => value > 0)
       .sort((a, b) => b[1] - a[1])[0];
 
-    const segments: string[] = [];
+    // Build concise, conversational reason
+    const parts: string[] = [];
 
-    // Opening statement based on rank and data strength
+    // Lead with match quality
     if (rank === 0) {
-      if (seasonScore >= 90) {
-        segments.push("Absolutely built for this");
-      } else if (seasonScore >= 70) {
-        segments.push("Your top match here");
-      } else {
-        segments.push("Best available option");
-      }
+      parts.push(`Perfect for ${season}`);
     } else if (rank === 1) {
-      segments.push("Strong alternative");
+      parts.push(`Great ${season} choice`);
     } else {
-      segments.push("Worth considering");
+      parts.push(`Solid ${season} pick`);
     }
 
-    // Season analysis with nuance
-    if (allSeasons.length === 1) {
-      segments.push(`exclusively a ${allSeasons[0][0]} fragrance (${allSeasons[0][1]}% peak performance)`);
-    } else if (seasonScore >= 80) {
-      segments.push(`thrives in ${season} (${seasonScore}%)`);
-    } else if (seasonScore >= 60) {
-      const topSeason = allSeasons[0];
-      if (topSeason[0] !== season) {
-        segments.push(`designed for ${topSeason[0]} (${topSeason[1]}%) but adapts well to ${season}`);
-      } else {
-        segments.push(`solid ${season} performer at ${seasonScore}%`);
-      }
-    } else if (seasonScore >= 40) {
-      segments.push(`works in ${season} though not its strongest season`);
-    } else {
-      segments.push(`versatile enough for ${season}`);
+    parts.push(`with a ${seasonScore}% seasonal rating`);
+
+    // Add occasion context
+    if (relevantScore >= 70) {
+      parts.push(`and a strong ${scoreName} score of ${relevantScore}`);
+    } else if (relevantScore >= 50) {
+      parts.push(`plus ${relevantScore} for ${scoreName} wear`);
+    } else if (relevantScore >= 30) {
+      parts.push(`with ${relevantScore} ${scoreName} points`);
     }
 
-    // Occasion intelligence
-    if (occasion === 'Professional') {
-      if (occasionScores.business >= 80) {
-        segments.push("explicitly crafted for boardroom presence");
-      } else if (occasionScores.business >= 60) {
-        segments.push("business-appropriate with confidence");
-      } else if (occasionScores.daily >= 70) {
-        segments.push("daily-wear that translates perfectly to professional settings");
-      } else {
-        segments.push("maintains workplace decorum");
-      }
-      
-      if (topType && topType[0] === 'Eau de Toilette') {
-        segments.push("lighter concentration prevents overwhelming colleagues");
-      } else if (topType && topType[0] === 'Eau de Parfum' && occasionScores.business < 60) {
-        segments.push("apply sparingly for office environments");
-      }
-    } else if (occasion === 'Casual') {
-      if (occasionScores.leisure >= 70 && occasionScores.sport >= 50) {
-        segments.push("effortlessly transitions from weekend activities to relaxed social settings");
-      } else if (occasionScores.daily >= 80) {
-        segments.push("dependable daily driver with universal appeal");
-      } else if (occasionScores.leisure >= 60) {
-        segments.push("perfect for laid-back moments");
-      } else {
-        segments.push("versatile enough for casual wear");
-      }
-
-      if (topType && topType[0] === 'Cologne') {
-        segments.push("refreshing cologne keeps things easygoing");
-      }
-    } else {
-      if (occasionScores.evening >= 80 || occasionScores.nightOut >= 80) {
-        segments.push("specifically engineered for evening sophistication");
-      } else if (occasionScores.evening >= 60) {
-        segments.push("elevates special moments with refined presence");
-      } else {
-        segments.push("rises to special occasions");
-      }
-
-      if (topType && topType[0] === 'Perfume') {
-        segments.push("pure perfume intensity commands attention");
-      } else if (topType && topType[0] === 'Eau de Parfum') {
-        segments.push("rich concentration ensures lasting impression");
+    // Add type insight if strong
+    if (topType && topType[1] >= 80) {
+      const typeComments: { [key: string]: string } = {
+        'Eau de Parfum': 'long-lasting EDP',
+        'Eau de Toilette': 'fresh EDT',
+        'Cologne': 'light cologne',
+        'Perfume': 'intense perfume'
+      };
+      const comment = typeComments[topType[0]];
+      if (comment) {
+        parts.push(`this ${comment} delivers`);
       }
     }
 
-    // Type and longevity insight
-    if (topType) {
-      const [typeName, typePercentage] = topType;
-      if (typePercentage >= 80) {
-        if (typeName === 'Eau de Parfum') {
-          segments.push("6-8 hour longevity expected");
-        } else if (typeName === 'Eau de Toilette') {
-          segments.push("4-6 hour wear time");
-        } else if (typeName === 'Cologne') {
-          segments.push("2-4 hour freshness, ideal for reapplication");
-        } else if (typeName === 'Perfume') {
-          segments.push("8-12+ hour staying power");
-        }
-      }
-    }
-
-    // Versatility score
-    const versatilityScore = allSeasons.filter(([_, v]) => v >= 40).length;
-    const occasionCount = Object.values(occasionScores).filter(v => v >= 40).length;
-    
-    if (versatilityScore >= 3 && occasionCount >= 4) {
-      segments.push("remarkably versatile across contexts");
-    } else if (versatilityScore === 1 || occasionCount <= 2) {
-      segments.push("specialized rather than jack-of-all-trades");
-    }
-
-    // Personal preference bonus
+    // Personal touch ending
     if (frag.liked === true) {
-      segments.push("✨ already a personal favorite");
-    } else if (frag.liked === false && rank > 0) {
-      segments.push("might surprise you despite previous thoughts");
+      const endings = [
+        "no wonder you gave it thumbs up!",
+        "already one of your favorites!",
+        "and you already love it!",
+        "you know it's good!"
+      ];
+      parts.push(endings[Math.floor(Math.random() * endings.length)]);
+    } else if (frag.liked === false) {
+      parts.push("maybe give it another chance?");
+    } else {
+      const neutralEndings = [
+        "worth trying out!",
+        "give it a shot!",
+        "could be your next favorite!",
+        "ready when you are!"
+      ];
+      parts.push(neutralEndings[Math.floor(Math.random() * neutralEndings.length)]);
     }
 
-    return segments.join(', ') + '.';
+    // Join with proper grammar
+    const mainParts = parts.slice(0, -1);
+    const ending = parts[parts.length - 1];
+    
+    if (mainParts.length === 2) {
+      return `${mainParts[0]} ${mainParts[1]}, ${ending}`;
+    } else if (mainParts.length === 3) {
+      return `${mainParts[0]} ${mainParts[1]}, ${mainParts[2]}, ${ending}`;
+    } else {
+      return `${mainParts.join(', ')}, ${ending}`;
+    }
   };
 
   const handleOccasionSelect = (occasion: OccasionCategory) => {
