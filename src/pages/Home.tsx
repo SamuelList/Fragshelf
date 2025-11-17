@@ -6,6 +6,7 @@ import FragranceDetail from '../components/FragranceDetail/FragranceDetail';
 import TypeFilter from '../components/TypeFilter/TypeFilter';
 import AuthModal from '../components/Auth/AuthModal';
 import Analytics from '../components/Analytics/Analytics';
+import QuickPicker from '../components/QuickPicker/QuickPicker';
 import { Fragrance, FragranceType } from '../types/fragrance';
 import { fragranceAPI } from '../api/fragranceAPI';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +24,7 @@ const Home = () => {
   const [showSafest, setShowSafest] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [seasonFilters, setSeasonFilters] = useState<Record<string, number>>({
     spring: 0,
     summer: 0,
@@ -222,6 +224,7 @@ const Home = () => {
           activeSeasonCount={activeSeasonCount}
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
+          onQuickPickerClick={() => setShowQuickPicker(true)}
         />
         <div className={styles.loading}>Loading...</div>
       </div>
@@ -239,6 +242,7 @@ const Home = () => {
           activeSeasonCount={activeSeasonCount}
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
+          onQuickPickerClick={() => setShowQuickPicker(true)}
         />
         <div className={styles.error}>
           {error}
@@ -260,6 +264,7 @@ const Home = () => {
         activeSeasonCount={activeSeasonCount}
         activeOccasionCount={activeOccasionCount}
         resultCount={filteredFragrances.length}
+        onQuickPickerClick={() => setShowQuickPicker(true)}
       />
       {fragrances.length > 0 && (
         <TypeFilter 
@@ -354,6 +359,13 @@ const Home = () => {
         <Analytics 
           fragrances={filteredFragrances}
           onClose={() => setShowAnalytics(false)}
+        />
+      )}
+
+      {showQuickPicker && (
+        <QuickPicker
+          fragrances={fragrances}
+          onClose={() => setShowQuickPicker(false)}
         />
       )}
     </div>

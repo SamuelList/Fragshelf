@@ -10,6 +10,7 @@ interface FilterBarProps {
   activeSeasonCount: number;
   activeOccasionCount: number;
   resultCount: number;
+  onQuickPickerClick: () => void;
 }
 
 const FilterBar = ({
@@ -19,7 +20,8 @@ const FilterBar = ({
   onOccasionFilterChange,
   activeSeasonCount,
   activeOccasionCount,
-  resultCount
+  resultCount,
+  onQuickPickerClick
 }: FilterBarProps) => {
   const [openDropdown, setOpenDropdown] = useState<'season' | 'occasion' | null>(null);
 
@@ -49,6 +51,12 @@ const FilterBar = ({
           onClick={handleOccasionClick}
         >
           Occasion {activeOccasionCount > 0 && <span className={styles.badge}>{activeOccasionCount}</span>}
+        </button>
+        <button 
+          className={`${styles.filterButton} ${styles.quickPickerButton}`}
+          onClick={onQuickPickerClick}
+        >
+          ✨ Quick Picker
         </button>
       </div>
 
