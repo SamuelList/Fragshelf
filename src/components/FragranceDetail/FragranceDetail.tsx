@@ -65,6 +65,23 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     return `${entry.value}%`;
   };
 
+  const renderLegendList = (data: any[], category: 'seasons' | 'occasions' | 'types') => {
+    return (
+      <div className={styles.legendList}>
+        {data.map((entry, index) => (
+          <div key={index} className={styles.legendItem}>
+            <div 
+              className={styles.legendColor}
+              style={{ backgroundColor: getChartColor(category, entry.name) }}
+            />
+            <span className={styles.legendLabel}>{entry.name}</span>
+            <span className={styles.legendValue}>{entry.value}%</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -108,76 +125,88 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
           {/* Seasons Chart */}
           <div className={styles.chartSection}>
             <h4>Seasons</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={seasonsData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {seasonsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className={styles.chartContainer}>
+              <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={seasonsData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={false}
+                      outerRadius={70}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {seasonsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {renderLegendList(seasonsData, 'seasons')}
+            </div>
           </div>
 
           {/* Occasions Chart */}
           <div className={styles.chartSection}>
             <h4>Occasions</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={occasionsData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {occasionsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className={styles.chartContainer}>
+              <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={occasionsData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={false}
+                      outerRadius={70}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {occasionsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {renderLegendList(occasionsData, 'occasions')}
+            </div>
           </div>
 
           {/* Types Chart */}
           <div className={styles.chartSection}>
             <h4>Fragrance Types</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={typesData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomLabel}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {typesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className={styles.chartContainer}>
+              <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={typesData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={false}
+                      outerRadius={70}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {typesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {renderLegendList(typesData, 'types')}
+            </div>
           </div>
         </div>
 

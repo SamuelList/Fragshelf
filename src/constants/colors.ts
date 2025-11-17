@@ -18,23 +18,23 @@ export const CHART_COLORS = {
     fresh: '#8fb5ff',       // Dark turquoise
     citrus: '#ebe25b',      // Orange
     spicy: '#9abcb7',       // Crimson
-    oriental: '#DAA520',    // Goldenrod
-    floral: '#FF69B4',      // Hot pink
-    fruity: '#FF1493',      // Deep pink
-    aquatic: '#1E90FF',     // Dodger blue
-    gourmand: '#D2691E',    // Chocolate
+    oriental: '#c16693',    // Goldenrod
+    floral: '#dddddd',      // Hot pink
+    fruity: '#ff95dd',      // Deep pink
+    aquatic: '#8edaf2',     // Dodger blue
+    gourmand: '#ffa0ab',    // Chocolate
     green: '#32CD32',       // Lime green (brighter)
-    powdery: '#E6E6FA',     // Lavender
+    powdery: '#e6c7e1',     // Lavender
     leathery: '#8B4513',    // Saddle brown
-    smoky: '#808080',       // Gray (lighter)
-    resinous: '#CD853F',    // Peru
-    sweet: '#FFB6C1',       // Light pink
+    smoky: '#a6a6a6',       // Gray (lighter)
+    resinous: '#eab99e',    // Peru
+    sweet: '#d1a2ff',       // Light pink
     earthy: '#A0522D',      // Sienna
-    creamy: '#F5DEB3',      // Wheat (darker)
+    creamy: '#d7d7c6',      // Wheat (darker)
     fougere: '#6B8E23',     // Olive drab
     chypre: '#556B2F',      // Dark olive green
-    animalic: '#A0522D',    // Sienna
-    synthetic: '#C0C0C0'    // Silver
+    animalic: '#c5b5b7',    // Sienna
+    synthetic: '#a7bcec'    // Silver
   }
 };
 
