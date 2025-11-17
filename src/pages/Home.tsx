@@ -19,6 +19,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<FragranceType | null>(null);
+  const [showSafest, setShowSafest] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [seasonFilters, setSeasonFilters] = useState<Record<string, number>>({
     spring: 0,
@@ -92,6 +93,12 @@ const Home = () => {
 
   const handleTypeSelect = (type: FragranceType | null) => {
     setSelectedType(type);
+    setShowSafest(false);
+  };
+
+  const handleSafestToggle = () => {
+    setShowSafest(!showSafest);
+    setSelectedType(null);
   };
 
   const handleFragranceClick = (fragrance: Fragrance) => {
@@ -190,8 +197,17 @@ const Home = () => {
       });
     }
     
+    // Sort by safest (daily + business) if safest filter is active
+    if (showSafest) {
+      result.sort((a, b) => {
+        const aScore = (a.occasions.daily || 0) + (a.occasions.business || 0);
+        const bScore = (b.occasions.daily || 0) + (b.occasions.business || 0);
+        return bScore - aScore;
+      });
+    }
+    
     return result;
-  }, [fragrances, selectedType, seasonFilters, occasionFilters]);
+  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest]);
 
   if (authLoading || isLoading) {
     return (
@@ -248,6 +264,8 @@ const Home = () => {
           selectedType={selectedType}
           onTypeSelect={handleTypeSelect}
           availableTypes={availableTypes}
+          showSafest={showSafest}
+          onSafestToggle={handleSafestToggle}
         />
       )}
       <div key={`results-${selectedType || 'all'}-${activeSeasonCount}-${activeOccasionCount}`}>

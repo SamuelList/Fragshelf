@@ -5,9 +5,11 @@ interface TypeFilterProps {
   selectedType: FragranceType | null;
   onTypeSelect: (type: FragranceType | null) => void;
   availableTypes: FragranceType[];
+  showSafest: boolean;
+  onSafestToggle: () => void;
 }
 
-const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterProps) => {
+const TypeFilter = ({ selectedType, onTypeSelect, availableTypes, showSafest, onSafestToggle }: TypeFilterProps) => {
   // Only show filter if there are fragrances
   if (availableTypes.length === 0) {
     return null;
@@ -17,10 +19,16 @@ const TypeFilter = ({ selectedType, onTypeSelect, availableTypes }: TypeFilterPr
     <div className={styles.container}>
       <div className={styles.scrollContainer}>
         <button
-          className={`${styles.typeChip} ${!selectedType ? styles.selected : ''}`}
+          className={`${styles.typeChip} ${!selectedType && !showSafest ? styles.selected : ''}`}
           onClick={() => onTypeSelect(null)}
         >
           <span className={styles.typeName}>All</span>
+        </button>
+        <button
+          className={`${styles.typeChip} ${showSafest ? styles.selected : ''}`}
+          onClick={onSafestToggle}
+        >
+          <span className={styles.typeName}>Safest</span>
         </button>
         {availableTypes.map((type) => {
           const isSelected = selectedType === type;
