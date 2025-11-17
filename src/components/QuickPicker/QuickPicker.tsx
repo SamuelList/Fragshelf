@@ -58,104 +58,139 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
     const seasonScore = frag.seasons[season] || 0;
-    const topTypes = Object.entries(frag.types)
+    const allSeasons = Object.entries(frag.seasons)
       .filter(([_, value]) => value > 0)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2)
-      .map(([key]) => key);
+      .sort((a, b) => b[1] - a[1]);
+    
+    const occasionScores = {
+      daily: frag.occasions.daily || 0,
+      business: frag.occasions.business || 0,
+      leisure: frag.occasions.leisure || 0,
+      sport: frag.occasions.sport || 0,
+      evening: frag.occasions.evening || 0,
+      nightOut: frag.occasions['night out'] || 0
+    };
 
-    const reasons = [];
+    const topType = Object.entries(frag.types)
+      .filter(([_, value]) => value > 0)
+      .sort((a, b) => b[1] - a[1])[0];
 
-    // Rank-specific openers
+    const segments: string[] = [];
+
+    // Opening statement based on rank and data strength
     if (rank === 0) {
-      const openers = [
-        "Your absolute best bet!",
-        "This is THE one.",
-        "Can't go wrong here!",
-        "Chef's kiss for this combo.",
-        "The obvious winner.",
-        "Trust me on this one.",
-      ];
-      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+      if (seasonScore >= 90) {
+        segments.push("Absolutely built for this");
+      } else if (seasonScore >= 70) {
+        segments.push("Your top match here");
+      } else {
+        segments.push("Best available option");
+      }
     } else if (rank === 1) {
-      const openers = [
-        "A strong runner-up!",
-        "Nearly perfect, honestly.",
-        "This is a close second.",
-        "Also an excellent choice.",
-        "Don't sleep on this one.",
-      ];
-      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+      segments.push("Strong alternative");
     } else {
-      const openers = [
-        "A solid dark horse.",
-        "Still a great option!",
-        "Worth considering too.",
-        "The underdog pick.",
-        "Don't overlook this gem.",
-      ];
-      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+      segments.push("Worth considering");
     }
 
-    // Season-specific comments
-    if (seasonScore >= 80) {
-      const seasonComments = {
-        spring: ["Pure springtime vibes", "Blooms beautifully in spring", "Spring perfection"],
-        summer: ["Made for summer heat", "Summer sunshine in a bottle", "Hot weather champion"],
-        autumn: ["Autumn leaves energy", "Cozy fall vibes", "Peak autumn mood"],
-        winter: ["Cold weather king", "Winter wonderland ready", "Handles the chill perfectly"]
-      };
-      reasons.push(seasonComments[season][Math.floor(Math.random() * seasonComments[season].length)]);
+    // Season analysis with nuance
+    if (allSeasons.length === 1) {
+      segments.push(`exclusively a ${allSeasons[0][0]} fragrance (${allSeasons[0][1]}% peak performance)`);
+    } else if (seasonScore >= 80) {
+      segments.push(`thrives in ${season} (${seasonScore}%)`);
+    } else if (seasonScore >= 60) {
+      const topSeason = allSeasons[0];
+      if (topSeason[0] !== season) {
+        segments.push(`designed for ${topSeason[0]} (${topSeason[1]}%) but adapts well to ${season}`);
+      } else {
+        segments.push(`solid ${season} performer at ${seasonScore}%`);
+      }
+    } else if (seasonScore >= 40) {
+      segments.push(`works in ${season} though not its strongest season`);
+    } else {
+      segments.push(`versatile enough for ${season}`);
     }
 
-    // Occasion-specific flavor
+    // Occasion intelligence
     if (occasion === 'Professional') {
-      const biz = [
-        "won't overpower the boardroom",
-        "office-friendly and sharp",
-        "gets business done",
-        "professional but memorable"
-      ];
-      reasons.push(biz[Math.floor(Math.random() * biz.length)]);
+      if (occasionScores.business >= 80) {
+        segments.push("explicitly crafted for boardroom presence");
+      } else if (occasionScores.business >= 60) {
+        segments.push("business-appropriate with confidence");
+      } else if (occasionScores.daily >= 70) {
+        segments.push("daily-wear that translates perfectly to professional settings");
+      } else {
+        segments.push("maintains workplace decorum");
+      }
+      
+      if (topType && topType[0] === 'Eau de Toilette') {
+        segments.push("lighter concentration prevents overwhelming colleagues");
+      } else if (topType && topType[0] === 'Eau de Parfum' && occasionScores.business < 60) {
+        segments.push("apply sparingly for office environments");
+      }
     } else if (occasion === 'Casual') {
-      const chill = [
-        "easygoing and versatile",
-        "perfect for everyday wear",
-        "relaxed but refined",
-        "weekend warrior approved"
-      ];
-      reasons.push(chill[Math.floor(Math.random() * chill.length)]);
-    } else {
-      const fancy = [
-        "makes an impression",
-        "special occasion ready",
-        "turns heads for sure",
-        "evening magic right here"
-      ];
-      reasons.push(fancy[Math.floor(Math.random() * fancy.length)]);
-    }
+      if (occasionScores.leisure >= 70 && occasionScores.sport >= 50) {
+        segments.push("effortlessly transitions from weekend activities to relaxed social settings");
+      } else if (occasionScores.daily >= 80) {
+        segments.push("dependable daily driver with universal appeal");
+      } else if (occasionScores.leisure >= 60) {
+        segments.push("perfect for laid-back moments");
+      } else {
+        segments.push("versatile enough for casual wear");
+      }
 
-    // Type-based personality
-    if (topTypes.length > 0) {
-      const typeDescriptors: { [key: string]: string[] } = {
-        'Eau de Parfum': ['strong and lasting', 'packs a punch', 'serious staying power'],
-        'Eau de Toilette': ['light and breezy', 'refreshingly subtle', 'perfectly balanced'],
-        'Cologne': ['crisp and clean', 'fresh vibes only', 'invigorating splash'],
-        'Perfume': ['pure luxury', 'the real deal', 'maximum intensity']
-      };
-      const desc = typeDescriptors[topTypes[0]];
-      if (desc) {
-        reasons.push(desc[Math.floor(Math.random() * desc.length)]);
+      if (topType && topType[0] === 'Cologne') {
+        segments.push("refreshing cologne keeps things easygoing");
+      }
+    } else {
+      if (occasionScores.evening >= 80 || occasionScores.nightOut >= 80) {
+        segments.push("specifically engineered for evening sophistication");
+      } else if (occasionScores.evening >= 60) {
+        segments.push("elevates special moments with refined presence");
+      } else {
+        segments.push("rises to special occasions");
+      }
+
+      if (topType && topType[0] === 'Perfume') {
+        segments.push("pure perfume intensity commands attention");
+      } else if (topType && topType[0] === 'Eau de Parfum') {
+        segments.push("rich concentration ensures lasting impression");
       }
     }
 
-    // Liked bonus
-    if (frag.liked === true) {
-      const loved = ["(and you already love it! 👍)", "your personal favorite too", "you've got good taste here"];
-      reasons.push(loved[Math.floor(Math.random() * loved.length)]);
+    // Type and longevity insight
+    if (topType) {
+      const [typeName, typePercentage] = topType;
+      if (typePercentage >= 80) {
+        if (typeName === 'Eau de Parfum') {
+          segments.push("6-8 hour longevity expected");
+        } else if (typeName === 'Eau de Toilette') {
+          segments.push("4-6 hour wear time");
+        } else if (typeName === 'Cologne') {
+          segments.push("2-4 hour freshness, ideal for reapplication");
+        } else if (typeName === 'Perfume') {
+          segments.push("8-12+ hour staying power");
+        }
+      }
     }
 
-    return reasons.join(', ') + '.';
+    // Versatility score
+    const versatilityScore = allSeasons.filter(([_, v]) => v >= 40).length;
+    const occasionCount = Object.values(occasionScores).filter(v => v >= 40).length;
+    
+    if (versatilityScore >= 3 && occasionCount >= 4) {
+      segments.push("remarkably versatile across contexts");
+    } else if (versatilityScore === 1 || occasionCount <= 2) {
+      segments.push("specialized rather than jack-of-all-trades");
+    }
+
+    // Personal preference bonus
+    if (frag.liked === true) {
+      segments.push("✨ already a personal favorite");
+    } else if (frag.liked === false && rank > 0) {
+      segments.push("might surprise you despite previous thoughts");
+    }
+
+    return segments.join(', ') + '.';
   };
 
   const handleOccasionSelect = (occasion: OccasionCategory) => {
