@@ -22,8 +22,8 @@ const FragranceCard = ({ fragrance, onClick }: FragranceCardProps) => {
         />
       </div>
       <div className={styles.info}>
-        <p className={styles.brand}>{fragrance.brand}</p>
         <p className={styles.name}>{fragrance.name}</p>
+        <p className={styles.brand}>{fragrance.brand}</p>
       </div>
     </div>
   );
