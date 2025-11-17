@@ -39,8 +39,14 @@ export const fragranceAPI = {
       const response = await fetch(`${API_URL}/fragrances`, {
         headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch fragrances');
+      console.log('Server response status:', response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', response.status, errorText);
+        throw new Error('Failed to fetch fragrances');
+      }
       const fragrances = await response.json();
+      console.log('Loaded from server:', fragrances.length, 'fragrances');
       
       // Check if server has reset (only has default mock data)
       const hasToken = !!localStorage.getItem('token');
