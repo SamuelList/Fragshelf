@@ -175,8 +175,7 @@ export const fragranceAPI = {
       
       return updated;
     } catch (error) {
-      // Fallback to localStorage update if server fails
-      console.warn('Server update failed, updating localStorage only');
+      // Fallback to localStorage update if server fails (e.g., before migration runs)
       const stored = loadFromLocalStorage() || [];
       const index = stored.findIndex(f => f.id === id);
       if (index !== -1) {
