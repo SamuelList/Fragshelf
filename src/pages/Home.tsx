@@ -5,6 +5,7 @@ import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
 import FragranceDetail from '../components/FragranceDetail/FragranceDetail';
 import TypeFilter from '../components/TypeFilter/TypeFilter';
 import AuthModal from '../components/Auth/AuthModal';
+import Analytics from '../components/Analytics/Analytics';
 import { Fragrance, FragranceType } from '../types/fragrance';
 import { fragranceAPI } from '../api/fragranceAPI';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +22,7 @@ const Home = () => {
   const [selectedType, setSelectedType] = useState<FragranceType | null>(null);
   const [showSafest, setShowSafest] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [seasonFilters, setSeasonFilters] = useState<Record<string, number>>({
     spring: 0,
     summer: 0,
@@ -324,6 +326,17 @@ const Home = () => {
         />
       )}
 
+      {filteredFragrances.length > 0 && (
+        <div className={styles.analyticsSection}>
+          <button 
+            className={styles.analyticsButton}
+            onClick={() => setShowAnalytics(true)}
+          >
+            View Analytics
+          </button>
+        </div>
+      )}
+
       <div className={styles.authSection}>
         {isAuthenticated && user ? (
           <div className={styles.loggedIn}>
@@ -341,6 +354,13 @@ const Home = () => {
 
       {showAuthModal && !isAuthenticated && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
+
+      {showAnalytics && (
+        <Analytics 
+          fragrances={filteredFragrances}
+          onClose={() => setShowAnalytics(false)}
+        />
       )}
     </div>
   );

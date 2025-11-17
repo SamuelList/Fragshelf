@@ -4,6 +4,35 @@
   padding-bottom: 2rem;
 }
 
+.analyticsSection {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  margin: 2rem 1rem 0;
+}
+
+.analyticsButton {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 .authSection {
   background: white;
   padding: 2rem 1rem;
