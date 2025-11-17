@@ -81,6 +81,7 @@ export const fragranceAPI = {
     } catch (error) {
       // If server fails, try to use localStorage backup
       const backup = loadFromLocalStorage();
+      console.log('Server failed, localStorage backup:', backup ? `${backup.length} fragrances` : 'empty');
       if (backup && backup.length > 0) {
         return backup;
       }
