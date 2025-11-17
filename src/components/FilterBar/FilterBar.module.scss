@@ -8,7 +8,6 @@
   top: 0;
   z-index: 10;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  align-items: center;
 }
 
 .filterButton {
@@ -69,39 +68,5 @@
   .active & {
     background: white;
     color: #667eea;
-  }
-}
-
-.likedButtons {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-.likedButton {
-  padding: 0.5rem 0.75rem;
-  background-color: #f8f8f8;
-  border: 1px solid #d0d0d0;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: 0.5;
-
-  &:hover {
-    opacity: 0.8;
-    background-color: #e8e8e8;
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &.activeLiked {
-    opacity: 1;
-    background-color: #e8f4fd;
-    border-color: #667eea;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
   }
 }

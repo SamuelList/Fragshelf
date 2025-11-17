@@ -9,10 +9,17 @@ interface FragranceDetailProps {
   onClose: () => void;
   onDelete: (id: string) => void;
   onEdit: (fragrance: Fragrance) => void;
+  onLikeChange?: (id: string, liked: boolean | null) => void;
 }
 
-const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDetailProps) => {
+const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }: FragranceDetailProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleLikeClick = (liked: boolean | null) => {
+    if (onLikeChange) {
+      onLikeChange(fragrance.id, liked);
+    }
+  };
 
   const handleEditClick = () => {
     onEdit(fragrance);
@@ -74,6 +81,26 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit }: FragranceDeta
           <div className={styles.info}>
             <h2 className={styles.brand}>{fragrance.brand}</h2>
             <h3 className={styles.name}>{fragrance.name}</h3>
+            {onLikeChange && (
+              <div className={styles.thumbsContainer}>
+                <button
+                  className={`${styles.thumbButton} ${fragrance.liked === true ? styles.active : ''}`}
+                  onClick={() => handleLikeClick(fragrance.liked === true ? null : true)}
+                  aria-label="Like"
+                  title="Like"
+                >
+                  👍
+                </button>
+                <button
+                  className={`${styles.thumbButton} ${fragrance.liked === false ? styles.active : ''}`}
+                  onClick={() => handleLikeClick(fragrance.liked === false ? null : false)}
+                  aria-label="Dislike"
+                  title="Dislike"
+                >
+                  👎
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

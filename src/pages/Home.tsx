@@ -39,7 +39,6 @@ const Home = () => {
     evening: 0,
     'night out': 0
   });
-  const [likedFilter, setLikedFilter] = useState<'all' | 'liked' | 'disliked'>('all');
 
   // Load fragrances on mount and when auth state changes
   useEffect(() => {
@@ -177,13 +176,6 @@ const Home = () => {
   const filteredFragrances = useMemo(() => {
     let result = [...fragrances];
     
-    // Apply liked filter
-    if (likedFilter === 'liked') {
-      result = result.filter(fragrance => fragrance.liked === true);
-    } else if (likedFilter === 'disliked') {
-      result = result.filter(fragrance => fragrance.liked === false);
-    }
-    
     // Apply type filter
     if (selectedType) {
       result = result.filter(fragrance => {
@@ -233,7 +225,7 @@ const Home = () => {
     }
     
     return result;
-  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest, likedFilter]);
+  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest]);
 
   if (authLoading || isLoading) {
     return (
@@ -247,8 +239,6 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
-          likedFilter={likedFilter}
-          onLikedFilterChange={setLikedFilter}
         />
         <div className={styles.loading}>Loading...</div>
       </div>
@@ -267,8 +257,6 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
-          likedFilter={likedFilter}
-          onLikedFilterChange={setLikedFilter}
         />
         <div className={styles.error}>
           {error}
@@ -291,8 +279,6 @@ const Home = () => {
         activeOccasionCount={activeOccasionCount}
         resultCount={filteredFragrances.length}
         onQuickPickerClick={() => setShowQuickPicker(true)}
-        likedFilter={likedFilter}
-        onLikedFilterChange={setLikedFilter}
       />
       {fragrances.length > 0 && (
         <TypeFilter 
@@ -320,7 +306,6 @@ const Home = () => {
             <FragranceGrid 
               fragrances={filteredFragrances}
               onFragranceClick={handleFragranceClick}
-              onLikeChange={isAuthenticated ? handleLikeChange : undefined}
             />
           </>
         )}
@@ -343,6 +328,7 @@ const Home = () => {
           onClose={() => setSelectedFragrance(null)}
           onDelete={handleDeleteFragrance}
           onEdit={handleEditFragrance}
+          onLikeChange={isAuthenticated ? handleLikeChange : undefined}
         />
       )}
 
