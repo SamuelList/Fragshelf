@@ -93,6 +93,7 @@
   @media (max-width: 768px) {
     padding: 2rem 1.5rem 1.5rem;
     min-height: 100vh;
+    display: block;
   }
 }
 
@@ -100,6 +101,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
 }
 
 .fadeIn {
@@ -156,6 +161,8 @@
 
   @media (max-width: 768px) {
     gap: 1rem;
+    display: grid;
+    align-content: start;
   }
 }
 
@@ -227,6 +234,11 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    gap: 1rem;
+  }
   flex: 1;
   justify-content: center;
 }
@@ -311,6 +323,9 @@
   flex-direction: column;
   gap: 1.25rem;
   flex: 1;
+    flex: none;
+    overflow-y: visible;
+    padding: 0;
   overflow-y: auto;
   padding: 0.5rem 0;
 
@@ -329,11 +344,16 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     background: white;
+  }
+
+  &:active {
+    transform: translateY(-2px);
   }
 
   @media (max-width: 768px) {

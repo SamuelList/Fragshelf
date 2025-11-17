@@ -366,6 +366,7 @@ const Home = () => {
         <QuickPicker
           fragrances={fragrances}
           onClose={() => setShowQuickPicker(false)}
+          onFragranceClick={(frag) => setSelectedFragrance(frag)}
         />
       )}
     </div>

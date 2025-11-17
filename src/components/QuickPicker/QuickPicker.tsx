@@ -5,6 +5,7 @@ import styles from './QuickPicker.module.scss';
 interface QuickPickerProps {
   fragrances: Fragrance[];
   onClose: () => void;
+  onFragranceClick?: (fragrance: Fragrance) => void;
 }
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -17,7 +18,7 @@ interface CategorizedFragrance extends Fragrance {
   selectedScore: number;
 }
 
-const QuickPicker = ({ fragrances, onClose }: QuickPickerProps) => {
+const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | null>(null);
@@ -185,7 +186,16 @@ const QuickPicker = ({ fragrances, onClose }: QuickPickerProps) => {
               {results.length > 0 ? (
                 <div className={styles.resultsGrid}>
                   {results.map((frag, index) => (
-                    <div key={frag.id} className={styles.resultCard}>
+                    <div 
+                      key={frag.id} 
+                      className={styles.resultCard}
+                      onClick={() => {
+                        if (onFragranceClick) {
+                          onFragranceClick(frag);
+                          onClose();
+                        }
+                      }}
+                    >
                       <div className={styles.resultRank}>
                         {index === 0 && '🥇'}
                         {index === 1 && '🥈'}
