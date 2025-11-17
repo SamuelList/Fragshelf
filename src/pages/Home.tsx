@@ -140,6 +140,10 @@ const Home = () => {
     try {
       const updated = await fragranceAPI.updateLiked(id, liked);
       setFragrances(fragrances.map(f => f.id === id ? updated : f));
+      // Update selectedFragrance if it's the same fragrance
+      if (selectedFragrance && selectedFragrance.id === id) {
+        setSelectedFragrance(updated);
+      }
     } catch (err) {
       setError('Failed to update fragrance rating');
       console.error(err);
