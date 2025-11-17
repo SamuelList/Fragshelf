@@ -45,11 +45,22 @@ npm run dev
 - View fragrance collection in a responsive grid
 - Add new fragrances with detailed attributes
 - Filter by season and occasion
+- Like/dislike fragrances for personalized recommendations
+- Quick Picker wizard for finding perfect matches
+- Analytics with pie charts
 - Mobile-first design
-- Persistent data storage
+- Persistent data storage with PostgreSQL
+
+## Database Migration
+
+After deploying new features that require database changes (like the `liked` column), run the migration:
+
+**Visit:** `https://your-site.netlify.app/.netlify/functions/migrate`
+
+This will update the database schema automatically.
 
 ## Tech Stack
 
-- **Frontend:** React, TypeScript, Vite, SASS (CSS Modules)
-- **Backend:** Node.js, Express
-- **Storage:** JSON file-based database
+- **Frontend:** React, TypeScript, Vite, SASS (CSS Modules), Recharts
+- **Backend:** Netlify Functions, Neon PostgreSQL
+- **Storage:** PostgreSQL with localStorage backup
