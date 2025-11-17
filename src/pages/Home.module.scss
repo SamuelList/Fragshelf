@@ -7,8 +7,33 @@
 .analyticsSection {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 1rem;
   padding: 1rem;
   margin: 2rem 1rem 0;
+  flex-wrap: wrap;
+}
+
+.addButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .analyticsButton {
@@ -173,43 +198,6 @@
 
   &:hover {
     background-color: #357abd;
-  }
-}
-
-.fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: #4a90e2;
-  color: white;
-  font-size: 2rem;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  z-index: 100;
-
-  &:hover {
-    background-color: #357abd;
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  }
-
-  &:active {
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 768px) {
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 56px;
-    height: 56px;
   }
 }
 

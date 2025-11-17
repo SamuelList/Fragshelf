@@ -292,20 +292,6 @@ const Home = () => {
         )}
       </div>
       
-      <button 
-        className={styles.fab}
-        onClick={() => {
-          if (isAuthenticated) {
-            setIsFormOpen(true);
-          } else {
-            setShowAuthModal(true);
-          }
-        }}
-        aria-label="Add fragrance"
-      >
-        +
-      </button>
-
       {isFormOpen && (
         <AddFragranceForm
           onClose={() => {
@@ -328,6 +314,14 @@ const Home = () => {
 
       {filteredFragrances.length > 0 && (
         <div className={styles.analyticsSection}>
+          {isAuthenticated && (
+            <button 
+              className={styles.addButton}
+              onClick={() => setIsFormOpen(true)}
+            >
+              + Add Fragrance
+            </button>
+          )}
           <button 
             className={styles.analyticsButton}
             onClick={() => setShowAnalytics(true)}
