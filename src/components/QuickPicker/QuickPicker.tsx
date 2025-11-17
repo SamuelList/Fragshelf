@@ -58,7 +58,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
     const seasonScore = frag.seasons[season] || 0;
-    const scores = categorizeFragrance(frag);
     const topTypes = Object.entries(frag.types)
       .filter(([_, value]) => value > 0)
       .sort((a, b) => b[1] - a[1])
