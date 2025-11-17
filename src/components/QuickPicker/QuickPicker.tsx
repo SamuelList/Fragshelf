@@ -41,7 +41,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     const nightOut = frag.occasions['night out'] || 0;
 
     const professional = (business * 1.5) + (daily / 2);
-    const casual = (daily + leisure + sport) / 2;
+    const casual = (daily + leisure + (sport / 2)) / 2;
     const specialOccasion = (evening + nightOut) / 2;
 
     return {
