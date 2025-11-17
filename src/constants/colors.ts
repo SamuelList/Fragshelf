@@ -1,17 +1,17 @@
 export const CHART_COLORS = {
   seasons: {
-    spring: '#90EE90',  // Light green
-    summer: '#FFD700',  // Gold/Yellow
-    autumn: '#FF8C00',  // Dark orange
-    winter: '#4682B4'   // Steel blue
+    spring: '#badc82',  // Light green
+    summer: '#fed766',  // Gold/Yellow
+    autumn: '#d9b1be',  // Dark orange
+    winter: '#a2cbff'   // Steel blue
   },
   occasions: {
-    daily: '#87CEEB',       // Sky blue
-    business: '#708090',    // Slate gray
-    leisure: '#98D8C8',     // Mint green
-    sport: '#FF6347',       // Tomato red
-    evening: '#9370DB',     // Medium purple (lighter)
-    'night out': '#FF1493'  // Deep pink (brighter)
+    daily: '#a7dbf3',       // Sky blue
+    business: '#c1c1c1',    // Slate gray
+    leisure: '#f6ea86',     // Mint green
+    sport: '#98e5d1',       // Tomato red
+    evening: '#f480ac',     // Medium purple (lighter)
+    'night out': '#a096e8'  // Deep pink (brighter)
   },
   types: {
     woody: '#8B4513',       // Saddle brown
