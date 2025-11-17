@@ -31,9 +31,23 @@ const initSchema = async () => {
         seasons JSONB NOT NULL DEFAULT '{}',
         occasions JSONB NOT NULL DEFAULT '{}',
         types JSONB NOT NULL DEFAULT '{}',
+        liked BOOLEAN DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `;
+
+    // Add liked column if it doesn't exist (for existing databases)
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='liked'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN liked BOOLEAN DEFAULT NULL;
+        END IF;
+      END $$;
     `;
 
     // Create index on user_id for faster queries

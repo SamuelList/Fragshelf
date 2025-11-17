@@ -55,7 +55,7 @@ exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Content-Type': 'application/json'
   };
 
@@ -92,7 +92,7 @@ exports.handler = async (event) => {
         const fragrances = await sql`
           SELECT 
             id, brand, name, image_url as "imageUrl",
-            seasons, occasions, types
+            seasons, occasions, types, liked
           FROM fragrances 
           WHERE user_id = ${parseInt(userId)}
           ORDER BY created_at DESC
@@ -151,7 +151,7 @@ exports.handler = async (event) => {
            ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)})
         RETURNING 
           id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, types
+          seasons, occasions, types, liked
       `;
       
       return {
@@ -178,7 +178,37 @@ exports.handler = async (event) => {
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types
+          seasons, occasions, types, liked
+      `;
+      
+      if (result.length === 0) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Fragrance not found' })
+        };
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(result[0])
+      };
+    }
+
+    // PATCH /api/fragrances/:id (for updating liked status only)
+    if (event.httpMethod === 'PATCH' && id) {
+      const { liked } = JSON.parse(event.body);
+      
+      const result = await sql`
+        UPDATE fragrances 
+        SET 
+          liked = ${liked},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+        RETURNING 
+          id, brand, name, image_url as "imageUrl",
+          seasons, occasions, types, liked
       `;
       
       if (result.length === 0) {

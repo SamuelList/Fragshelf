@@ -11,6 +11,8 @@ interface FilterBarProps {
   activeOccasionCount: number;
   resultCount: number;
   onQuickPickerClick: () => void;
+  likedFilter: 'all' | 'liked' | 'disliked';
+  onLikedFilterChange: (filter: 'all' | 'liked' | 'disliked') => void;
 }
 
 const FilterBar = ({
@@ -21,7 +23,9 @@ const FilterBar = ({
   activeSeasonCount,
   activeOccasionCount,
   resultCount,
-  onQuickPickerClick
+  onQuickPickerClick,
+  likedFilter,
+  onLikedFilterChange
 }: FilterBarProps) => {
   const [openDropdown, setOpenDropdown] = useState<'season' | 'occasion' | null>(null);
 
@@ -58,6 +62,22 @@ const FilterBar = ({
         >
           ✨ Quick Picker
         </button>
+        <div className={styles.likedButtons}>
+          <button
+            className={`${styles.likedButton} ${likedFilter === 'liked' ? styles.activeLiked : ''}`}
+            onClick={() => onLikedFilterChange(likedFilter === 'liked' ? 'all' : 'liked')}
+            title="Show liked fragrances"
+          >
+            👍
+          </button>
+          <button
+            className={`${styles.likedButton} ${likedFilter === 'disliked' ? styles.activeLiked : ''}`}
+            onClick={() => onLikedFilterChange(likedFilter === 'disliked' ? 'all' : 'disliked')}
+            title="Show disliked fragrances"
+          >
+            👎
+          </button>
+        </div>
       </div>
 
       {openDropdown === 'season' && (

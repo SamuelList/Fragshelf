@@ -14,10 +14,10 @@ export const CHART_COLORS = {
     'night out': '#a096e8'  // Deep pink (brighter)
   },
   types: {
-    woody: '#8B4513',       // Saddle brown
-    fresh: '#00CED1',       // Dark turquoise
-    citrus: '#FFA500',      // Orange
-    spicy: '#DC143C',       // Crimson
+    woody: '#d89785',       // Saddle brown
+    fresh: '#8fb5ff',       // Dark turquoise
+    citrus: '#ebe25b',      // Orange
+    spicy: '#9abcb7',       // Crimson
     oriental: '#DAA520',    // Goldenrod
     floral: '#FF69B4',      // Hot pink
     fruity: '#FF1493',      // Deep pink

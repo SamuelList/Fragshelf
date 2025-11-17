@@ -36,4 +36,5 @@ export interface Fragrance {
   seasons: SeasonScores;   // Must sum to 100
   occasions: OccasionScores; // Must sum to 100
   types: TypeScores;       // Must sum to 100
+  liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating
 }

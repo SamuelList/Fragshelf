@@ -39,6 +39,7 @@ const Home = () => {
     evening: 0,
     'night out': 0
   });
+  const [likedFilter, setLikedFilter] = useState<'all' | 'liked' | 'disliked'>('all');
 
   // Load fragrances on mount and when auth state changes
   useEffect(() => {
@@ -132,6 +133,20 @@ const Home = () => {
     setOccasionFilters(filters);
   };
 
+  const handleLikeChange = async (id: string, liked: boolean | null) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    try {
+      const updated = await fragranceAPI.updateLiked(id, liked);
+      setFragrances(fragrances.map(f => f.id === id ? updated : f));
+    } catch (err) {
+      setError('Failed to update fragrance rating');
+      console.error(err);
+    }
+  };
+
   const activeSeasonCount = useMemo(() => {
     return Object.values(seasonFilters).filter(v => v > 0).length;
   }, [seasonFilters]);
@@ -161,6 +176,13 @@ const Home = () => {
   // Filter and sort fragrances based on selected type, seasons, and occasions
   const filteredFragrances = useMemo(() => {
     let result = [...fragrances];
+    
+    // Apply liked filter
+    if (likedFilter === 'liked') {
+      result = result.filter(fragrance => fragrance.liked === true);
+    } else if (likedFilter === 'disliked') {
+      result = result.filter(fragrance => fragrance.liked === false);
+    }
     
     // Apply type filter
     if (selectedType) {
@@ -211,7 +233,7 @@ const Home = () => {
     }
     
     return result;
-  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest]);
+  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest, likedFilter]);
 
   if (authLoading || isLoading) {
     return (
@@ -225,6 +247,8 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
+          likedFilter={likedFilter}
+          onLikedFilterChange={setLikedFilter}
         />
         <div className={styles.loading}>Loading...</div>
       </div>
@@ -243,6 +267,8 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
+          likedFilter={likedFilter}
+          onLikedFilterChange={setLikedFilter}
         />
         <div className={styles.error}>
           {error}
@@ -265,6 +291,8 @@ const Home = () => {
         activeOccasionCount={activeOccasionCount}
         resultCount={filteredFragrances.length}
         onQuickPickerClick={() => setShowQuickPicker(true)}
+        likedFilter={likedFilter}
+        onLikedFilterChange={setLikedFilter}
       />
       {fragrances.length > 0 && (
         <TypeFilter 
@@ -292,6 +320,7 @@ const Home = () => {
             <FragranceGrid 
               fragrances={filteredFragrances}
               onFragranceClick={handleFragranceClick}
+              onLikeChange={isAuthenticated ? handleLikeChange : undefined}
             />
           </>
         )}
