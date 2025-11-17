@@ -125,6 +125,23 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
     return `${entry.value}%`;
   };
 
+  const renderLegendList = (data: any[], category: keyof typeof COLORS) => {
+    return (
+      <div className={styles.legendList}>
+        {data.map((entry, index) => (
+          <div key={`legend-${index}`} className={styles.legendItem}>
+            <span 
+              className={styles.legendColor} 
+              style={{ backgroundColor: getColor(category, entry.name) }}
+            />
+            <span className={styles.legendText}>{entry.name}</span>
+            <span className={styles.legendValue}>{entry.value}%</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -142,26 +159,30 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Seasons</h4>
             {aggregatedData.seasonsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 250}>
-                <PieChart>
-                  <Pie
-                    data={aggregatedData.seasonsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={isMobile ? false : renderCustomLabel}
-                    outerRadius={isMobile ? 60 : 80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {aggregatedData.seasonsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getColor('seasons', entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                  {!isMobile && <Legend />}
-                </PieChart>
-              </ResponsiveContainer>
+              <div className={styles.chartContainer}>
+                <div className={styles.chartWrapper}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={aggregatedData.seasonsData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={isMobile ? 50 : 70}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {aggregatedData.seasonsData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColor('seasons', entry.name)} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value}%`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegendList(aggregatedData.seasonsData, 'seasons')}
+              </div>
             ) : (
               <p className={styles.noData}>No season data available</p>
             )}
@@ -171,26 +192,30 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Occasions</h4>
             {aggregatedData.occasionsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 250}>
-                <PieChart>
-                  <Pie
-                    data={aggregatedData.occasionsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={isMobile ? false : renderCustomLabel}
-                    outerRadius={isMobile ? 60 : 80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {aggregatedData.occasionsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getColor('occasions', entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                  {!isMobile && <Legend />}
-                </PieChart>
-              </ResponsiveContainer>
+              <div className={styles.chartContainer}>
+                <div className={styles.chartWrapper}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={aggregatedData.occasionsData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={isMobile ? 50 : 70}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {aggregatedData.occasionsData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColor('occasions', entry.name)} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value}%`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegendList(aggregatedData.occasionsData, 'occasions')}
+              </div>
             ) : (
               <p className={styles.noData}>No occasion data available</p>
             )}
@@ -200,26 +225,30 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Fragrance Types</h4>
             {aggregatedData.typesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={isMobile ? 240 : 300}>
-                <PieChart>
-                  <Pie
-                    data={aggregatedData.typesData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={isMobile ? false : renderCustomLabel}
-                    outerRadius={isMobile ? 70 : 90}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {aggregatedData.typesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getColor('types', entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                  {!isMobile && <Legend />}
-                </PieChart>
-              </ResponsiveContainer>
+              <div className={styles.chartContainer}>
+                <div className={styles.chartWrapper}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={aggregatedData.typesData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={isMobile ? 50 : 70}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {aggregatedData.typesData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColor('types', entry.name)} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value}%`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegendList(aggregatedData.typesData, 'types')}
+              </div>
             ) : (
               <p className={styles.noData}>No type data available</p>
             )}
