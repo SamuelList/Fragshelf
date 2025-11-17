@@ -56,6 +56,109 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setTimeout(() => setStep(2), 300);
   };
 
+  const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
+    const seasonScore = frag.seasons[season] || 0;
+    const scores = categorizeFragrance(frag);
+    const topTypes = Object.entries(frag.types)
+      .filter(([_, value]) => value > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([key]) => key);
+
+    const reasons = [];
+
+    // Rank-specific openers
+    if (rank === 0) {
+      const openers = [
+        "Your absolute best bet!",
+        "This is THE one.",
+        "Can't go wrong here!",
+        "Chef's kiss for this combo.",
+        "The obvious winner.",
+        "Trust me on this one.",
+      ];
+      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+    } else if (rank === 1) {
+      const openers = [
+        "A strong runner-up!",
+        "Nearly perfect, honestly.",
+        "This is a close second.",
+        "Also an excellent choice.",
+        "Don't sleep on this one.",
+      ];
+      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+    } else {
+      const openers = [
+        "A solid dark horse.",
+        "Still a great option!",
+        "Worth considering too.",
+        "The underdog pick.",
+        "Don't overlook this gem.",
+      ];
+      reasons.push(openers[Math.floor(Math.random() * openers.length)]);
+    }
+
+    // Season-specific comments
+    if (seasonScore >= 80) {
+      const seasonComments = {
+        spring: ["Pure springtime vibes", "Blooms beautifully in spring", "Spring perfection"],
+        summer: ["Made for summer heat", "Summer sunshine in a bottle", "Hot weather champion"],
+        autumn: ["Autumn leaves energy", "Cozy fall vibes", "Peak autumn mood"],
+        winter: ["Cold weather king", "Winter wonderland ready", "Handles the chill perfectly"]
+      };
+      reasons.push(seasonComments[season][Math.floor(Math.random() * seasonComments[season].length)]);
+    }
+
+    // Occasion-specific flavor
+    if (occasion === 'Professional') {
+      const biz = [
+        "won't overpower the boardroom",
+        "office-friendly and sharp",
+        "gets business done",
+        "professional but memorable"
+      ];
+      reasons.push(biz[Math.floor(Math.random() * biz.length)]);
+    } else if (occasion === 'Casual') {
+      const chill = [
+        "easygoing and versatile",
+        "perfect for everyday wear",
+        "relaxed but refined",
+        "weekend warrior approved"
+      ];
+      reasons.push(chill[Math.floor(Math.random() * chill.length)]);
+    } else {
+      const fancy = [
+        "makes an impression",
+        "special occasion ready",
+        "turns heads for sure",
+        "evening magic right here"
+      ];
+      reasons.push(fancy[Math.floor(Math.random() * fancy.length)]);
+    }
+
+    // Type-based personality
+    if (topTypes.length > 0) {
+      const typeDescriptors: { [key: string]: string[] } = {
+        'Eau de Parfum': ['strong and lasting', 'packs a punch', 'serious staying power'],
+        'Eau de Toilette': ['light and breezy', 'refreshingly subtle', 'perfectly balanced'],
+        'Cologne': ['crisp and clean', 'fresh vibes only', 'invigorating splash'],
+        'Perfume': ['pure luxury', 'the real deal', 'maximum intensity']
+      };
+      const desc = typeDescriptors[topTypes[0]];
+      if (desc) {
+        reasons.push(desc[Math.floor(Math.random() * desc.length)]);
+      }
+    }
+
+    // Liked bonus
+    if (frag.liked === true) {
+      const loved = ["(and you already love it! 👍)", "your personal favorite too", "you've got good taste here"];
+      reasons.push(loved[Math.floor(Math.random() * loved.length)]);
+    }
+
+    return reasons.join(', ') + '.';
+  };
+
   const handleOccasionSelect = (occasion: OccasionCategory) => {
     setSelectedOccasion(occasion);
     
@@ -241,15 +344,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
                       <div className={styles.resultInfo}>
                         <h3 className={styles.resultBrand}>{frag.brand}</h3>
                         <p className={styles.resultName}>{frag.name}</p>
-                        <div className={styles.resultScore}>
-                          <div className={styles.scoreBar}>
-                            <div 
-                              className={styles.scoreBarFill}
-                              style={{ width: `${Math.min(frag.selectedScore, 100)}%` }}
-                            />
-                          </div>
-                          <span className={styles.scoreValue}>{Math.round(frag.selectedScore)} match</span>
-                        </div>
+                        <p className={styles.resultReason}>
+                          {generateReasonForPick(frag, index, selectedSeason!, selectedOccasion!)}
+                        </p>
                       </div>
                     </div>
                   ))}
