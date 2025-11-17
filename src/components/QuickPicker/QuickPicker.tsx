@@ -85,10 +85,44 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         };
       })
       .filter(frag => frag.selectedScore >= 20)
-      .sort((a, b) => b.selectedScore - a.selectedScore)
-      .slice(0, 3);
+      .sort((a, b) => b.selectedScore - a.selectedScore);
 
-    setResults(filtered);
+    // Apply like/dislike adjustments to rankings
+    const likedFrags: CategorizedFragrance[] = [];
+    const neutralFrags: CategorizedFragrance[] = [];
+    const dislikedFrags: CategorizedFragrance[] = [];
+
+    // Separate fragrances by like status
+    filtered.forEach(frag => {
+      if (frag.liked === true) likedFrags.push(frag);
+      else if (frag.liked === false) dislikedFrags.push(frag);
+      else neutralFrags.push(frag);
+    });
+
+    // Merge them with adjustments: process in order and apply bumps/knocks
+    let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
+    
+    // For each liked fragrance, try to bump it up one position if possible
+    likedFrags.forEach(likedFrag => {
+      const currentIndex = currentList.indexOf(likedFrag);
+      if (currentIndex > 0) {
+        // Swap with the item above it
+        [currentList[currentIndex - 1], currentList[currentIndex]] = 
+        [currentList[currentIndex], currentList[currentIndex - 1]];
+      }
+    });
+
+    // For each disliked fragrance, try to knock it down one position if possible
+    dislikedFrags.forEach(dislikedFrag => {
+      const currentIndex = currentList.indexOf(dislikedFrag);
+      if (currentIndex < currentList.length - 1) {
+        // Swap with the item below it
+        [currentList[currentIndex], currentList[currentIndex + 1]] = 
+        [currentList[currentIndex + 1], currentList[currentIndex]];
+      }
+    });
+
+    setResults(currentList.slice(0, 3));
     setTimeout(() => setStep(3), 300);
   };
 
