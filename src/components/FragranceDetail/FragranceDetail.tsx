@@ -44,14 +44,16 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     .map(([key, value]) => ({
       name: key.charAt(0).toUpperCase() + key.slice(1),
       value
-    }));
+    }))
+    .sort((a, b) => b.value - a.value);
 
   const occasionsData = Object.entries(fragrance.occasions)
     .filter(([_, value]) => value > 0)
     .map(([key, value]) => ({
       name: key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       value
-    }));
+    }))
+    .sort((a, b) => b.value - a.value);
 
   const typesData = Object.entries(fragrance.types)
     .filter(([_, value]) => value > 0)
