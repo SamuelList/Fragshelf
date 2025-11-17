@@ -181,19 +181,19 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
             <h3>Seasons <span className={seasonTotal !== 100 ? styles.warning : styles.valid}>({seasonTotal}%)</span></h3>
             <div className={styles.sliderGroup}>
               <label>Spring: {spring}%</label>
-              <input type="range" min="0" max="100" value={spring} onChange={(e) => setSpring(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={spring} onChange={(e) => setSpring(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Summer: {summer}%</label>
-              <input type="range" min="0" max="100" value={summer} onChange={(e) => setSummer(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={summer} onChange={(e) => setSummer(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Autumn: {autumn}%</label>
-              <input type="range" min="0" max="100" value={autumn} onChange={(e) => setAutumn(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={autumn} onChange={(e) => setAutumn(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Winter: {winter}%</label>
-              <input type="range" min="0" max="100" value={winter} onChange={(e) => setWinter(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={winter} onChange={(e) => setWinter(Number(e.target.value))} />
             </div>
           </section>
 
@@ -202,27 +202,27 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
             <h3>Occasions <span className={occasionTotal !== 100 ? styles.warning : styles.valid}>({occasionTotal}%)</span></h3>
             <div className={styles.sliderGroup}>
               <label>Daily: {daily}%</label>
-              <input type="range" min="0" max="100" value={daily} onChange={(e) => setDaily(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={daily} onChange={(e) => setDaily(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Business: {business}%</label>
-              <input type="range" min="0" max="100" value={business} onChange={(e) => setBusiness(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={business} onChange={(e) => setBusiness(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Leisure: {leisure}%</label>
-              <input type="range" min="0" max="100" value={leisure} onChange={(e) => setLeisure(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={leisure} onChange={(e) => setLeisure(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Sport: {sport}%</label>
-              <input type="range" min="0" max="100" value={sport} onChange={(e) => setSport(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={sport} onChange={(e) => setSport(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Evening: {evening}%</label>
-              <input type="range" min="0" max="100" value={evening} onChange={(e) => setEvening(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={evening} onChange={(e) => setEvening(Number(e.target.value))} />
             </div>
             <div className={styles.sliderGroup}>
               <label>Night Out: {nightOut}%</label>
-              <input type="range" min="0" max="100" value={nightOut} onChange={(e) => setNightOut(Number(e.target.value))} />
+              <input type="range" min="0" max="50" value={nightOut} onChange={(e) => setNightOut(Number(e.target.value))} />
             </div>
           </section>
 
@@ -235,7 +235,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
                 <input
                   type="range"
                   min="0"
-                  max="100"
+                  max="50"
                   value={typeScores[type]}
                   onChange={(e) => handleTypeChange(type, Number(e.target.value))}
                 />
