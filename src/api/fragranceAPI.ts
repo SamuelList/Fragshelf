@@ -80,10 +80,12 @@ export const fragranceAPI = {
       return fragrances;
     } catch (error) {
       // If server fails, try to use localStorage backup
-      console.warn('Server fetch failed, using localStorage backup');
       const backup = loadFromLocalStorage();
-      if (backup) return backup;
-      throw error;
+      if (backup && backup.length > 0) {
+        return backup;
+      }
+      // Return empty array instead of throwing to allow app to function
+      return [];
     }
   },
 

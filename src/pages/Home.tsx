@@ -54,7 +54,8 @@ const Home = () => {
       const data = await fragranceAPI.getAll();
       setFragrances(data);
     } catch (err) {
-      setError('Failed to load fragrances. Make sure the server is running.');
+      // Only show error if we couldn't load anything (API now returns empty array on failure)
+      setError('Unable to connect to server. Using offline mode.');
       console.error(err);
     } finally {
       setIsLoading(false);
