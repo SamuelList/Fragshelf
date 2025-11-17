@@ -156,22 +156,35 @@ export const fragranceAPI = {
 
   // Update liked status
   updateLiked: async (id: string, liked: boolean | null): Promise<Fragrance> => {
-    const response = await fetch(`${API_URL}/fragrances/${id}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ liked }),
-    });
-    if (!response.ok) throw new Error('Failed to update liked status');
-    const updated = await response.json();
-    
-    // Update localStorage backup
-    const stored = loadFromLocalStorage() || [];
-    const index = stored.findIndex(f => f.id === id);
-    if (index !== -1) {
-      stored[index] = updated;
-      saveToLocalStorage(stored);
+    try {
+      const response = await fetch(`${API_URL}/fragrances/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ liked }),
+      });
+      if (!response.ok) throw new Error('Failed to update liked status');
+      const updated = await response.json();
+      
+      // Update localStorage backup
+      const stored = loadFromLocalStorage() || [];
+      const index = stored.findIndex(f => f.id === id);
+      if (index !== -1) {
+        stored[index] = updated;
+        saveToLocalStorage(stored);
+      }
+      
+      return updated;
+    } catch (error) {
+      // Fallback to localStorage update if server fails
+      console.warn('Server update failed, updating localStorage only');
+      const stored = loadFromLocalStorage() || [];
+      const index = stored.findIndex(f => f.id === id);
+      if (index !== -1) {
+        stored[index] = { ...stored[index], liked };
+        saveToLocalStorage(stored);
+        return stored[index];
+      }
+      throw error;
     }
-    
-    return updated;
   },
 };
