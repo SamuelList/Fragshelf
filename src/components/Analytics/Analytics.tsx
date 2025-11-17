@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Fragrance } from '../../types/fragrance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import styles from './Analytics.module.scss';
@@ -56,6 +56,18 @@ function getColor(category: keyof typeof COLORS, key: string): string {
 }
 
 const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Aggregate data from all filtered fragrances
   const aggregatedData = useMemo(() => {
     const seasons: Record<string, number> = {};
@@ -130,15 +142,15 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Seasons</h4>
             {aggregatedData.seasonsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={isMobile ? 220 : 250}>
                 <PieChart>
                   <Pie
                     data={aggregatedData.seasonsData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={renderCustomLabel}
-                    outerRadius={80}
+                    label={isMobile ? false : renderCustomLabel}
+                    outerRadius={isMobile ? 60 : 80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -147,7 +159,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => `${value}%`} />
-                  <Legend />
+                  {!isMobile && <Legend />}
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -159,15 +171,15 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Occasions</h4>
             {aggregatedData.occasionsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={isMobile ? 220 : 250}>
                 <PieChart>
                   <Pie
                     data={aggregatedData.occasionsData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={renderCustomLabel}
-                    outerRadius={80}
+                    label={isMobile ? false : renderCustomLabel}
+                    outerRadius={isMobile ? 60 : 80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -176,7 +188,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => `${value}%`} />
-                  <Legend />
+                  {!isMobile && <Legend />}
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -188,15 +200,15 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
           <div className={styles.chartSection}>
             <h4>Fragrance Types</h4>
             {aggregatedData.typesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 240 : 300}>
                 <PieChart>
                   <Pie
                     data={aggregatedData.typesData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={renderCustomLabel}
-                    outerRadius={90}
+                    label={isMobile ? false : renderCustomLabel}
+                    outerRadius={isMobile ? 70 : 90}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -205,7 +217,7 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => `${value}%`} />
-                  <Legend />
+                  {!isMobile && <Legend />}
                 </PieChart>
               </ResponsiveContainer>
             ) : (

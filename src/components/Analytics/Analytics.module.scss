@@ -45,11 +45,13 @@
   padding: 2.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
-    padding: 1.5rem;
+    padding: 1rem 1rem 1.5rem;
     max-height: 95vh;
     border-radius: 12px;
+    margin: 0.5rem;
   }
 }
 
@@ -86,6 +88,12 @@
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 1.5rem;
 
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    padding-right: 2.5rem;
+  }
+
   h2 {
     margin: 0 0 0.5rem 0;
     font-size: 2rem;
@@ -94,6 +102,10 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
   }
 
   .subtitle {
@@ -101,6 +113,10 @@
     font-size: 0.95rem;
     color: #718096;
     font-weight: 500;
+
+    @media (max-width: 768px) {
+      font-size: 0.85rem;
+    }
   }
 }
 
@@ -111,7 +127,7 @@
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
 }
 
@@ -122,9 +138,19 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 
+  @media (max-width: 768px) {
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+    @media (max-width: 768px) {
+      transform: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
   }
 
   h4 {
@@ -137,6 +163,13 @@
     letter-spacing: 0.5px;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid #e2e8f0;
+
+    @media (max-width: 768px) {
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      letter-spacing: 0.3px;
+    }
   }
 }
 
