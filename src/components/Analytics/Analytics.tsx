@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Fragrance } from '../../types/fragrance';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import styles from './Analytics.module.scss';
 
 interface AnalyticsProps {
@@ -120,10 +120,6 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
     
     return { seasonsData, occasionsData, typesData };
   }, [fragrances]);
-
-  const renderCustomLabel = (entry: any) => {
-    return `${entry.value}%`;
-  };
 
   const renderLegendList = (data: any[], category: keyof typeof COLORS) => {
     return (
