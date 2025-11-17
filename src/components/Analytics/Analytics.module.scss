@@ -214,6 +214,9 @@
   @media (max-width: 768px) {
     width: 140px;
     height: 140px;
+  }
+}
+
 .legendList {
   flex: 1;
   display: flex;
@@ -245,9 +248,6 @@
 
     &:hover {
       background: #a0aec0;
-    }
-  }
-}     background: #a0aec0;
     }
   }
 }
