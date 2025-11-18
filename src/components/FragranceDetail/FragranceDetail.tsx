@@ -90,14 +90,14 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     };
     
     const orderedSeasons = ['winter', 'spring', 'summer', 'autumn'] as const;
-    const stops: Array<{ color: string; position: number }> = [];
+    const stops: Array<{ color: string; position: number; percentage: number }> = [];
     let totalPercentage = 0;
     
     // Collect all seasons with their percentages
     orderedSeasons.forEach(season => {
       const percentage = fragrance.seasons[season] || 0;
       if (percentage > 0) {
-        stops.push({ color: seasonColors[season], position: totalPercentage });
+        stops.push({ color: seasonColors[season], position: totalPercentage, percentage });
         totalPercentage += percentage;
       }
     });
@@ -106,20 +106,39 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
       return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
     }
     
-    // Create smooth gradient with blending between colors
-    const gradientStops = stops.map((stop, index) => {
+    // Create smooth gradient with fixed blend zones (5% blend area)
+    const blendSize = 5; // Fixed 5% blend zone between colors
+    const gradientStops: string[] = [];
+    
+    stops.forEach((stop, index) => {
+      if (index === 0) {
+        // First color starts at 0%
+        gradientStops.push(`${stop.color} 0%`);
+      }
+      
       if (index === stops.length - 1) {
         // Last color extends to 100%
-        return `${stop.color} ${stop.position}%, ${stop.color} 100%`;
+        const blendStart = Math.max(0, stop.position - blendSize / 2);
+        if (blendStart > stop.position - 1) {
+          gradientStops.push(`${stop.color} ${blendStart}%`);
+        }
+        gradientStops.push(`${stop.color} ${stop.position}%`);
+        gradientStops.push(`${stop.color} 100%`);
       } else {
-        // Calculate midpoint for smooth transition
+        // Middle colors: blend zone around transition point
         const nextStop = stops[index + 1];
-        const midpoint = stop.position + ((nextStop.position - stop.position) / 2);
-        return `${stop.color} ${stop.position}%, ${stop.color} ${midpoint}%`;
+        const transitionPoint = stop.position + stop.percentage;
+        const blendStart = transitionPoint - blendSize / 2;
+        const blendEnd = transitionPoint + blendSize / 2;
+        
+        // Current color holds until blend starts
+        gradientStops.push(`${stop.color} ${blendStart}%`);
+        // Blend to next color
+        gradientStops.push(`${nextStop.color} ${blendEnd}%`);
       }
-    }).join(', ');
+    });
     
-    return `linear-gradient(135deg, ${gradientStops})`;
+    return `linear-gradient(135deg, ${gradientStops.join(', ')})`;
   };
 
   return (
