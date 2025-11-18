@@ -1,99 +1,72 @@
 /**
  * Parfumo Data Scraper for FragShelf
- * 
- * HOW TO USE - PASTE MODE:
- * 1. Go to a fragrance page on parfumo.com
- * 2. Open browser console (F12)
- * 3. Paste this entire script and press Enter
- * 4. Copy ALL the console output (including VM line numbers)
- * 5. When prompted, paste the console output
- * 6. The fragrance data will be copied to your clipboard for FragShelf
+ * Fixed: Name/Brand detection & Image Quality
  */
 
 (() => {
-    console.log("--- PARFUMO DATA SCRAPER ---");
+    console.log("--- STARTING SCRAPER ---");
 
-    // --- 1. GET THE IMAGE URL ---
-    let imgUrl = "Image not found";
-    const imgElement = document.querySelector('.p-image img') || document.querySelector('.p_img_wrapper img');
-    
-    if (imgElement) {
-        imgUrl = imgElement.src;
-    } else {
-        const metaImg = document.querySelector('meta[property="og:image"]');
-        if (metaImg) imgUrl = metaImg.content;
+    // --- 1. GET CLEAN NAME & BRAND (The Fix) ---
+    let brand = "Unknown";
+    let name = "Unnamed Fragrance";
+
+    // Strategy A: Read the structured data (JSON-LD) - Most Accurate
+    const ldScripts = document.querySelectorAll('script[type="application/ld+json"]');
+    let jsonFound = false;
+
+    ldScripts.forEach(s => {
+        try {
+            const json = JSON.parse(s.innerText);
+            // Look for the Product definition
+            if (json['@type'] === 'Product' || json['@type'] === 'ItemPage') {
+                if (json.name) name = json.name;
+                if (json.brand && json.brand.name) {
+                    brand = json.brand.name;
+                } else if (json.manufacturer && json.manufacturer.name) {
+                    brand = json.manufacturer.name;
+                }
+                jsonFound = true;
+            }
+        } catch (e) {}
+    });
+
+    // Strategy B: Fallback to HTML tags if JSON-LD failed
+    if (!jsonFound || name === "Unnamed Fragrance") {
+        // Name is usually the H1
+        const h1 = document.querySelector('h1');
+        if (h1) name = h1.innerText.trim();
+
+        // Brand is usually in a specific span with itemprop="brand"
+        const brandEl = document.querySelector('[itemprop="brand"] span') || document.querySelector('[itemprop="brand"]');
+        if (brandEl) brand = brandEl.innerText.trim();
     }
-    
-    console.log("IMAGE URL:");
-    console.log(imgUrl);
-    console.log("");
 
-    // --- 2. GET CHART DATA ---
+    // Cleanup: Sometimes name includes brand, strip it if so
+    // e.g. Name: "Lattafa - Al Nashama" -> "Al Nashama"
+    if (name.toLowerCase().startsWith(brand.toLowerCase())) {
+        name = name.substring(brand.length).replace(/^[\s-–]+/, '').trim();
+    }
+
+    console.log(`FOUND: ${name} by ${brand}`);
+
+    // --- 2. GET HIGH RES IMAGE ---
+    let imgUrl = "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400";
+    const imgElement = document.querySelector('.p_img img'); // The main bottle
+    if (imgElement) {
+        imgUrl = imgElement.currentSrc || imgElement.src;
+    }
+
+    // --- 3. EXTRACT CHART DATA ---
+    const collectedData = {
+        types: {},
+        seasons: {},
+        occasions: {}
+    };
+
     const scripts = document.querySelectorAll('script');
     
     scripts.forEach(script => {
         const content = script.innerHTML;
-        
-        // Find JSON arrays containing "ct_name" (the vote data)
-        const matches = content.match(/\[\{"ct_name".*?\}\]/g);
-        
-        if (matches) {
-            matches.forEach(jsonString => {
-                try {
-                    const data = JSON.parse(jsonString);
-                    const keys = data.map(x => x.ct_name);
-                    let title = "";
-
-                    // --- FILTERING LOGIC ---
-                    
-                    // 1. Seasonal Check
-                    if (keys.includes("Spring") || keys.includes("Winter")) {
-                        title = "SEASONAL";
-                    }
-                    // 2. Occasions Check
-                    else if (keys.includes("Leisure") || keys.includes("Daily") || keys.includes("Business")) {
-                        title = "OCCASIONS";
-                    }
-                    // 3. Type / Scent Profile Check
-                    else if (keys.some(k => ["Woody", "Sweet", "Fresh", "Spicy", "Floral", "Fruity", "Oriental", "Citrus", "Gourmand", "Leather", "Aquatic", "Powdery", "Creamy"].includes(k))) {
-                        title = "TYPE";
-                    }
-                    // Skip anything else
-                    else {
-                        return; 
-                    }
-
-                    // Calculate Total for percentages
-                    const totalVotes = data.reduce((sum, item) => sum + parseInt(item.votes), 0);
-
-                    console.log(`--- ${title} ---`);
-                    
-                    data.forEach(item => {
-                        const votes = parseInt(item.votes);
-                        const percent = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) + "%" : "0%";
-                        
-                        console.log(`${item.ct_name}: ${percent} (${votes} votes)`);
-                    });
-                    console.log("");
-
-                } catch (e) {
-                    // Ignore parsing errors
-                }
-            });
-        }
-    });
-
-    // Store collected data
-    const collectedData = {
-        types: {},
-        seasons: {},
-        occasions: {},
-        imageUrl: imgUrl
-    };
-
-    // Process the data we just collected
-    scripts.forEach(script => {
-        const content = script.innerHTML;
         const matches = content.match(/\[\{"ct_name".*?\}\]/g);
         
         if (matches) {
@@ -104,177 +77,110 @@
                     
                     // Calculate Total for percentages
                     const totalVotes = data.reduce((sum, item) => sum + parseInt(item.votes), 0);
-                    
-                    // Seasonal Check
+                    if (totalVotes === 0) return;
+
+                    // Helper to process a chart
+                    const processChart = (targetObject) => {
+                        data.forEach(item => {
+                            const votes = parseInt(item.votes);
+                            // Calculate raw percentage
+                            const percent = (votes / totalVotes) * 100;
+                            // Normalize key (lowercase, handle special cases)
+                            let key = item.ct_name.toLowerCase();
+                            if (key === 'fall') key = 'autumn'; // FragShelf preference
+                            
+                            targetObject[key] = percent;
+                        });
+                    };
+
+                    // Identify Chart Type
                     if (keys.includes("Spring") || keys.includes("Winter")) {
-                        data.forEach(item => {
-                            const votes = parseInt(item.votes);
-                            const percent = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0";
-                            collectedData.seasons[item.ct_name.toLowerCase()] = parseFloat(percent);
-                        });
+                        processChart(collectedData.seasons);
                     }
-                    // Occasions Check
                     else if (keys.includes("Leisure") || keys.includes("Daily") || keys.includes("Business")) {
-                        data.forEach(item => {
-                            const votes = parseInt(item.votes);
-                            const percent = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0";
-                            collectedData.occasions[item.ct_name.toLowerCase()] = parseFloat(percent);
-                        });
+                        processChart(collectedData.occasions);
                     }
-                    // Type / Scent Profile Check
                     else if (keys.some(k => ["Woody", "Sweet", "Fresh", "Spicy", "Floral", "Fruity", "Oriental", "Citrus", "Gourmand", "Leather", "Aquatic", "Powdery", "Creamy"].includes(k))) {
-                        data.forEach(item => {
-                            const votes = parseInt(item.votes);
-                            const percent = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0";
-                            collectedData.types[item.ct_name.toLowerCase()] = parseFloat(percent);
-                        });
+                        processChart(collectedData.types);
                     }
-                } catch (e) {
-                    // Ignore parsing errors
-                }
+
+                } catch (e) {}
             });
         }
     });
 
-    // Get brand and name from page
-    const titleElement = document.querySelector('h1[itemprop="name"]');
-    const pageTitle = titleElement ? titleElement.textContent.trim() : '';
-    const [brand, ...nameParts] = pageTitle.split(' - ');
-    const name = nameParts.join(' - ').trim();
-    
-    // Create FragShelf-compatible object
-    const fragranceData = {
-        brand: brand || 'Unknown',
-        name: name || 'Unnamed Fragrance',
-        imageUrl: collectedData.imageUrl || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400',
-        seasons: collectedData.seasons,
-        occasions: collectedData.occasions,
-        types: collectedData.types
+    // --- 4. NORMALIZE DATA (Sum to 100%) ---
+    const normalizePercentages = (obj) => {
+        const total = Object.values(obj).reduce((sum, val) => sum + val, 0);
+        if (total === 0) return {};
+        
+        const normalized = {};
+        let runningTotal = 0;
+        const keys = Object.keys(obj);
+        
+        // Sort keys by value (highest first) so rounding errors don't hit the main notes
+        keys.sort((a, b) => obj[b] - obj[a]);
+
+        keys.forEach((key, index) => {
+            if (index === keys.length - 1) {
+                // Force the last item to make the math equal exactly 100
+                normalized[key] = Math.max(0, 100 - runningTotal);
+            } else {
+                const val = Math.round((obj[key] / total) * 100);
+                normalized[key] = val;
+                runningTotal += val;
+            }
+        });
+        return normalized;
     };
-    
-    // Create modal with copyable text
-    const jsonData = JSON.stringify(fragranceData, null, 2);
-    
-    // Create modal overlay
+
+    const finalData = {
+        brand: brand,
+        name: name,
+        imageUrl: imgUrl,
+        seasons: normalizePercentages(collectedData.seasons),
+        occasions: normalizePercentages(collectedData.occasions),
+        types: normalizePercentages(collectedData.types)
+    };
+
+    // --- 5. DISPLAY MODAL ---
+    const jsonData = JSON.stringify(finalData, null, 2);
+
     const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: Arial, sans-serif;
+    modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; justify-content: center; align-items: center; font-family: sans-serif;`;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `background: #1a1a1a; color: #fff; padding: 25px; border-radius: 10px; width: 600px; max-width: 90%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.5);`;
+
+    content.innerHTML = `
+        <h3 style="margin-top:0; color: #4a90e2;">✅ Data Extracted: ${name}</h3>
+        <div style="display:flex; gap:15px; margin-bottom:15px; align-items:center;">
+            <img src="${imgUrl}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #444;">
+            <div>
+                <div style="font-weight:bold; font-size: 1.1em;">${brand}</div>
+                <div style="color: #888; font-size: 0.9em;">${Object.keys(finalData.types).slice(0,3).join(', ')}...</div>
+            </div>
+        </div>
+        <textarea id="fs-data" style="flex-grow: 1; background: #111; color: #0f0; border: 1px solid #333; padding: 10px; font-family: monospace; border-radius: 5px; margin-bottom: 15px; min-height: 250px;">${jsonData}</textarea>
+        <div style="display: flex; gap: 10px;">
+            <button id="fs-copy" style="flex: 1; padding: 12px; background: #4a90e2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px;">📋 Copy JSON</button>
+            <button id="fs-close" style="padding: 12px 20px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+        </div>
     `;
-    
-    // Create modal content
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = `
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow: auto;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    `;
-    
-    const title = document.createElement('h2');
-    title.textContent = '✅ FragShelf Data Ready!';
-    title.style.cssText = 'margin: 0 0 15px 0; color: #4a90e2;';
-    
-    const instruction = document.createElement('p');
-    instruction.textContent = 'Click the button below to copy, then paste into FragShelf:';
-    instruction.style.cssText = 'margin: 0 0 15px 0; color: #666;';
-    
-    const textarea = document.createElement('textarea');
-    textarea.value = jsonData;
-    textarea.readOnly = true;
-    textarea.style.cssText = `
-        width: 100%;
-        height: 300px;
-        padding: 10px;
-        border: 2px solid #4a90e2;
-        border-radius: 6px;
-        font-family: monospace;
-        font-size: 12px;
-        resize: vertical;
-        margin-bottom: 15px;
-    `;
-    
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = 'display: flex; gap: 10px;';
-    
-    const copyButton = document.createElement('button');
-    copyButton.textContent = '📋 Copy to Clipboard';
-    copyButton.style.cssText = `
-        flex: 1;
-        padding: 12px 24px;
-        background: #4a90e2;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: bold;
-    `;
-    
-    const closeButton = document.createElement('button');
-    closeButton.textContent = '✕ Close';
-    closeButton.style.cssText = `
-        padding: 12px 24px;
-        background: #666;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-    `;
-    
-    // Copy button handler
-    copyButton.onclick = () => {
-        textarea.select();
-        textarea.setSelectionRange(0, 99999); // For mobile
-        
-        try {
-            document.execCommand('copy');
-            copyButton.textContent = '✅ Copied!';
-            copyButton.style.background = '#27ae60';
-            setTimeout(() => {
-                copyButton.textContent = '📋 Copy to Clipboard';
-                copyButton.style.background = '#4a90e2';
-            }, 2000);
-        } catch (err) {
-            copyButton.textContent = '❌ Failed - Select & Copy Manually';
-            copyButton.style.background = '#e74c3c';
-        }
-    };
-    
-    // Close button handler
-    closeButton.onclick = () => {
-        document.body.removeChild(modal);
-    };
-    
-    // Assemble modal
-    buttonContainer.appendChild(copyButton);
-    buttonContainer.appendChild(closeButton);
-    modalContent.appendChild(title);
-    modalContent.appendChild(instruction);
-    modalContent.appendChild(textarea);
-    modalContent.appendChild(buttonContainer);
-    modal.appendChild(modalContent);
+
+    modal.appendChild(content);
     document.body.appendChild(modal);
-    
-    // Auto-select text
-    textarea.select();
-    
-    // Log to console as well
-    console.log('✅ Fragrance data ready!');
-    console.log('\n📋 Data:', fragranceData);
-    console.log('\n💡 JSON:', jsonData);
+
+    document.getElementById('fs-copy').onclick = function() {
+        const textarea = document.getElementById('fs-data');
+        textarea.select();
+        document.execCommand('copy');
+        this.innerText = "✅ Copied!";
+        this.style.background = "#27ae60";
+        setTimeout(() => { this.innerText = "📋 Copy JSON"; this.style.background = "#4a90e2"; }, 2000);
+    };
+
+    document.getElementById('fs-close').onclick = () => document.body.removeChild(modal);
+
+    console.log("Data Ready:", finalData);
 })();
