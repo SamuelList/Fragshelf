@@ -92,7 +92,7 @@ exports.handler = async (event) => {
         const fragrances = await sql`
           SELECT 
             id, brand, name, image_url as "imageUrl",
-            seasons, occasions, types, liked
+            seasons, occasions, types, liked, review
           FROM fragrances 
           WHERE user_id = ${parseInt(userId)}
           ORDER BY created_at DESC
@@ -141,17 +141,17 @@ exports.handler = async (event) => {
 
     // POST /api/fragrances
     if (event.httpMethod === 'POST') {
-      const { brand, name, imageUrl, seasons, occasions, types } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, types, review } = JSON.parse(event.body);
       
       const result = await sql`
         INSERT INTO fragrances 
-          (user_id, brand, name, image_url, seasons, occasions, types)
+          (user_id, brand, name, image_url, seasons, occasions, types, review)
         VALUES 
           (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
-           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)})
+           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)}, ${review || null})
         RETURNING 
           id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, types, liked
+          seasons, occasions, types, liked, review
       `;
       
       return {
@@ -163,7 +163,7 @@ exports.handler = async (event) => {
 
         // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
-      const { brand, name, imageUrl, seasons, occasions, types } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, types, review } = JSON.parse(event.body);
       
       const result = await sql`
         UPDATE fragrances 
@@ -174,11 +174,12 @@ exports.handler = async (event) => {
           seasons = ${JSON.stringify(seasons)},
           occasions = ${JSON.stringify(occasions)},
           types = ${JSON.stringify(types)},
+          review = ${review || null},
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, liked
+          seasons, occasions, types, liked, review
       `;
       
       if (result.length === 0) {
@@ -208,7 +209,7 @@ exports.handler = async (event) => {
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, liked
+          seasons, occasions, types, liked, review
       `;
       
       if (result.length === 0) {
