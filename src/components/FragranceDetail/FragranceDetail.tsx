@@ -269,6 +269,16 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
           </div>
         </div>
 
+        {/* Review Section */}
+        {fragrance.review && (
+          <div className={styles.reviewSection}>
+            <h4 className={styles.reviewTitle}>Review & Notes</h4>
+            <div className={styles.reviewText}>
+              {fragrance.review}
+            </div>
+          </div>
+        )}
+
         <div className={styles.actions}>
           {!showDeleteConfirm ? (
             <>

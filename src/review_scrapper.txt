@@ -1,0 +1,142 @@
+/**
+ * Parfumo Scraper V6 - The Final Clean
+ * - Filters out the Product Header (Junk data).
+ * - Cleans up "Scent" tags and "Read more" artifacts.
+ * - Requires user to load reviews first.
+ */
+
+(() => {
+    console.clear();
+    console.log("--- STARTING V6 SCRAPER ---");
+
+    // 1. EXPAND "READ MORE" (Inside the reviews)
+    document.querySelectorAll('.btn-show-more, .show_more_reviews, span[onclick*="read_more"]').forEach(b => {
+        try { b.click(); } catch(e) {}
+    });
+
+    // 2. FIND ANCHORS (The "Longevity" text nodes)
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    const anchors = [];
+    while(node = walker.nextNode()) {
+        // We use "Longevity" as the anchor because every review has it in the stats box
+        if(node.nodeValue.includes("Longevity") && node.parentElement.tagName !== 'SCRIPT') {
+            anchors.push(node.parentElement);
+        }
+    }
+    
+    console.log(`Found ${anchors.length} stats blocks (potential reviews).`);
+
+    let validReviews = [];
+    let seenTexts = new Set();
+
+    anchors.forEach(anchor => {
+        try {
+            // 3. TRAVERSE UP TO FIND THE CARD
+            let card = anchor;
+            let parent = anchor.parentElement;
+            let levels = 0;
+
+            while(parent && levels < 6) {
+                // Density Check: If parent has multiple "Longevity" words, we hit the list container. Stop.
+                const density = (parent.innerText.match(/Longevity/g) || []).length;
+                if(density > 1) break;
+                
+                card = parent;
+                parent = parent.parentElement;
+                levels++;
+            }
+
+            // 4. FILTER OUT JUNK (The Product Header)
+            // If the card contains "Fragrance Pyramid" or "Main accords", it's the product page header, not a review.
+            if (card.innerText.includes("Fragrance Pyramid") || card.innerText.includes("Main accords") || card.innerText.includes("SEE PRICES")) {
+                return; // Skip this one
+            }
+
+            // 5. EXTRACT & CLEAN TEXT
+            let rawText = card.innerText;
+
+            const lines = rawText.split('\n').filter(line => {
+                const l = line.trim();
+                if (l.length < 2) return false;
+                
+                // Poison Words (Remove these lines)
+                if (["Longevity", "Sillage", "Scent", "Bottle", "Value for money"].some(w => l.includes(w))) return false; 
+                if (["Award", "Comment", "Subscribe", "Helpful", "Not helpful", "Translated", "Show original", "Reply", "Edit"].some(w => l.includes(w))) return false;
+                if (/^\d+(\.|,)?\d*$/.test(l)) return false; // Pure numbers (8.5, 10, etc)
+                
+                return true;
+            });
+
+            let cleanText = lines.join('\n').trim();
+
+            // Remove "Read more" trailing text
+            cleanText = cleanText.replace(/\.\.\.\s*Read more/gi, "...");
+            cleanText = cleanText.replace(/Read on$/gi, "");
+
+            // 6. DEDUPLICATE
+            const signature = cleanText.substring(0, 50); 
+            
+            if (!seenTexts.has(signature) && cleanText.length > 15) {
+                seenTexts.add(signature);
+                
+                // Try to find author
+                const authorNode = card.querySelector('a[href^="/user/"], .review_author, strong');
+                const author = authorNode ? authorNode.innerText.trim() : "Unknown User";
+
+                // Remove author name from the start of the text if it got caught there
+                if (cleanText.startsWith(author)) {
+                    cleanText = cleanText.substring(author.length).trim();
+                }
+
+                validReviews.push({ author, text: cleanText });
+            }
+
+        } catch(e) {}
+    });
+
+    console.log(`Extracted ${validReviews.length} clean reviews.`);
+
+    // 7. DISPLAY MODAL
+    let fullText = `PARFUMO REVIEWS EXTRACTED (${validReviews.length})\n`;
+    fullText += `=================================================\n\n`;
+
+    validReviews.forEach((r, i) => {
+        fullText += `--- REVIEW #${i+1} by ${r.author} ---\n`;
+        fullText += `${r.text}\n`;
+        fullText += `\n`; 
+    });
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; justify-content: center; align-items: center; font-family: sans-serif;`;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `background: #1a1a1a; color: #fff; padding: 25px; border-radius: 10px; width: 700px; max-width: 90%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.5);`;
+
+    content.innerHTML = `
+        <h3 style="margin-top:0; color: #4a90e2;">✅ V6 Results: ${validReviews.length} Reviews</h3>
+        <div style="margin-bottom: 10px; color: #aaa; font-size: 0.9em;">
+            <b>Note:</b> If you want more, scroll down, click "Load More", then run this again.
+        </div>
+        <textarea id="fs-data" style="flex-grow: 1; background: #111; color: #eee; border: 1px solid #333; padding: 10px; font-family: monospace; border-radius: 5px; margin-bottom: 15px; min-height: 300px; white-space: pre;">${fullText}</textarea>
+        <div style="display: flex; gap: 10px;">
+            <button id="fs-copy" style="flex: 1; padding: 12px; background: #4a90e2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px;">📋 Copy Text</button>
+            <button id="fs-close" style="padding: 12px 20px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+        </div>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    document.getElementById('fs-copy').onclick = function() {
+        const textarea = document.getElementById('fs-data');
+        textarea.select();
+        document.execCommand('copy');
+        this.innerText = "✅ Copied!";
+        this.style.background = "#27ae60";
+        setTimeout(() => { this.innerText = "📋 Copy Text"; this.style.background = "#4a90e2"; }, 2000);
+    };
+
+    document.getElementById('fs-close').onclick = () => document.body.removeChild(modal);
+
+})();
