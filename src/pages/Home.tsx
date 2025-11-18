@@ -160,34 +160,9 @@ const Home = () => {
   }, [occasionFilters]);
 
   // Calculate available types and their popularity
-  const availableTypes = useMemo(() => {
-    const typeScores: Record<string, number> = {};
-    
-    fragrances.forEach(fragrance => {
-      Object.entries(fragrance.types).forEach(([type, percentage]) => {
-        if (percentage > 0) {
-          typeScores[type] = (typeScores[type] || 0) + percentage;
-        }
-      });
-    });
-    
-    // Sort by total score (most popular first)
-    return Object.entries(typeScores)
-      .sort((a, b) => b[1] - a[1])
-      .map(([type]) => type as FragranceType);
-  }, [fragrances]);
-
-  // Filter and sort fragrances based on selected type, seasons, and occasions
-  const filteredFragrances = useMemo(() => {
+  // Filter fragrances based on seasons and occasions (but NOT type yet)
+  const seasonOccasionFilteredFragrances = useMemo(() => {
     let result = [...fragrances];
-    
-    // Apply type filter
-    if (selectedType) {
-      result = result.filter(fragrance => {
-        const typeValue = fragrance.types[selectedType];
-        return typeValue && typeValue > 0;
-      });
-    }
     
     // Apply season filters
     const activeSeasonFilters = Object.entries(seasonFilters).filter(([_, value]) => value > 0);
@@ -211,6 +186,43 @@ const Home = () => {
       });
     }
     
+    return result;
+  }, [fragrances, seasonFilters, occasionFilters]);
+
+  // Calculate available types based on season/occasion filtered fragrances
+  const availableTypes = useMemo(() => {
+    const typeScores: Record<string, number> = {};
+    
+    seasonOccasionFilteredFragrances.forEach(fragrance => {
+      Object.entries(fragrance.types).forEach(([type, percentage]) => {
+        if (percentage > 0) {
+          typeScores[type] = (typeScores[type] || 0) + percentage;
+        }
+      });
+    });
+    
+    // Sort by total score (most popular first)
+    const types = Object.entries(typeScores)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type]) => type as FragranceType);
+    
+    console.log('Available types after filters:', types, 'from', seasonOccasionFilteredFragrances.length, 'fragrances');
+    
+    return types;
+  }, [seasonOccasionFilteredFragrances]);
+
+  // Filter and sort fragrances based on selected type, seasons, and occasions
+  const filteredFragrances = useMemo(() => {
+    let result = [...seasonOccasionFilteredFragrances];
+    
+    // Apply type filter
+    if (selectedType) {
+      result = result.filter(fragrance => {
+        const typeValue = fragrance.types[selectedType];
+        return typeValue && typeValue > 0;
+      });
+    }
+    
     // Sort by the selected type percentage if a type is selected
     if (selectedType) {
       result.sort((a, b) => {
@@ -230,7 +242,7 @@ const Home = () => {
     }
     
     return result;
-  }, [fragrances, selectedType, seasonFilters, occasionFilters, showSafest]);
+  }, [seasonOccasionFilteredFragrances, selectedType, showSafest]);
 
   if (authLoading || isLoading) {
     return (
