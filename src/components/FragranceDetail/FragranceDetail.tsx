@@ -138,7 +138,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
       }
     });
     
-    return `linear-gradient(135deg, ${gradientStops.join(', ')})`;
+    return `linear-gradient(0deg, ${gradientStops.join(', ')})`;
   };
 
   return (
