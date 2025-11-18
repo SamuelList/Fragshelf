@@ -1,0 +1,76 @@
+(() => {
+    console.log("--- PARFUMO DATA SCRAPER ---");
+
+    // --- 1. GET THE IMAGE URL ---
+    let imgUrl = "Image not found";
+    // Select the main image inside the '.p-image' container
+    const imgElement = document.querySelector('.p-image img') || document.querySelector('.p_img_wrapper img');
+    
+    if (imgElement) {
+        imgUrl = imgElement.src;
+    } else {
+        const metaImg = document.querySelector('meta[property="og:image"]');
+        if (metaImg) imgUrl = metaImg.content;
+    }
+    
+    console.log("IMAGE URL:");
+    console.log(imgUrl);
+    console.log(""); // Spacing
+
+    // --- 2. GET CHART DATA ---
+    const scripts = document.querySelectorAll('script');
+    
+    scripts.forEach(script => {
+        const content = script.innerHTML;
+        
+        // Find JSON arrays containing "ct_name" (the vote data)
+        const matches = content.match(/\[\{"ct_name".*?\}\]/g);
+        
+        if (matches) {
+            matches.forEach(jsonString => {
+                try {
+                    const data = JSON.parse(jsonString);
+                    const keys = data.map(x => x.ct_name);
+                    let title = "";
+
+                    // --- FILTERING LOGIC ---
+                    
+                    // 1. Seasonal Check
+                    if (keys.includes("Spring") || keys.includes("Winter")) {
+                        title = "SEASONAL";
+                    }
+                    // 2. Occasions Check
+                    else if (keys.includes("Leisure") || keys.includes("Daily") || keys.includes("Business")) {
+                        title = "OCCASIONS";
+                    }
+                    // 3. Type / Scent Profile Check (Added this back in)
+                    // We check for common scent families used by Parfumo
+                    else if (keys.some(k => ["Woody", "Sweet", "Fresh", "Spicy", "Floral", "Fruity", "Oriental", "Citrus", "Gourmand", "Leather", "Aquatic"].includes(k))) {
+                        title = "TYPE";
+                    }
+                    // Skip anything else (like Gender/Audience if not wanted)
+                    else {
+                        return; 
+                    }
+
+                    // Calculate Total for percentages
+                    const totalVotes = data.reduce((sum, item) => sum + parseInt(item.votes), 0);
+
+                    console.log(`--- ${title} ---`);
+                    
+                    data.forEach(item => {
+                        const votes = parseInt(item.votes);
+                        const percent = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) + "%" : "0%";
+                        
+                        // Plain text output
+                        console.log(`${item.ct_name}: ${percent} (${votes} votes)`);
+                    });
+                    console.log(""); // New line
+
+                } catch (e) {
+                    // Ignore parsing errors
+                }
+            });
+        }
+    });
+})();
