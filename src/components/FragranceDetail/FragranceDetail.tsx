@@ -90,21 +90,36 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     };
     
     const orderedSeasons = ['winter', 'spring', 'summer', 'autumn'] as const;
-    const gradientStops: string[] = [];
-    let currentPosition = 0;
+    const stops: Array<{ color: string; position: number }> = [];
+    let totalPercentage = 0;
     
+    // Collect all seasons with their percentages
     orderedSeasons.forEach(season => {
       const percentage = fragrance.seasons[season] || 0;
       if (percentage > 0) {
-        gradientStops.push(`${seasonColors[season]} ${currentPosition}%`);
-        currentPosition += percentage;
-        gradientStops.push(`${seasonColors[season]} ${currentPosition}%`);
+        stops.push({ color: seasonColors[season], position: totalPercentage });
+        totalPercentage += percentage;
       }
     });
     
-    return gradientStops.length > 0 
-      ? `linear-gradient(135deg, ${gradientStops.join(', ')})`
-      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (stops.length === 0) {
+      return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }
+    
+    // Create smooth gradient with blending between colors
+    const gradientStops = stops.map((stop, index) => {
+      if (index === stops.length - 1) {
+        // Last color extends to 100%
+        return `${stop.color} ${stop.position}%, ${stop.color} 100%`;
+      } else {
+        // Calculate midpoint for smooth transition
+        const nextStop = stops[index + 1];
+        const midpoint = stop.position + ((nextStop.position - stop.position) / 2);
+        return `${stop.color} ${stop.position}%, ${stop.color} ${midpoint}%`;
+      }
+    }).join(', ');
+    
+    return `linear-gradient(135deg, ${gradientStops})`;
   };
 
   return (
