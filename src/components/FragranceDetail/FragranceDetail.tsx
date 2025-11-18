@@ -107,7 +107,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     }
     
     // Create smooth gradient with fixed blend zones (5% blend area)
-    const blendSize = 5; // Fixed 5% blend zone between colors
+    const blendSize = 20; // Fixed 5% blend zone between colors
     const gradientStops: string[] = [];
     
     stops.forEach((stop, index) => {
