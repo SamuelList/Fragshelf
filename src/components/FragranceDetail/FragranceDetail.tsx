@@ -89,7 +89,7 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
       autumn: '#d9b1be'
     };
     
-    const orderedSeasons = ['winter', 'spring', 'summer', 'autumn'] as const;
+    const orderedSeasons = ['winter', 'spring', 'autumn', 'summer'] as const;
     const stops: Array<{ color: string; position: number; percentage: number }> = [];
     let totalPercentage = 0;
     
