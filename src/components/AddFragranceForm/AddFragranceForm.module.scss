@@ -113,18 +113,25 @@
   }
 
   input[type="text"],
-  input[type="url"] {
+  input[type="url"],
+  textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #d0d0d0;
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.2s;
+    font-family: inherit;
 
     &:focus {
       outline: none;
       border-color: #4a90e2;
     }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
   }
 }
 

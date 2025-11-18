@@ -19,6 +19,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   const [brand, setBrand] = useState(initialData?.brand || '');
   const [name, setName] = useState(initialData?.name || '');
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400');
+  const [review, setReview] = useState(initialData?.review || '');
 
   // Season state
   const [spring, setSpring] = useState(initialData?.seasons.spring ?? 0);
@@ -69,6 +70,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       if (data.brand) setBrand(data.brand);
       if (data.name) setName(data.name);
       if (data.imageUrl) setImageUrl(data.imageUrl);
+      if (data.review) setReview(data.review);
       
       if (data.seasons) {
         if (data.seasons.spring !== undefined) setSpring(data.seasons.spring);
@@ -117,7 +119,8 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       imageUrl: imageUrl || '/images/placeholder.jpg',
       seasons: { spring, summer, autumn, winter },
       occasions: { daily, business, leisure, sport, evening, 'night out': nightOut },
-      types: typeScores
+      types: typeScores,
+      review
     };
 
     onSubmit(newFragrance);
@@ -172,6 +175,16 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Review / Notes</label>
+              <textarea
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+                placeholder="Add your personal review or notes here..."
+                rows={4}
+                className={styles.textarea}
               />
             </div>
           </section>
@@ -248,7 +261,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
               Cancel
             </button>
             <button type="submit" className={styles.submitButton}>
-              Add Fragrance
+              {initialData ? 'Save Changes' : 'Add Fragrance'}
             </button>
           </div>
         </form>
