@@ -80,12 +80,39 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     );
   };
 
+  // Generate gradient based on season percentages
+  const generateSeasonGradient = () => {
+    const seasonColors = {
+      winter: '#a2cbff',
+      spring: '#badc82',
+      summer: '#fed766',
+      autumn: '#d9b1be'
+    };
+    
+    const orderedSeasons = ['winter', 'spring', 'summer', 'autumn'] as const;
+    const gradientStops: string[] = [];
+    let currentPosition = 0;
+    
+    orderedSeasons.forEach(season => {
+      const percentage = fragrance.seasons[season] || 0;
+      if (percentage > 0) {
+        gradientStops.push(`${seasonColors[season]} ${currentPosition}%`);
+        currentPosition += percentage;
+        gradientStops.push(`${seasonColors[season]} ${currentPosition}%`);
+      }
+    });
+    
+    return gradientStops.length > 0 
+      ? `linear-gradient(135deg, ${gradientStops.join(', ')})`
+      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={onClose}>×</button>
         
-        <div className={styles.header}>
+        <div className={styles.header} style={{ background: generateSeasonGradient() }}>
           <div className={styles.imageContainer}>
             <img 
               src={fragrance.imageUrl} 
@@ -120,35 +147,6 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
         </div>
 
         <div className={styles.charts}>
-          {/* Seasons Chart */}
-          <div className={styles.chartSection}>
-            <h4>Seasons</h4>
-            <div className={styles.chartContainer}>
-              <div className={styles.chartWrapper}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={seasonsData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={70}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {seasonsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value}%`} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              {renderLegendList(seasonsData, 'seasons')}
-            </div>
-          </div>
-
           {/* Occasions Chart */}
           <div className={styles.chartSection}>
             <h4>Occasions</h4>
@@ -175,6 +173,35 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
                 </ResponsiveContainer>
               </div>
               {renderLegendList(occasionsData, 'occasions')}
+            </div>
+          </div>
+
+          {/* Seasons Chart */}
+          <div className={styles.chartSection}>
+            <h4>Seasons</h4>
+            <div className={styles.chartContainer}>
+              <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={seasonsData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={false}
+                      outerRadius={70}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {seasonsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {renderLegendList(seasonsData, 'seasons')}
             </div>
           </div>
 
