@@ -138,8 +138,8 @@
 
     // Get brand and name from page
     const titleElement = document.querySelector('h1[itemprop="name"]');
-    const title = titleElement ? titleElement.textContent.trim() : '';
-    const [brand, ...nameParts] = title.split(' - ');
+    const pageTitle = titleElement ? titleElement.textContent.trim() : '';
+    const [brand, ...nameParts] = pageTitle.split(' - ');
     const name = nameParts.join(' - ').trim();
     
     // Create FragShelf-compatible object
@@ -152,33 +152,129 @@
         types: collectedData.types
     };
     
-    // Copy to clipboard
+    // Create modal with copyable text
     const jsonData = JSON.stringify(fragranceData, null, 2);
-    navigator.clipboard.writeText(jsonData).then(() => {
-        console.log('✅ Fragrance data copied to clipboard!');
-        console.log('\n📋 Data:', fragranceData);
-        console.log('\n💡 Paste this into FragShelf!');
+    
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+    `;
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    `;
+    
+    const title = document.createElement('h2');
+    title.textContent = '✅ FragShelf Data Ready!';
+    title.style.cssText = 'margin: 0 0 15px 0; color: #4a90e2;';
+    
+    const instruction = document.createElement('p');
+    instruction.textContent = 'Click the button below to copy, then paste into FragShelf:';
+    instruction.style.cssText = 'margin: 0 0 15px 0; color: #666;';
+    
+    const textarea = document.createElement('textarea');
+    textarea.value = jsonData;
+    textarea.readOnly = true;
+    textarea.style.cssText = `
+        width: 100%;
+        height: 300px;
+        padding: 10px;
+        border: 2px solid #4a90e2;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 12px;
+        resize: vertical;
+        margin-bottom: 15px;
+    `;
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 10px;';
+    
+    const copyButton = document.createElement('button');
+    copyButton.textContent = '📋 Copy to Clipboard';
+    copyButton.style.cssText = `
+        flex: 1;
+        padding: 12px 24px;
+        background: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+    `;
+    
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '✕ Close';
+    closeButton.style.cssText = `
+        padding: 12px 24px;
+        background: #666;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    `;
+    
+    // Copy button handler
+    copyButton.onclick = () => {
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile
         
-        // Show visual confirmation
-        const notice = document.createElement('div');
-        notice.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4a90e2;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 999999;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        `;
-        notice.textContent = '✅ Copied to clipboard for FragShelf!';
-        document.body.appendChild(notice);
-        setTimeout(() => notice.remove(), 3000);
-    }).catch(err => {
-        console.error('❌ Failed to copy to clipboard:', err);
-        alert('Failed to copy to clipboard. Check the console for the JSON data.');
-    });
+        try {
+            document.execCommand('copy');
+            copyButton.textContent = '✅ Copied!';
+            copyButton.style.background = '#27ae60';
+            setTimeout(() => {
+                copyButton.textContent = '📋 Copy to Clipboard';
+                copyButton.style.background = '#4a90e2';
+            }, 2000);
+        } catch (err) {
+            copyButton.textContent = '❌ Failed - Select & Copy Manually';
+            copyButton.style.background = '#e74c3c';
+        }
+    };
+    
+    // Close button handler
+    closeButton.onclick = () => {
+        document.body.removeChild(modal);
+    };
+    
+    // Assemble modal
+    buttonContainer.appendChild(copyButton);
+    buttonContainer.appendChild(closeButton);
+    modalContent.appendChild(title);
+    modalContent.appendChild(instruction);
+    modalContent.appendChild(textarea);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Auto-select text
+    textarea.select();
+    
+    // Log to console as well
+    console.log('✅ Fragrance data ready!');
+    console.log('\n📋 Data:', fragranceData);
+    console.log('\n💡 JSON:', jsonData);
 })();
