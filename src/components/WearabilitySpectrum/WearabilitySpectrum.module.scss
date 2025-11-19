@@ -1,16 +1,16 @@
 .container {
-  margin: 1.5rem 0;
-  padding: 1rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
   text-align: center;
 }
 
@@ -21,25 +21,29 @@
 .labels {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .leftLabel {
   text-align: left;
+  color: #7c3aed; // Dark purple
 }
 
 .rightLabel {
   text-align: right;
+  color: #60a5fa; // Light blue
 }
 
 .bar {
   position: relative;
-  height: 30px;
-  margin: 0.5rem 0;
-  border-radius: 15px;
+  height: 32px;
+  margin: 0.4rem 0;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -52,11 +56,11 @@
   bottom: 0;
   background: linear-gradient(
     to right,
-    #8b5cf6 0%,    /* Purple - Special Occasion */
-    #a78bfa 25%,   /* Light Purple */
-    #c084fc 50%,   /* Pink-Purple */
-    #e879f9 75%,   /* Pink */
-    #f472b6 100%   /* Pink-Red - Daily Wear */
+    #6b21a8 0%,    /* Dark Purple - Special Occasion */
+    #7c3aed 25%,   /* Purple */
+    #8b5cf6 50%,   /* Mid Purple-Blue */
+    #3b82f6 75%,   /* Blue */
+    #60a5fa 100%   /* Light Blue - Daily Wear */
   );
 }
 
@@ -86,14 +90,22 @@
 .percentages {
   display: flex;
   justify-content: space-between;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #fff;
 
   span {
-    padding: 0.25rem 0.5rem;
+    padding: 0.2rem 0.5rem;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
+    
+    &:first-child {
+      color: #c4b5fd; // Light purple tint
+    }
+    
+    &:last-child {
+      color: #93c5fd; // Light blue tint
+    }
   }
 }
