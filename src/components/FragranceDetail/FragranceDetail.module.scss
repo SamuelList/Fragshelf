@@ -356,20 +356,21 @@
 }
 
 .reviewText {
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 1.25rem;
   background: white;
   border-radius: 8px;
   color: #4a5568;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 1rem;
   white-space: pre-wrap;
   word-wrap: break-word;
   
   @media (max-width: 768px) {
-    max-height: 150px;
-    padding: 0.875rem;
-    font-size: 0.9rem;
+    max-height: 200px;
+    padding: 1rem;
+    font-size: 0.95rem;
   }
 
   &::-webkit-scrollbar {
