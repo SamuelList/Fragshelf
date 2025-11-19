@@ -8,6 +8,7 @@ export const mockFragrances: Fragrance[] = [
     imageUrl: '/images/oudwood.jpg',
     seasons: { spring: 10, summer: 0, autumn: 45, winter: 45 },
     occasions: { daily: 10, business: 30, leisure: 20, sport: 0, evening: 30, 'night out': 10 },
+    wearability: { special_occasion: 60, daily_wear: 40 },
     types: {
       Woody: 60,
       Resinous: 20,
@@ -39,6 +40,7 @@ export const mockFragrances: Fragrance[] = [
     imageUrl: '/images/sauvage.jpg',
     seasons: { spring: 25, summer: 30, autumn: 25, winter: 20 },
     occasions: { daily: 40, business: 20, leisure: 20, sport: 10, evening: 10, 'night out': 0 },
+    wearability: { special_occasion: 30, daily_wear: 70 },
     types: {
       Fresh: 40,
       Citrus: 30,
@@ -70,6 +72,7 @@ export const mockFragrances: Fragrance[] = [
     imageUrl: '/images/bleu.jpg',
     seasons: { spring: 30, summer: 20, autumn: 30, winter: 20 },
     occasions: { daily: 20, business: 35, leisure: 15, sport: 5, evening: 20, 'night out': 5 },
+    wearability: { special_occasion: 45, daily_wear: 55 },
     types: {
       Woody: 35,
       Citrus: 25,
@@ -101,6 +104,7 @@ export const mockFragrances: Fragrance[] = [
     imageUrl: '/images/lanuit.jpg',
     seasons: { spring: 15, summer: 5, autumn: 35, winter: 45 },
     occasions: { daily: 5, business: 10, leisure: 10, sport: 0, evening: 40, 'night out': 35 },
+    wearability: { special_occasion: 75, daily_wear: 25 },
     types: {
       Spicy: 35,
       Oriental: 30,

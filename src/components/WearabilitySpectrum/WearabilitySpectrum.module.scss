@@ -1,0 +1,99 @@
+.container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.spectrum {
+  width: 100%;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.leftLabel {
+  text-align: left;
+}
+
+.rightLabel {
+  text-align: right;
+}
+
+.bar {
+  position: relative;
+  height: 30px;
+  margin: 0.5rem 0;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    #8b5cf6 0%,    /* Purple - Special Occasion */
+    #a78bfa 25%,   /* Light Purple */
+    #c084fc 50%,   /* Pink-Purple */
+    #e879f9 75%,   /* Pink */
+    #f472b6 100%   /* Pink-Red - Daily Wear */
+  );
+}
+
+.marker {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 4px;
+  transform: translateX(-50%);
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+.markerLine {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5), 0 0 4px rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
+.percentages {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+
+  span {
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+}

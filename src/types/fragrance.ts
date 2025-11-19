@@ -16,6 +16,12 @@ export interface OccasionScores {
   'night out': number;
 }
 
+// --- Wearability Types ---
+export interface WearabilityScores {
+  special_occasion: number; // Percentage (0-100)
+  daily_wear: number;       // Percentage (0-100, must sum to 100 with special_occasion)
+}
+
 // --- Fragrance Types ---
 export type FragranceType =
   | 'Animalic' | 'Aquatic' | 'Floral' | 'Chypre' | 'Creamy' | 'Earthy'
@@ -36,6 +42,7 @@ export interface Fragrance {
   seasons: SeasonScores;   // Must sum to 100
   occasions: OccasionScores; // Must sum to 100
   types: TypeScores;       // Must sum to 100
+  wearability: WearabilityScores; // Must sum to 100
   liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating
-  review?: string;         // Optional review/notes text
+  review?: string;         // User's personal review or notes
 }

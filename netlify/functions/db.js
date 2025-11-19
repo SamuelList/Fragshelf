@@ -63,6 +63,19 @@ const initSchema = async () => {
       END $$;
     `;
 
+    // Add wearability column if it doesn't exist (for existing databases)
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='wearability'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN wearability JSONB DEFAULT '{"special_occasion": 50, "daily_wear": 50}';
+        END IF;
+      END $$;
+    `;
+
     // Create index on user_id for faster queries
     await sql`
       CREATE INDEX IF NOT EXISTS idx_fragrances_user_id ON fragrances(user_id)

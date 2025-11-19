@@ -9,6 +9,7 @@ const MOCK_DATA = [
     imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400',
     seasons: { spring: 20, summer: 35, autumn: 25, winter: 20 },
     occasions: { daily: 30, business: 20, leisure: 25, sport: 10, evening: 10, 'night out': 5 },
+    wearability: { special_occasion: 30, daily_wear: 70 },
     types: { fresh: 40, spicy: 30, woody: 20, citrus: 10 }
   },
   {
@@ -18,6 +19,7 @@ const MOCK_DATA = [
     imageUrl: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=400',
     seasons: { spring: 25, summer: 25, autumn: 25, winter: 25 },
     occasions: { daily: 20, business: 35, leisure: 20, sport: 5, evening: 15, 'night out': 5 },
+    wearability: { special_occasion: 40, daily_wear: 60 },
     types: { woody: 35, fresh: 25, citrus: 20, spicy: 20 }
   },
   {
@@ -27,6 +29,7 @@ const MOCK_DATA = [
     imageUrl: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400',
     seasons: { spring: 30, summer: 40, autumn: 20, winter: 10 },
     occasions: { daily: 15, business: 25, leisure: 20, sport: 10, evening: 20, 'night out': 10 },
+    wearability: { special_occasion: 50, daily_wear: 50 },
     types: { fruity: 35, fresh: 25, woody: 20, spicy: 20 }
   },
   {
@@ -36,6 +39,7 @@ const MOCK_DATA = [
     imageUrl: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400',
     seasons: { spring: 10, summer: 10, autumn: 35, winter: 45 },
     occasions: { daily: 5, business: 15, leisure: 15, sport: 0, evening: 35, 'night out': 30 },
+    wearability: { special_occasion: 65, daily_wear: 35 },
     types: { woody: 50, oriental: 30, spicy: 15, resinous: 5 }
   }
 ];
@@ -89,14 +93,14 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
       // If authenticated, return user's fragrances
       if (userId) {
-        const fragrances = await sql`
-          SELECT 
-            id, brand, name, image_url as "imageUrl",
-            seasons, occasions, types, liked, review
-          FROM fragrances 
-          WHERE user_id = ${parseInt(userId)}
-          ORDER BY created_at DESC
-        `;
+      const result = await sql`
+        SELECT 
+          id, brand, name, image_url as "imageUrl",
+          seasons, occasions, types, wearability, liked, review
+        FROM fragrances
+        WHERE user_id = ${parseInt(userId)}
+        ORDER BY created_at DESC
+      `;
         
         if (!id) {
           // Return user's fragrances (empty array if they have none)
@@ -141,17 +145,18 @@ exports.handler = async (event) => {
 
     // POST /api/fragrances
     if (event.httpMethod === 'POST') {
-      const { brand, name, imageUrl, seasons, occasions, types, review } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, types, wearability, review } = JSON.parse(event.body);
       
       const result = await sql`
         INSERT INTO fragrances 
-          (user_id, brand, name, image_url, seasons, occasions, types, review)
+          (user_id, brand, name, image_url, seasons, occasions, types, wearability, review)
         VALUES 
           (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
-           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)}, ${review || null})
+           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)}, 
+           ${JSON.stringify(wearability || {special_occasion: 50, daily_wear: 50})}, ${review || null})
         RETURNING 
           id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, types, liked, review
+          seasons, occasions, types, wearability, liked, review
       `;
       
       return {
@@ -163,7 +168,7 @@ exports.handler = async (event) => {
 
         // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
-      const { brand, name, imageUrl, seasons, occasions, types, review } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, types, wearability, review } = JSON.parse(event.body);
       
       const result = await sql`
         UPDATE fragrances 
@@ -174,12 +179,13 @@ exports.handler = async (event) => {
           seasons = ${JSON.stringify(seasons)},
           occasions = ${JSON.stringify(occasions)},
           types = ${JSON.stringify(types)},
+          wearability = ${JSON.stringify(wearability || {special_occasion: 50, daily_wear: 50})},
           review = ${review || null},
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, liked, review
+          seasons, occasions, types, wearability, liked, review
       `;
       
       if (result.length === 0) {
@@ -209,7 +215,7 @@ exports.handler = async (event) => {
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, liked, review
+          seasons, occasions, types, wearability, liked, review
       `;
       
       if (result.length === 0) {

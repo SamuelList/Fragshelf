@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Fragrance } from '../../types/fragrance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { getChartColor } from '../../constants/colors';
+import WearabilitySpectrum from '../WearabilitySpectrum/WearabilitySpectrum';
 import styles from './FragranceDetail.module.scss';
 
 interface FragranceDetailProps {
@@ -179,6 +180,9 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
             )}
           </div>
         </div>
+
+        {/* Wearability Spectrum */}
+        <WearabilitySpectrum wearability={fragrance.wearability} />
 
         <div className={styles.charts}>
           {/* Occasions Chart */}

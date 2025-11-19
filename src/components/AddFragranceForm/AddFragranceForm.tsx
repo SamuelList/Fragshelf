@@ -35,6 +35,10 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   const [evening, setEvening] = useState(initialData?.occasions.evening ?? 0);
   const [nightOut, setNightOut] = useState(initialData?.occasions['night out'] ?? 0);
 
+  // Wearability state
+  const [specialOccasion, setSpecialOccasion] = useState(initialData?.wearability.special_occasion ?? 50);
+  const [dailyWear, setDailyWear] = useState(initialData?.wearability.daily_wear ?? 50);
+
   // Type state (using an object for all 20 types)
   const getInitialTypeScores = (): Record<FragranceType, number> => {
     if (initialData?.types) {
@@ -87,6 +91,11 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
         if (data.occasions.evening !== undefined) setEvening(data.occasions.evening);
         if (data.occasions['night out'] !== undefined) setNightOut(data.occasions['night out']);
       }
+
+      if (data.wearability) {
+        if (data.wearability.special_occasion !== undefined) setSpecialOccasion(data.wearability.special_occasion);
+        if (data.wearability.daily_wear !== undefined) setDailyWear(data.wearability.daily_wear);
+      }
       
       if (data.types) {
         const newTypes: any = { ...typeScores };
@@ -110,6 +119,18 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
     setTypeScores(prev => ({ ...prev, [type]: value }));
   };
 
+  const handleSpecialOccasionChange = (value: number) => {
+    const rounded = Math.round(value / 5) * 5; // Round to nearest 5
+    setSpecialOccasion(rounded);
+    setDailyWear(100 - rounded);
+  };
+
+  const handleDailyWearChange = (value: number) => {
+    const rounded = Math.round(value / 5) * 5; // Round to nearest 5
+    setDailyWear(rounded);
+    setSpecialOccasion(100 - rounded);
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
@@ -120,6 +141,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       seasons: { spring, summer, autumn, winter },
       occasions: { daily, business, leisure, sport, evening, 'night out': nightOut },
       types: typeScores,
+      wearability: { special_occasion: specialOccasion, daily_wear: dailyWear },
       review
     };
 
@@ -236,6 +258,33 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
             <div className={styles.sliderGroup}>
               <label>Night Out: {nightOut}%</label>
               <input type="range" min="0" max="50" value={nightOut} onChange={(e) => setNightOut(Number(e.target.value))} />
+            </div>
+          </section>
+
+          {/* Wearability */}
+          <section className={styles.section}>
+            <h3>Wearability <span className={styles.valid}>(Always 100%)</span></h3>
+            <div className={styles.sliderGroup}>
+              <label>Special Occasion: {specialOccasion}%</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                step="5"
+                value={specialOccasion} 
+                onChange={(e) => handleSpecialOccasionChange(Number(e.target.value))} 
+              />
+            </div>
+            <div className={styles.sliderGroup}>
+              <label>Daily Wear: {dailyWear}%</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                step="5"
+                value={dailyWear} 
+                onChange={(e) => handleDailyWearChange(Number(e.target.value))} 
+              />
             </div>
           </section>
 
