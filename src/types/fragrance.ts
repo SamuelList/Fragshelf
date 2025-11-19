@@ -42,7 +42,7 @@ export interface Fragrance {
   seasons: SeasonScores;   // Must sum to 100
   occasions: OccasionScores; // Must sum to 100
   types: TypeScores;       // Must sum to 100
-  wearability: WearabilityScores; // Must sum to 100
+  wearability?: WearabilityScores; // Must sum to 100, optional for backwards compatibility
   liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating
   review?: string;         // User's personal review or notes
 }

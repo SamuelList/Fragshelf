@@ -36,8 +36,8 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   const [nightOut, setNightOut] = useState(initialData?.occasions['night out'] ?? 0);
 
   // Wearability state
-  const [specialOccasion, setSpecialOccasion] = useState(initialData?.wearability.special_occasion ?? 50);
-  const [dailyWear, setDailyWear] = useState(initialData?.wearability.daily_wear ?? 50);
+  const [specialOccasion, setSpecialOccasion] = useState(initialData?.wearability?.special_occasion ?? 50);
+  const [dailyWear, setDailyWear] = useState(initialData?.wearability?.daily_wear ?? 50);
 
   // Type state (using an object for all 20 types)
   const getInitialTypeScores = (): Record<FragranceType, number> => {

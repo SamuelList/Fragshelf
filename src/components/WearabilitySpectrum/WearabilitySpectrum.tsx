@@ -2,11 +2,12 @@ import { WearabilityScores } from '../../types/fragrance';
 import styles from './WearabilitySpectrum.module.scss';
 
 interface WearabilitySpectrumProps {
-  wearability: WearabilityScores;
+  wearability?: WearabilityScores;
 }
 
 const WearabilitySpectrum = ({ wearability }: WearabilitySpectrumProps) => {
-  const { special_occasion, daily_wear } = wearability;
+  // Provide default values if wearability is undefined
+  const { special_occasion = 50, daily_wear = 50 } = wearability || {};
   
   // Calculate position: 0% (far left) = 100% special occasion, 100% (far right) = 100% daily wear
   const markerPosition = daily_wear;

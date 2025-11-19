@@ -1,4 +1,5 @@
 const { getDb } = require('./db');
+const { initSchema } = require('./db');
 
 // Mock data for public viewing
 const MOCK_DATA = [
@@ -93,36 +94,105 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
       // If authenticated, return user's fragrances
       if (userId) {
-      const result = await sql`
-        SELECT 
-          id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, wearability, liked, review
-        FROM fragrances
-        WHERE user_id = ${parseInt(userId)}
-        ORDER BY created_at DESC
-      `;
+        try {
+          const result = await sql`
+            SELECT 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, types, 
+              COALESCE(wearability, '{"special_occasion": 50, "daily_wear": 50}'::jsonb) as wearability,
+              liked, review
+            FROM fragrances
+            WHERE user_id = ${parseInt(userId)}
+            ORDER BY created_at DESC
+          `;
         
-        if (!id) {
-          // Return user's fragrances (empty array if they have none)
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify(fragrances)
-          };
-        } else {
-          const fragrance = fragrances.find(f => String(f.id) === id);
-          if (!fragrance) {
+          const fragrances = result.map(row => ({
+            id: String(row.id),
+            brand: row.brand,
+            name: row.name,
+            imageUrl: row.imageUrl,
+            seasons: row.seasons,
+            occasions: row.occasions,
+            types: row.types,
+            wearability: row.wearability,
+            liked: row.liked,
+            review: row.review
+          }));
+        
+          if (!id) {
+            // Return user's fragrances (empty array if they have none)
             return {
-              statusCode: 404,
+              statusCode: 200,
               headers,
-              body: JSON.stringify({ error: 'Fragrance not found' })
+              body: JSON.stringify(fragrances)
+            };
+          } else {
+            const fragrance = fragrances.find(f => String(f.id) === id);
+            if (!fragrance) {
+              return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ error: 'Fragrance not found' })
+              };
+            }
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify(fragrance)
             };
           }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify(fragrance)
-          };
+        } catch (dbError) {
+          // If column doesn't exist, run migration and retry
+          if (dbError.message && dbError.message.includes('column "wearability" does not exist')) {
+            console.log('Wearability column missing, running migration...');
+            await initSchema();
+            
+            // Retry the query
+            const result = await sql`
+              SELECT 
+                id, brand, name, image_url as "imageUrl",
+                seasons, occasions, types, wearability, liked, review
+              FROM fragrances
+              WHERE user_id = ${parseInt(userId)}
+              ORDER BY created_at DESC
+            `;
+          
+            const fragrances = result.map(row => ({
+              id: String(row.id),
+              brand: row.brand,
+              name: row.name,
+              imageUrl: row.imageUrl,
+              seasons: row.seasons,
+              occasions: row.occasions,
+              types: row.types,
+              wearability: row.wearability || { special_occasion: 50, daily_wear: 50 },
+              liked: row.liked,
+              review: row.review
+            }));
+            
+            if (!id) {
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(fragrances)
+              };
+            } else {
+              const fragrance = fragrances.find(f => String(f.id) === id);
+              if (!fragrance) {
+                return {
+                  statusCode: 404,
+                  headers,
+                  body: JSON.stringify({ error: 'Fragrance not found' })
+                };
+              }
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(fragrance)
+              };
+            }
+          }
+          throw dbError; // Re-throw if it's a different error
         }
       } else {
         // Return public mock data for unauthenticated users only
