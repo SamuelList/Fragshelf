@@ -74,6 +74,10 @@ const Home = () => {
         const updated = await fragranceAPI.update(editingFragrance.id, { ...newFragrance, id: editingFragrance.id });
         setFragrances(fragrances.map(f => f.id === editingFragrance.id ? updated : f));
         setEditingFragrance(null);
+        // Update selectedFragrance if it's the same fragrance that was edited
+        if (selectedFragrance && selectedFragrance.id === editingFragrance.id) {
+          setSelectedFragrance(updated);
+        }
       } else {
         // Create new fragrance
         const created = await fragranceAPI.create(newFragrance);
