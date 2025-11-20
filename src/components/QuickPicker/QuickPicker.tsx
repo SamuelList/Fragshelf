@@ -393,12 +393,12 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   ];
 
   const intelligentOccasions = [
-    { key: 'daily' as OccasionKey, label: 'Daily', emoji: '☀️', description: 'Everyday wear' },
-    { key: 'business' as OccasionKey, label: 'Business', emoji: '💼', description: 'Professional settings' },
-    { key: 'leisure' as OccasionKey, label: 'Leisure', emoji: '🏖️', description: 'Relaxed outings' },
-    { key: 'sport' as OccasionKey, label: 'Sport', emoji: '⚽', description: 'Active & athletic' },
-    { key: 'evening' as OccasionKey, label: 'Evening', emoji: '🌆', description: 'Dinner & events' },
-    { key: 'night out' as OccasionKey, label: 'Night Out', emoji: '🌃', description: 'Parties & clubs' }
+    { key: 'daily' as OccasionKey, label: 'Daily', description: 'Casual everyday wear for work, errands, and routine activities' },
+    { key: 'business' as OccasionKey, label: 'Business', description: 'Professional office environments, meetings, and formal work settings' },
+    { key: 'leisure' as OccasionKey, label: 'Leisure', description: 'Relaxed social outings, shopping, coffee dates, and downtime' },
+    { key: 'sport' as OccasionKey, label: 'Sport', description: 'Active lifestyle, gym sessions, outdoor activities, and athletic wear' },
+    { key: 'evening' as OccasionKey, label: 'Evening', description: 'Dinner dates, cultural events, theater, and elegant gatherings' },
+    { key: 'night out' as OccasionKey, label: 'Night Out', description: 'Bars, clubs, parties, and late-night social entertainment' }
   ];
 
   return (
@@ -482,9 +482,10 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
                       className={styles.occasionCard}
                       onClick={() => handleOccasionSelect(occasion.key)}
                     >
-                      <span className={styles.occasionEmoji}>{occasion.emoji}</span>
-                      <span className={styles.occasionLabel}>{occasion.label}</span>
-                      <span className={styles.occasionDescription}>{occasion.description}</span>
+                      <div>
+                        <span className={styles.occasionLabel}>{occasion.label}</span>
+                        <span className={styles.occasionDescription}>{occasion.description}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -497,8 +498,10 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
                       onClick={() => handleOccasionSelect(occasion.key)}
                     >
                       <span className={styles.occasionEmoji}>{occasion.emoji}</span>
-                      <span className={styles.occasionLabel}>{occasion.label}</span>
-                      <span className={styles.occasionDescription}>{occasion.description}</span>
+                      <div>
+                        <span className={styles.occasionLabel}>{occasion.label}</span>
+                        <span className={styles.occasionDescription}>{occasion.description}</span>
+                      </div>
                     </button>
                   ))}
                 </div>

@@ -388,9 +388,14 @@
 }
 
 .occasionDescription {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: #718096;
   display: block;
+  line-height: 1.5;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 }
 
 .backButton {
