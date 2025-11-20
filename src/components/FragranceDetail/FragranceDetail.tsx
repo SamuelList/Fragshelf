@@ -15,6 +15,7 @@ interface FragranceDetailProps {
 
 const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }: FragranceDetailProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
 
   const handleLikeClick = (liked: boolean | null) => {
     if (onLikeChange) {
@@ -63,6 +64,27 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
       value
     }))
     .sort((a, b) => b.value - a.value);
+
+  // Prepare season buttons data (sorted by percentage)
+  const seasonButtons = Object.entries(fragrance.seasons)
+    .filter(([_, value]) => value > 0)
+    .map(([key, value]) => ({
+      key,
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      value
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  // Get occasions data for selected season (normalized to 100%)
+  const getOccasionsForSeason = (_season: string) => {
+    // This is a simplified version - we'll show all occasions
+    // In a real scenario, you might have season-specific occasion data
+    return occasionsData;
+  };
+
+  const matrixOccasionsData = selectedSeason 
+    ? getOccasionsForSeason(selectedSeason)
+    : occasionsData;
 
   const renderLegendList = (data: any[], category: 'seasons' | 'occasions' | 'types') => {
     return (
@@ -183,6 +205,49 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
 
         {/* Wearability Spectrum */}
         <WearabilitySpectrum wearability={fragrance.wearability} />
+
+        {/* Season-Occasion Matrix */}
+        <div className={styles.matrixSection}>
+          <h4 className={styles.matrixTitle}>Season × Occasion</h4>
+          <div className={styles.matrixContainer}>
+            <div className={styles.seasonButtons}>
+              {seasonButtons.map((season) => (
+                <button
+                  key={season.key}
+                  className={`${styles.seasonButton} ${selectedSeason === season.key ? styles.active : ''}`}
+                  onClick={() => setSelectedSeason(selectedSeason === season.key ? null : season.key)}
+                  style={{
+                    borderLeftColor: getChartColor('seasons', season.name)
+                  }}
+                >
+                  <span className={styles.seasonName}>{season.name}</span>
+                  <span className={styles.seasonValue}>{season.value}%</span>
+                </button>
+              ))}
+            </div>
+            <div className={styles.matrixChart}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={matrixOccasionsData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {matrixOccasionsData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
 
         <div className={styles.charts}>
           {/* Occasions Chart */}
