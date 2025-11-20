@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Fragrance } from '../../types/fragrance';
+import { Fragrance, OccasionScores } from '../../types/fragrance';
 import styles from './QuickPicker.module.scss';
 
 interface QuickPickerProps {
@@ -9,6 +9,8 @@ interface QuickPickerProps {
 }
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+type OccasionKey = keyof OccasionScores;
+type PickerMode = 'classic' | 'intelligent' | null;
 type OccasionCategory = 'Professional' | 'Casual' | 'SpecialOccasion';
 
 interface CategorizedFragrance extends Fragrance {
@@ -16,12 +18,14 @@ interface CategorizedFragrance extends Fragrance {
   casualScore: number;
   specialOccasionScore: number;
   selectedScore: number;
+  matchScore?: number;
 }
 
 const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [mode, setMode] = useState<PickerMode>(null);
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
-  const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | OccasionKey | null>(null);
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
 
   // Prevent background scrolling
@@ -54,6 +58,144 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const handleSeasonSelect = (season: Season) => {
     setSelectedSeason(season);
     setTimeout(() => setStep(2), 300);
+  };
+
+  const handleModeSelect = (selectedMode: PickerMode) => {
+    setMode(selectedMode);
+    setTimeout(() => setStep(1), 300);
+  };
+
+  const handleIntelligentPick = (season: Season, occasion: OccasionKey) => {
+    // Use the season-occasion matrix for intelligent picking
+    const scored = fragrances
+      .map(frag => {
+        const seasonScore = frag.seasons[season] || 0;
+        
+        // Get occasion score from matrix if available, otherwise fall back to overall
+        let occasionScore = 0;
+        if (frag.seasonOccasions && frag.seasonOccasions[season]) {
+          occasionScore = frag.seasonOccasions[season][occasion] || 0;
+        } else {
+          occasionScore = frag.occasions[occasion] || 0;
+        }
+        
+        // Combined match score: weighted average
+        const matchScore = (seasonScore * 0.4) + (occasionScore * 0.6);
+        
+        return {
+          ...frag,
+          matchScore,
+          professionalScore: 0,
+          casualScore: 0,
+          specialOccasionScore: 0,
+          selectedScore: matchScore
+        };
+      })
+      .filter(frag => frag.matchScore! >= 15) // Must have at least 15% combined score
+      .sort((a, b) => b.matchScore! - a.matchScore!);
+
+    // Apply like/dislike adjustments
+    const likedFrags: CategorizedFragrance[] = [];
+    const neutralFrags: CategorizedFragrance[] = [];
+    const dislikedFrags: CategorizedFragrance[] = [];
+
+    scored.forEach(frag => {
+      if (frag.liked === true) likedFrags.push(frag);
+      else if (frag.liked === false) dislikedFrags.push(frag);
+      else neutralFrags.push(frag);
+    });
+
+    let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
+    
+    // Bump liked fragrances up
+    likedFrags.forEach(likedFrag => {
+      const currentIndex = currentList.indexOf(likedFrag);
+      if (currentIndex > 0) {
+        [currentList[currentIndex - 1], currentList[currentIndex]] = 
+        [currentList[currentIndex], currentList[currentIndex - 1]];
+      }
+    });
+
+    // Knock disliked fragrances down
+    dislikedFrags.forEach(dislikedFrag => {
+      const currentIndex = currentList.indexOf(dislikedFrag);
+      if (currentIndex < currentList.length - 1) {
+        [currentList[currentIndex], currentList[currentIndex + 1]] = 
+        [currentList[currentIndex + 1], currentList[currentIndex]];
+      }
+    });
+
+    return currentList.slice(0, 3);
+  };
+
+  const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
+    const seasonScore = frag.seasons[season] || 0;
+    let occasionScore = 0;
+    
+    if (frag.seasonOccasions && frag.seasonOccasions[season]) {
+      occasionScore = frag.seasonOccasions[season][occasion] || 0;
+    } else {
+      occasionScore = frag.occasions[occasion] || 0;
+    }
+
+    const occasionLabel = occasion.replace('_', ' ').split(' ').map(w => 
+      w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(' ');
+
+    const parts: string[] = [];
+
+    // Lead with match quality
+    if (rank === 0) {
+      parts.push(`Perfect ${season} match`);
+    } else if (rank === 1) {
+      parts.push(`Excellent ${season} pick`);
+    } else {
+      parts.push(`Great ${season} option`);
+    }
+
+    // Add specific scores
+    if (seasonScore >= 60 && occasionScore >= 60) {
+      parts.push(`with ${seasonScore}% seasonal and ${occasionScore}% ${occasionLabel.toLowerCase()} ratings`);
+    } else if (seasonScore >= 50 || occasionScore >= 50) {
+      parts.push(`scoring ${seasonScore}% for ${season} and ${occasionScore}% for ${occasionLabel.toLowerCase()}`);
+    } else {
+      parts.push(`balancing ${seasonScore}% ${season} with ${occasionScore}% ${occasionLabel.toLowerCase()}`);
+    }
+
+    // Add wearability context if available
+    if (frag.wearability) {
+      if (frag.wearability.special_occasion >= 70) {
+        parts.push(`best saved for special moments`);
+      } else if (frag.wearability.daily_wear >= 70) {
+        parts.push(`perfect for everyday wear`);
+      }
+    }
+
+    // Personal touch ending
+    if (frag.liked === true) {
+      const endings = [
+        "and you already love it!",
+        "one of your favorites!",
+        "you know it's good!",
+        "already a winner!"
+      ];
+      parts.push(endings[Math.floor(Math.random() * endings.length)]);
+    } else if (frag.liked === false) {
+      parts.push("maybe give it another chance?");
+    } else {
+      const neutralEndings = [
+        "worth trying out!",
+        "give it a shot!",
+        "could be perfect!",
+        "ready to wear!"
+      ];
+      parts.push(neutralEndings[Math.floor(Math.random() * neutralEndings.length)]);
+    }
+
+    // Join with proper grammar
+    return parts.length === 3 
+      ? `${parts[0]} ${parts[1]}, ${parts[2]}`
+      : parts.join(', ');
   };
 
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
@@ -156,78 +298,82 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
   };
 
-  const handleOccasionSelect = (occasion: OccasionCategory) => {
+  const handleOccasionSelect = (occasion: OccasionCategory | OccasionKey) => {
     setSelectedOccasion(occasion);
     
-    // Filter and calculate results
     if (!selectedSeason) return;
 
-    const filtered = fragrances
-      .filter(frag => {
-        // Must have at least 20% of selected season
-        const seasonScore = frag.seasons[selectedSeason] || 0;
-        return seasonScore >= 20;
-      })
-      .map(frag => {
-        const scores = categorizeFragrance(frag);
-        let selectedScore = 0;
-        
-        if (occasion === 'Professional') selectedScore = scores.professional;
-        else if (occasion === 'Casual') selectedScore = scores.casual;
-        else selectedScore = scores.specialOccasion;
+    let finalResults: CategorizedFragrance[] = [];
 
-        return {
-          ...frag,
-          professionalScore: scores.professional,
-          casualScore: scores.casual,
-          specialOccasionScore: scores.specialOccasion,
-          selectedScore
-        };
-      })
-      .filter(frag => frag.selectedScore >= 20)
-      .sort((a, b) => b.selectedScore - a.selectedScore);
+    if (mode === 'intelligent' && typeof occasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(occasion)) {
+      // Intelligent mode with specific occasion
+      finalResults = handleIntelligentPick(selectedSeason, occasion as OccasionKey);
+    } else {
+      // Classic mode
+      const occasionCategory = occasion as OccasionCategory;
+      const filtered = fragrances
+        .filter(frag => {
+          const seasonScore = frag.seasons[selectedSeason] || 0;
+          return seasonScore >= 20;
+        })
+        .map(frag => {
+          const scores = categorizeFragrance(frag);
+          let selectedScore = 0;
+          
+          if (occasionCategory === 'Professional') selectedScore = scores.professional;
+          else if (occasionCategory === 'Casual') selectedScore = scores.casual;
+          else selectedScore = scores.specialOccasion;
 
-    // Apply like/dislike adjustments to rankings
-    const likedFrags: CategorizedFragrance[] = [];
-    const neutralFrags: CategorizedFragrance[] = [];
-    const dislikedFrags: CategorizedFragrance[] = [];
+          return {
+            ...frag,
+            professionalScore: scores.professional,
+            casualScore: scores.casual,
+            specialOccasionScore: scores.specialOccasion,
+            selectedScore
+          };
+        })
+        .filter(frag => frag.selectedScore >= 20)
+        .sort((a, b) => b.selectedScore - a.selectedScore);
 
-    // Separate fragrances by like status
-    filtered.forEach(frag => {
-      if (frag.liked === true) likedFrags.push(frag);
-      else if (frag.liked === false) dislikedFrags.push(frag);
-      else neutralFrags.push(frag);
-    });
+      // Apply like/dislike adjustments
+      const likedFrags: CategorizedFragrance[] = [];
+      const neutralFrags: CategorizedFragrance[] = [];
+      const dislikedFrags: CategorizedFragrance[] = [];
 
-    // Merge them with adjustments: process in order and apply bumps/knocks
-    let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
-    
-    // For each liked fragrance, try to bump it up one position if possible
-    likedFrags.forEach(likedFrag => {
-      const currentIndex = currentList.indexOf(likedFrag);
-      if (currentIndex > 0) {
-        // Swap with the item above it
-        [currentList[currentIndex - 1], currentList[currentIndex]] = 
-        [currentList[currentIndex], currentList[currentIndex - 1]];
-      }
-    });
+      filtered.forEach(frag => {
+        if (frag.liked === true) likedFrags.push(frag);
+        else if (frag.liked === false) dislikedFrags.push(frag);
+        else neutralFrags.push(frag);
+      });
 
-    // For each disliked fragrance, try to knock it down one position if possible
-    dislikedFrags.forEach(dislikedFrag => {
-      const currentIndex = currentList.indexOf(dislikedFrag);
-      if (currentIndex < currentList.length - 1) {
-        // Swap with the item below it
-        [currentList[currentIndex], currentList[currentIndex + 1]] = 
-        [currentList[currentIndex + 1], currentList[currentIndex]];
-      }
-    });
+      let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
+      
+      likedFrags.forEach(likedFrag => {
+        const currentIndex = currentList.indexOf(likedFrag);
+        if (currentIndex > 0) {
+          [currentList[currentIndex - 1], currentList[currentIndex]] = 
+          [currentList[currentIndex], currentList[currentIndex - 1]];
+        }
+      });
 
-    setResults(currentList.slice(0, 3));
+      dislikedFrags.forEach(dislikedFrag => {
+        const currentIndex = currentList.indexOf(dislikedFrag);
+        if (currentIndex < currentList.length - 1) {
+          [currentList[currentIndex], currentList[currentIndex + 1]] = 
+          [currentList[currentIndex + 1], currentList[currentIndex]];
+        }
+      });
+
+      finalResults = currentList.slice(0, 3);
+    }
+
+    setResults(finalResults);
     setTimeout(() => setStep(3), 300);
   };
 
   const handleReset = () => {
-    setStep(1);
+    setStep(0);
+    setMode(null);
     setSelectedSeason(null);
     setSelectedOccasion(null);
     setResults([]);
@@ -246,12 +392,54 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     { key: 'SpecialOccasion' as OccasionCategory, label: 'Special Occasion', emoji: '✨', description: 'Evening & Night Out' }
   ];
 
+  const intelligentOccasions = [
+    { key: 'daily' as OccasionKey, label: 'Daily', emoji: '☀️', description: 'Everyday wear' },
+    { key: 'business' as OccasionKey, label: 'Business', emoji: '💼', description: 'Professional settings' },
+    { key: 'leisure' as OccasionKey, label: 'Leisure', emoji: '🏖️', description: 'Relaxed outings' },
+    { key: 'sport' as OccasionKey, label: 'Sport', emoji: '⚽', description: 'Active & athletic' },
+    { key: 'evening' as OccasionKey, label: 'Evening', emoji: '🌆', description: 'Dinner & events' },
+    { key: 'night out' as OccasionKey, label: 'Night Out', emoji: '🌃', description: 'Parties & clubs' }
+  ];
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={onClose}>×</button>
 
         <div className={styles.content}>
+          {/* Step 0: Mode Selection */}
+          {step === 0 && (
+            <div className={`${styles.step} ${styles.fadeIn}`}>
+              <div className={styles.stepHeader}>
+                <h2 className={styles.stepTitle}>Choose Your Picker Mode</h2>
+                <p className={styles.stepSubtitle}>How would you like to find your fragrance?</p>
+              </div>
+
+              <div className={styles.modeGrid}>
+                <button
+                  className={styles.modeCard}
+                  onClick={() => handleModeSelect('classic')}
+                >
+                  <span className={styles.modeEmoji}>🎯</span>
+                  <span className={styles.modeLabel}>Classic Picker</span>
+                  <span className={styles.modeDescription}>
+                    Simple season + 3 broad occasions
+                  </span>
+                </button>
+                <button
+                  className={styles.modeCard}
+                  onClick={() => handleModeSelect('intelligent')}
+                >
+                  <span className={styles.modeEmoji}>🧠</span>
+                  <span className={styles.modeLabel}>Intelligent Picker</span>
+                  <span className={styles.modeDescription}>
+                    Matrix-based with all 6 specific occasions
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Season Selection */}
           {step === 1 && (
             <div className={`${styles.step} ${styles.fadeIn}`}>
@@ -286,19 +474,35 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
                 <p className={styles.stepSubtitle}>Where will you wear this fragrance?</p>
               </div>
 
-              <div className={styles.occasionGrid}>
-                {occasions.map(occasion => (
-                  <button
-                    key={occasion.key}
-                    className={styles.occasionCard}
-                    onClick={() => handleOccasionSelect(occasion.key)}
-                  >
-                    <span className={styles.occasionEmoji}>{occasion.emoji}</span>
-                    <span className={styles.occasionLabel}>{occasion.label}</span>
-                    <span className={styles.occasionDescription}>{occasion.description}</span>
-                  </button>
-                ))}
-              </div>
+              {mode === 'intelligent' ? (
+                <div className={styles.occasionGrid}>
+                  {intelligentOccasions.map(occasion => (
+                    <button
+                      key={occasion.key}
+                      className={styles.occasionCard}
+                      onClick={() => handleOccasionSelect(occasion.key)}
+                    >
+                      <span className={styles.occasionEmoji}>{occasion.emoji}</span>
+                      <span className={styles.occasionLabel}>{occasion.label}</span>
+                      <span className={styles.occasionDescription}>{occasion.description}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.occasionGrid}>
+                  {occasions.map(occasion => (
+                    <button
+                      key={occasion.key}
+                      className={styles.occasionCard}
+                      onClick={() => handleOccasionSelect(occasion.key)}
+                    >
+                      <span className={styles.occasionEmoji}>{occasion.emoji}</span>
+                      <span className={styles.occasionLabel}>{occasion.label}</span>
+                      <span className={styles.occasionDescription}>{occasion.description}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <button className={styles.backButton} onClick={() => setStep(1)}>
                 ← Back to Seasons
@@ -342,7 +546,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
                         <h3 className={styles.resultBrand}>{frag.brand}</h3>
                         <p className={styles.resultName}>{frag.name}</p>
                         <p className={styles.resultReason}>
-                          {generateReasonForPick(frag, index, selectedSeason!, selectedOccasion!)}
+                          {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
+                            ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
+                            : generateReasonForPick(frag, index, selectedSeason!, selectedOccasion! as OccasionCategory)}
                         </p>
                       </div>
                     </div>
