@@ -80,7 +80,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         }
         
         // Combined match score: weighted average
-        const matchScore = (seasonScore * 0.4) + (occasionScore * 0.6);
+        const matchScore = (seasonScore * 0.3) + (occasionScore * 0.7);
         
         return {
           ...frag,
