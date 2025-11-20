@@ -214,7 +214,7 @@ exports.handler = async (event) => {
       };
     }
 
-        // POST /api/fragrances
+    // POST /api/fragrances
     if (event.httpMethod === 'POST') {
       const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
       
@@ -229,8 +229,15 @@ exports.handler = async (event) => {
           id, brand, name, image_url as "imageUrl", 
           seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
       `;
+      
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify(result[0])
+      };
+    }
 
-        // PUT /api/fragrances/:id
+    // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
       const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
       
@@ -252,6 +259,21 @@ exports.handler = async (event) => {
           id, brand, name, image_url as "imageUrl",
           seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
       `;
+      
+      if (result.length === 0) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Fragrance not found' })
+        };
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(result[0])
+      };
+    }
 
     // PATCH /api/fragrances/:id (for updating liked status only)
     if (event.httpMethod === 'PATCH' && id) {
