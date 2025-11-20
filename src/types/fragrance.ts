@@ -16,6 +16,14 @@ export interface OccasionScores {
   'night out': number;
 }
 
+// --- Season-Occasion Matrix ---
+export interface SeasonOccasionMatrix {
+  spring: OccasionScores;
+  summer: OccasionScores;
+  autumn: OccasionScores;
+  winter: OccasionScores;
+}
+
 // --- Wearability Types ---
 export interface WearabilityScores {
   special_occasion: number; // Percentage (0-100)
@@ -40,7 +48,8 @@ export interface Fragrance {
   name: string;
   imageUrl: string; // URL to the bottle image
   seasons: SeasonScores;   // Must sum to 100
-  occasions: OccasionScores; // Must sum to 100
+  occasions: OccasionScores; // Must sum to 100 (deprecated, kept for backwards compatibility)
+  seasonOccasions?: SeasonOccasionMatrix; // NEW: Matrix of occasions per season
   types: TypeScores;       // Must sum to 100
   wearability?: WearabilityScores; // Must sum to 100, optional for backwards compatibility
   liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating

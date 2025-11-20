@@ -98,7 +98,7 @@ exports.handler = async (event) => {
           const result = await sql`
             SELECT 
               id, brand, name, image_url as "imageUrl",
-              seasons, occasions, types, 
+              seasons, occasions, season_occasions as "seasonOccasions", types, 
               COALESCE(wearability, '{"special_occasion": 50, "daily_wear": 50}'::jsonb) as wearability,
               liked, review
             FROM fragrances
@@ -113,6 +113,7 @@ exports.handler = async (event) => {
             imageUrl: row.imageUrl,
             seasons: row.seasons,
             occasions: row.occasions,
+            seasonOccasions: row.seasonOccasions,
             types: row.types,
             wearability: row.wearability,
             liked: row.liked,
@@ -213,32 +214,25 @@ exports.handler = async (event) => {
       };
     }
 
-    // POST /api/fragrances
+        // POST /api/fragrances
     if (event.httpMethod === 'POST') {
-      const { brand, name, imageUrl, seasons, occasions, types, wearability, review } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
       
       const result = await sql`
         INSERT INTO fragrances 
-          (user_id, brand, name, image_url, seasons, occasions, types, wearability, review)
+          (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability)
         VALUES 
           (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
-           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(types)}, 
-           ${JSON.stringify(wearability || {special_occasion: 50, daily_wear: 50})}, ${review || null})
+           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(seasonOccasions || null)}, 
+           ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)})
         RETURNING 
           id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, types, wearability, liked, review
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
       `;
-      
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify(result[0])
-      };
-    }
 
         // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
-      const { brand, name, imageUrl, seasons, occasions, types, wearability, review } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
       
       const result = await sql`
         UPDATE fragrances 
@@ -248,30 +242,16 @@ exports.handler = async (event) => {
           image_url = ${imageUrl},
           seasons = ${JSON.stringify(seasons)},
           occasions = ${JSON.stringify(occasions)},
+          season_occasions = ${JSON.stringify(seasonOccasions || null)},
           types = ${JSON.stringify(types)},
-          wearability = ${JSON.stringify(wearability || {special_occasion: 50, daily_wear: 50})},
           review = ${review || null},
+          wearability = ${JSON.stringify(wearability || null)},
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, wearability, liked, review
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
       `;
-      
-      if (result.length === 0) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Fragrance not found' })
-        };
-      }
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(result[0])
-      };
-    }
 
     // PATCH /api/fragrances/:id (for updating liked status only)
     if (event.httpMethod === 'PATCH' && id) {
@@ -285,7 +265,7 @@ exports.handler = async (event) => {
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, types, wearability, liked, review
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
       `;
       
       if (result.length === 0) {

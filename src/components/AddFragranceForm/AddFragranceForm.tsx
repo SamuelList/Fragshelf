@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Fragrance, FragranceType } from '../../types/fragrance';
+import { Fragrance, FragranceType, SeasonOccasionMatrix, OccasionScores } from '../../types/fragrance';
 import styles from './AddFragranceForm.module.scss';
 
 interface AddFragranceFormProps {
@@ -38,6 +38,40 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   // Wearability state
   const [specialOccasion, setSpecialOccasion] = useState(initialData?.wearability?.special_occasion ?? 50);
   const [dailyWear, setDailyWear] = useState(initialData?.wearability?.daily_wear ?? 50);
+
+  // Season-Occasion Matrix state
+  const getInitialSeasonOccasions = (): SeasonOccasionMatrix => {
+    if (initialData?.seasonOccasions) {
+      return initialData.seasonOccasions;
+    }
+    // Default: empty matrix (all zeros)
+    const emptyOccasions: OccasionScores = {
+      daily: 0, business: 0, leisure: 0, sport: 0, evening: 0, 'night out': 0
+    };
+    return {
+      spring: { ...emptyOccasions },
+      summer: { ...emptyOccasions },
+      autumn: { ...emptyOccasions },
+      winter: { ...emptyOccasions }
+    };
+  };
+
+  const [seasonOccasions, setSeasonOccasions] = useState<SeasonOccasionMatrix>(getInitialSeasonOccasions());
+  const [editingSeason, setEditingSeason] = useState<'spring' | 'summer' | 'autumn' | 'winter' | null>(null);
+
+  const handleSeasonOccasionChange = (season: keyof SeasonOccasionMatrix, occasion: keyof OccasionScores, value: number) => {
+    setSeasonOccasions(prev => ({
+      ...prev,
+      [season]: {
+        ...prev[season],
+        [occasion]: value
+      }
+    }));
+  };
+
+  const getSeasonOccasionTotal = (season: keyof SeasonOccasionMatrix) => {
+    return Object.values(seasonOccasions[season]).reduce((sum, val) => sum + val, 0);
+  };
 
   // Type state (using an object for all 20 types)
   const getInitialTypeScores = (): Record<FragranceType, number> => {
@@ -140,6 +174,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       imageUrl: imageUrl || '/images/placeholder.jpg',
       seasons: { spring, summer, autumn, winter },
       occasions: { daily, business, leisure, sport, evening, 'night out': nightOut },
+      seasonOccasions,
       types: typeScores,
       wearability: { special_occasion: specialOccasion, daily_wear: dailyWear },
       review
@@ -259,6 +294,100 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
               <label>Night Out: {nightOut}%</label>
               <input type="range" min="0" max="50" value={nightOut} onChange={(e) => setNightOut(Number(e.target.value))} />
             </div>
+          </section>
+
+          {/* Season-Occasion Matrix */}
+          <section className={styles.section}>
+            <h3>Season × Occasion Matrix</h3>
+            <p className={styles.helpText}>Define specific occasions for each season (each season should total 100%)</p>
+            
+            {(['spring', 'summer', 'autumn', 'winter'] as const).map(season => {
+              const seasonTotal = getSeasonOccasionTotal(season);
+              const isEditing = editingSeason === season;
+              
+              return (
+                <div key={season} className={styles.matrixSeasonGroup}>
+                  <button
+                    type="button"
+                    className={styles.matrixSeasonButton}
+                    onClick={() => setEditingSeason(isEditing ? null : season)}
+                  >
+                    <span className={styles.matrixSeasonName}>
+                      {season.charAt(0).toUpperCase() + season.slice(1)}
+                    </span>
+                    <span className={seasonTotal !== 100 ? styles.warning : styles.valid}>
+                      ({seasonTotal}%)
+                    </span>
+                    <span className={styles.matrixToggle}>{isEditing ? '▼' : '▶'}</span>
+                  </button>
+                  
+                  {isEditing && (
+                    <div className={styles.matrixOccasions}>
+                      <div className={styles.sliderGroup}>
+                        <label>Daily: {seasonOccasions[season].daily}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season].daily} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'daily', Number(e.target.value))} 
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <label>Business: {seasonOccasions[season].business}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season].business} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'business', Number(e.target.value))} 
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <label>Leisure: {seasonOccasions[season].leisure}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season].leisure} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'leisure', Number(e.target.value))} 
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <label>Sport: {seasonOccasions[season].sport}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season].sport} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'sport', Number(e.target.value))} 
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <label>Evening: {seasonOccasions[season].evening}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season].evening} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'evening', Number(e.target.value))} 
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <label>Night Out: {seasonOccasions[season]['night out']}%</label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="50" 
+                          value={seasonOccasions[season]['night out']} 
+                          onChange={(e) => handleSeasonOccasionChange(season, 'night out', Number(e.target.value))} 
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </section>
 
           {/* Wearability */}

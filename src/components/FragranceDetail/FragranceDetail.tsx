@@ -76,9 +76,18 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
     .sort((a, b) => b.value - a.value);
 
   // Get occasions data for selected season (normalized to 100%)
-  const getOccasionsForSeason = (_season: string) => {
-    // This is a simplified version - we'll show all occasions
-    // In a real scenario, you might have season-specific occasion data
+  const getOccasionsForSeason = (seasonKey: string) => {
+    // Use seasonOccasions matrix if available, otherwise fall back to overall occasions
+    if (fragrance.seasonOccasions && fragrance.seasonOccasions[seasonKey as keyof typeof fragrance.seasonOccasions]) {
+      const seasonOccasions = fragrance.seasonOccasions[seasonKey as keyof typeof fragrance.seasonOccasions];
+      return Object.entries(seasonOccasions)
+        .filter(([_, value]) => value > 0)
+        .map(([key, value]) => ({
+          name: key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+          value
+        }))
+        .sort((a, b) => b.value - a.value);
+    }
     return occasionsData;
   };
 
