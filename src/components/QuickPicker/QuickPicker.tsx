@@ -27,6 +27,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | OccasionKey | null>(null);
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
+  const [promptCopied, setPromptCopied] = useState(false);
 
   // Prevent background scrolling
   useEffect(() => {
@@ -377,6 +378,60 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setSelectedSeason(null);
     setSelectedOccasion(null);
     setResults([]);
+    setPromptCopied(false);
+  };
+
+  const handleCopyPrompt = async () => {
+    if (!selectedSeason || !selectedOccasion || results.length === 0) return;
+
+    const seasonName = seasons.find(s => s.key === selectedSeason)?.label || selectedSeason;
+    
+    let occasionName = '';
+    let occasionContext = '';
+    
+    if (mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)) {
+      const occasion = intelligentOccasions.find(o => o.key === selectedOccasion);
+      occasionName = occasion?.label || selectedOccasion;
+      occasionContext = occasion?.description || '';
+    } else {
+      const occasion = occasions.find(o => o.key === selectedOccasion);
+      occasionName = occasion?.label || selectedOccasion as string;
+      occasionContext = occasion?.description || '';
+    }
+
+    const fragList = results.map((frag, index) => {
+      const score = mode === 'intelligent' ? frag.matchScore : frag.selectedScore;
+      return `${index + 1}. ${frag.name} ${frag.brand} (Match Score: ${Math.round(score || 0)}%)`;
+    }).join('\n');
+
+    const prompt = `I'm looking for the perfect fragrance recommendation for the following context:
+
+**Season:** ${seasonName}
+**Occasion:** ${occasionName} - ${occasionContext}
+
+Based on my fragrance collection analysis, here are my top ${results.length} matches:
+
+${fragList}
+
+Please provide:
+1. A detailed analysis of why each fragrance is suitable for this ${seasonName.toLowerCase()} ${occasionName.toLowerCase()} scenario
+2. Comparative insights on how these fragrances differ in their approach to the occasion
+3. Specific recommendations on:
+   - Time of day considerations
+   - Outfit pairing suggestions
+   - Longevity and projection expectations
+   - Any potential layering opportunities
+4. A final recommendation on which fragrance to choose and why
+
+Consider factors like weather conditions typical for ${seasonName.toLowerCase()}, the formality level of ${occasionName.toLowerCase()} settings, and how each fragrance's notes profile aligns with the context.`;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setPromptCopied(true);
+      setTimeout(() => setPromptCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy prompt:', err);
+    }
   };
 
   const seasons = [
@@ -525,38 +580,50 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
               </div>
 
               {results.length > 0 ? (
-                <div className={styles.resultsGrid}>
-                  {results.map((frag, index) => (
-                    <div 
-                      key={frag.id} 
-                      className={styles.resultCard}
-                      onClick={() => {
-                        if (onFragranceClick) {
-                          onFragranceClick(frag);
-                          onClose();
-                        }
-                      }}
-                    >
-                      <div className={styles.resultRank}>
-                        {index === 0 && '🥇'}
-                        {index === 1 && '🥈'}
-                        {index === 2 && '🥉'}
+                <>
+                  <div className={styles.resultsGrid}>
+                    {results.map((frag, index) => (
+                      <div 
+                        key={frag.id} 
+                        className={styles.resultCard}
+                        onClick={() => {
+                          if (onFragranceClick) {
+                            onFragranceClick(frag);
+                            onClose();
+                          }
+                        }}
+                      >
+                        <div className={styles.resultRank}>
+                          {index === 0 && '🥇'}
+                          {index === 1 && '🥈'}
+                          {index === 2 && '🥉'}
+                        </div>
+                        <div className={styles.resultImage}>
+                          <img src={frag.imageUrl} alt={`${frag.brand} ${frag.name}`} />
+                        </div>
+                        <div className={styles.resultInfo}>
+                          <h3 className={styles.resultBrand}>{frag.brand}</h3>
+                          <p className={styles.resultName}>{frag.name}</p>
+                          {mode === 'intelligent' && frag.matchScore !== undefined && (
+                            <p className={styles.resultScore}>Match Score: {Math.round(frag.matchScore)}%</p>
+                          )}
+                          <p className={styles.resultReason}>
+                            {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
+                              ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
+                              : generateReasonForPick(frag, index, selectedSeason!, selectedOccasion! as OccasionCategory)}
+                          </p>
+                        </div>
                       </div>
-                      <div className={styles.resultImage}>
-                        <img src={frag.imageUrl} alt={`${frag.brand} ${frag.name}`} />
-                      </div>
-                      <div className={styles.resultInfo}>
-                        <h3 className={styles.resultBrand}>{frag.brand}</h3>
-                        <p className={styles.resultName}>{frag.name}</p>
-                        <p className={styles.resultReason}>
-                          {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
-                            ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
-                            : generateReasonForPick(frag, index, selectedSeason!, selectedOccasion! as OccasionCategory)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    className={styles.copyPromptButton}
+                    onClick={handleCopyPrompt}
+                  >
+                    {promptCopied ? '✓ Copied!' : '🤖 Copy AI Prompt'}
+                  </button>
+                </>
               ) : (
                 <div className={styles.noResults}>
                   <span className={styles.noResultsEmoji}>😔</span>
