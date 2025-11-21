@@ -581,7 +581,7 @@ Consider factors like weather conditions typical for ${seasonName.toLowerCase()}
               {results.length > 0 ? (
                 <>
                   <div className={styles.resultsGrid}>
-                    {results.map((frag, index) => (
+                    {results.slice(0, 3).map((frag, index) => (
                       <div 
                         key={frag.id} 
                         className={styles.resultCard}
