@@ -325,63 +325,129 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
                     <div className={styles.matrixOccasions}>
                       <div className={styles.sliderGroup}>
                         <label>Daily: {seasonOccasions[season].daily}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season].daily} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'daily', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].daily} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'daily', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].daily} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'daily', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                       <div className={styles.sliderGroup}>
                         <label>Business: {seasonOccasions[season].business}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season].business} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'business', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].business} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'business', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].business} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'business', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                       <div className={styles.sliderGroup}>
                         <label>Leisure: {seasonOccasions[season].leisure}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season].leisure} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'leisure', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].leisure} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'leisure', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].leisure} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'leisure', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                       <div className={styles.sliderGroup}>
                         <label>Sport: {seasonOccasions[season].sport}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season].sport} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'sport', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].sport} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'sport', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].sport} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'sport', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                       <div className={styles.sliderGroup}>
                         <label>Evening: {seasonOccasions[season].evening}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season].evening} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'evening', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].evening} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'evening', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season].evening} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'evening', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                       <div className={styles.sliderGroup}>
                         <label>Night Out: {seasonOccasions[season]['night out']}%</label>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="50" 
-                          value={seasonOccasions[season]['night out']} 
-                          onChange={(e) => handleSeasonOccasionChange(season, 'night out', Number(e.target.value))} 
-                        />
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season]['night out']} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'night out', Number(e.target.value))} 
+                            className={styles.slider}
+                          />
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value={seasonOccasions[season]['night out']} 
+                            onChange={(e) => handleSeasonOccasionChange(season, 'night out', Number(e.target.value))} 
+                            className={styles.numberInput}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
