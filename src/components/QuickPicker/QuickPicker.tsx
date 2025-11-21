@@ -126,7 +126,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       }
     });
 
-    return currentList.slice(0, 3);
+    return currentList.slice(0, 10);
   };
 
   const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
@@ -365,7 +365,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         }
       });
 
-      finalResults = currentList.slice(0, 3);
+      finalResults = currentList.slice(0, 10);
     }
 
     setResults(finalResults);
@@ -400,8 +400,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
 
     const fragList = results.map((frag, index) => {
-      const score = mode === 'intelligent' ? frag.matchScore : frag.selectedScore;
-      return `${index + 1}. ${frag.name} ${frag.brand} (Match Score: ${Math.round(score || 0)}%)`;
+      return `${index + 1}. ${frag.name} ${frag.brand}`;
     }).join('\n');
 
     const prompt = `I'm looking for the perfect fragrance recommendation for the following context:
@@ -605,7 +604,7 @@ Consider factors like weather conditions typical for ${seasonName.toLowerCase()}
                           <h3 className={styles.resultBrand}>{frag.brand}</h3>
                           <p className={styles.resultName}>{frag.name}</p>
                           {mode === 'intelligent' && frag.matchScore !== undefined && (
-                            <p className={styles.resultScore}>Match Score: {Math.round(frag.matchScore)}%</p>
+                            <p className={styles.resultScore}>Match Score: {Math.round(frag.matchScore * 2)}%</p>
                           )}
                           <p className={styles.resultReason}>
                             {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
