@@ -93,40 +93,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         };
       })
       .filter(frag => frag.matchScore! >= 15) // Must have at least 15% combined score
-      .sort((a, b) => b.matchScore! - a.matchScore!);
+      .sort((a, b) => b.matchScore! - a.matchScore!)
+      .slice(0, 10); // Get top 10 first
 
-    // Apply like/dislike adjustments
-    const likedFrags: CategorizedFragrance[] = [];
-    const neutralFrags: CategorizedFragrance[] = [];
-    const dislikedFrags: CategorizedFragrance[] = [];
-
-    scored.forEach(frag => {
-      if (frag.liked === true) likedFrags.push(frag);
-      else if (frag.liked === false) dislikedFrags.push(frag);
-      else neutralFrags.push(frag);
-    });
-
-    let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
-    
-    // Bump liked fragrances up
-    likedFrags.forEach(likedFrag => {
-      const currentIndex = currentList.indexOf(likedFrag);
-      if (currentIndex > 0) {
-        [currentList[currentIndex - 1], currentList[currentIndex]] = 
-        [currentList[currentIndex], currentList[currentIndex - 1]];
+    // Apply like/dislike adjustments: +1 for liked, -1 for disliked
+    scored.forEach((frag, index) => {
+      if (frag.liked === true && index > 0) {
+        // Swap with the item above (move up 1 position)
+        [scored[index - 1], scored[index]] = [scored[index], scored[index - 1]];
+      } else if (frag.liked === false && index < scored.length - 1) {
+        // Swap with the item below (move down 1 position)
+        [scored[index], scored[index + 1]] = [scored[index + 1], scored[index]];
       }
     });
 
-    // Knock disliked fragrances down
-    dislikedFrags.forEach(dislikedFrag => {
-      const currentIndex = currentList.indexOf(dislikedFrag);
-      if (currentIndex < currentList.length - 1) {
-        [currentList[currentIndex], currentList[currentIndex + 1]] = 
-        [currentList[currentIndex + 1], currentList[currentIndex]];
-      }
-    });
-
-    return currentList.slice(0, 10);
+    return scored;
   };
 
   const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
@@ -334,38 +315,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
           };
         })
         .filter(frag => frag.selectedScore >= 20)
-        .sort((a, b) => b.selectedScore - a.selectedScore);
+        .sort((a, b) => b.selectedScore - a.selectedScore)
+        .slice(0, 10); // Get top 10 first
 
-      // Apply like/dislike adjustments
-      const likedFrags: CategorizedFragrance[] = [];
-      const neutralFrags: CategorizedFragrance[] = [];
-      const dislikedFrags: CategorizedFragrance[] = [];
-
-      filtered.forEach(frag => {
-        if (frag.liked === true) likedFrags.push(frag);
-        else if (frag.liked === false) dislikedFrags.push(frag);
-        else neutralFrags.push(frag);
-      });
-
-      let currentList = [...likedFrags, ...neutralFrags, ...dislikedFrags];
-      
-      likedFrags.forEach(likedFrag => {
-        const currentIndex = currentList.indexOf(likedFrag);
-        if (currentIndex > 0) {
-          [currentList[currentIndex - 1], currentList[currentIndex]] = 
-          [currentList[currentIndex], currentList[currentIndex - 1]];
+      // Apply like/dislike adjustments: +1 for liked, -1 for disliked
+      filtered.forEach((frag, index) => {
+        if (frag.liked === true && index > 0) {
+          // Swap with the item above (move up 1 position)
+          [filtered[index - 1], filtered[index]] = [filtered[index], filtered[index - 1]];
+        } else if (frag.liked === false && index < filtered.length - 1) {
+          // Swap with the item below (move down 1 position)
+          [filtered[index], filtered[index + 1]] = [filtered[index + 1], filtered[index]];
         }
       });
 
-      dislikedFrags.forEach(dislikedFrag => {
-        const currentIndex = currentList.indexOf(dislikedFrag);
-        if (currentIndex < currentList.length - 1) {
-          [currentList[currentIndex], currentList[currentIndex + 1]] = 
-          [currentList[currentIndex + 1], currentList[currentIndex]];
-        }
-      });
-
-      finalResults = currentList.slice(0, 10);
+      finalResults = filtered;
     }
 
     setResults(finalResults);
@@ -400,129 +364,29 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
 
     const fragList = results.map((frag, index) => {
-      return `${index + 1}. ${frag.brand} ${frag.name}`;
+      return `${index + 1}. ${frag.name} ${frag.brand}`;
     }).join('\n');
 
-    const prompt = `# FRAGRANCE RECOMMENDATION TASK
-
-## Context & Requirements
-You are a professional fragrance consultant providing expert recommendations. Your task is to research and analyze each fragrance listed below, then provide detailed guidance for the specified context.
-
-**IMPORTANT INSTRUCTIONS:**
-- First, research each fragrance thoroughly using available resources (reviews, notes, community ratings, expert opinions)
-- Provide factual, verified information about each fragrance's composition and characteristics
-- Base your recommendations on actual fragrance properties, not assumptions
-- Be specific and actionable in all advice
-- Structure your response clearly with headers and bullet points
-
-## Selection Context
+    const prompt = `I'm looking for the perfect fragrance recommendation for the following context:
 
 **Season:** ${seasonName}
-- Temperature range: ${seasonName === 'Summer' ? '75-95°F (24-35°C)' : seasonName === 'Winter' ? '20-40°F (-7 to 4°C)' : seasonName === 'Spring' ? '50-70°F (10-21°C)' : '50-70°F (10-21°C)'}
-- Climate considerations: ${seasonName === 'Summer' ? 'Heat, humidity, outdoor activities' : seasonName === 'Winter' ? 'Cold, dry air, indoor heating' : seasonName === 'Spring' ? 'Moderate temps, rain, blooming flowers' : 'Cool, crisp air, falling leaves'}
+**Occasion:** ${occasionName} - ${occasionContext}
 
-**Occasion:** ${occasionName}
-- Description: ${occasionContext}
-- Typical duration: ${occasionName.toLowerCase().includes('business') || occasionName.toLowerCase().includes('daily') ? '8-10 hours' : occasionName.toLowerCase().includes('evening') || occasionName.toLowerCase().includes('night') ? '4-6 hours' : '4-8 hours'}
-- Formality level: ${occasionName.toLowerCase().includes('business') ? 'Formal/Professional' : occasionName.toLowerCase().includes('evening') ? 'Semi-formal to Formal' : occasionName.toLowerCase().includes('night') ? 'Casual to Semi-formal' : 'Casual'}
-
-## Fragrances to Research & Analyze
+Based on my fragrance collection analysis, here are my top ${results.length} matches:
 
 ${fragList}
 
----
+Please provide:
+1. A detailed analysis of why each fragrance is suitable for this ${seasonName.toLowerCase()} ${occasionName.toLowerCase()} scenario
+2. Comparative insights on how these fragrances differ in their approach to the occasion
+3. Specific recommendations on:
+   - Time of day considerations
+   - Outfit pairing suggestions
+   - Longevity and projection expectations
+   - Any potential layering opportunities
+4. A final recommendation on which fragrance to choose and why
 
-## Required Response Format
-
-### SECTION 1: Individual Fragrance Research
-For EACH fragrance listed above, provide:
-
-**[Fragrance Name] by [Brand]**
-- **Fragrance Family:** [e.g., Woody Aromatic, Floral Oriental, Fresh Citrus]
-- **Key Notes:** 
-  - Top: [List actual top notes]
-  - Heart: [List actual heart notes]  
-  - Base: [List actual base notes]
-- **Performance Characteristics:**
-  - Longevity: [Actual reported longevity: e.g., 6-8 hours]
-  - Projection: [Heavy/Moderate/Soft - first 2 hours]
-  - Sillage: [How far the scent trail extends]
-- **Season Suitability:** [Explain why it works for ${seasonName} based on composition]
-- **Occasion Fit:** [Explain appropriateness for ${occasionName} context]
-- **Best Time of Day:** [Morning/Afternoon/Evening - with reasoning]
-- **Notable Characteristics:** [Unique aspects, signature elements, crowd reactions]
-
----
-
-### SECTION 2: Comparative Analysis
-Compare and contrast how these fragrances differ in:
-- **Scent Profile Approach:** How each achieves its goal differently
-- **Performance Trade-offs:** Longevity vs. projection, intensity vs. versatility
-- **Versatility:** Which offers most flexibility within the ${occasionName} context
-- **Distinctiveness:** From most unique to most crowd-pleasing
-
----
-
-### SECTION 3: Contextual Recommendations
-
-#### Weather & Temperature Guidance
-- **Optimal temperature range** for each fragrance
-- **Application adjustments** for ${seasonName} conditions (spray count, placement)
-- **Performance expectations** in ${seasonName.toLowerCase()} climate
-
-#### Styling & Wardrobe Pairing
-- **Outfit combinations** that complement each fragrance
-- **Color palette suggestions** that harmonize with the scent profile
-- **Texture & fabric considerations** (formal vs. casual materials)
-- **Accessory recommendations** (watches, jewelry that pair well)
-
-#### Application Strategy
-- **Recommended spray count** for ${occasionName} setting
-- **Pulse point selection** for optimal performance
-- **Timing advice** (when to apply before the event)
-- **Reapplication needs** based on occasion duration
-
-#### Layering Opportunities
-- **Compatible fragrances** from the list for layering
-- **Body products** that enhance each scent
-- **Complementary scents** that won't clash in social settings
-
----
-
-### SECTION 4: Final Recommendation
-
-**Primary Recommendation:** [Choose ONE fragrance]
-- **Why this fragrance wins:** [3-4 specific, compelling reasons]
-- **Perfect scenarios within ${occasionName}:** [Specific situations where it excels]
-- **Potential drawbacks:** [Honest limitations to consider]
-
-**Runner-up:** [Choose ONE alternative]
-- **When to choose this instead:** [Specific conditions where it's better than primary]
-
-**Wild Card:** [Most unique/interesting option]
-- **For the adventurous:** [Why someone might take this risk]
-
----
-
-### SECTION 5: Pro Tips
-- **Common mistakes to avoid** with these fragrances
-- **Season transition advice** (what works in early vs. late ${seasonName})
-- **Social considerations** (office politics, intimate vs. public spaces)
-- **Budget-conscious tip** (best value for money from the list)
-
----
-
-## Response Guidelines
-✓ Use actual fragrance data from Fragrantica, Parfumo, Basenotes, or trusted review sources
-✓ Cite specific notes and accords from verified composition data
-✓ Include community consensus on performance (if available)
-✓ Be honest about fragrances that may not be ideal for this context
-✓ Provide actionable advice that can be immediately implemented
-✗ Do not make up fragrance notes or characteristics
-✗ Do not provide generic advice that applies to all fragrances
-✗ Do not ignore the specific season and occasion requirements
-
-Begin your research and analysis now.`;
+Consider factors like weather conditions typical for ${seasonName.toLowerCase()}, the formality level of ${occasionName.toLowerCase()} settings, and how each fragrance's notes profile aligns with the context.`;
 
     try {
       await navigator.clipboard.writeText(prompt);
