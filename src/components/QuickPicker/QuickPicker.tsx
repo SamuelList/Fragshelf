@@ -97,22 +97,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       .slice(0, 10); // Get top 10 first
 
     // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-    // Track which items have been moved to ensure each moves only once
-    const processed = new Set<number>();
+    // Track which fragrances have been moved to ensure each moves only once
+    const movedIds = new Set<string>();
     
     for (let i = 0; i < scored.length; i++) {
-      if (processed.has(i)) continue;
+      const currentFrag = scored[i];
+      if (movedIds.has(currentFrag.id)) continue;
       
-      if (scored[i].liked === true && i > 0 && !processed.has(i - 1)) {
+      if (currentFrag.liked === true && i > 0) {
         // Swap with the item above (move up 1 position)
         [scored[i - 1], scored[i]] = [scored[i], scored[i - 1]];
-        processed.add(i);
-        processed.add(i - 1);
-      } else if (scored[i].liked === false && i < scored.length - 1 && !processed.has(i + 1)) {
+        movedIds.add(currentFrag.id);
+      } else if (currentFrag.liked === false && i < scored.length - 1) {
         // Swap with the item below (move down 1 position)
         [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
-        processed.add(i);
-        processed.add(i + 1);
+        movedIds.add(currentFrag.id);
       }
     }
 
@@ -328,22 +327,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         .slice(0, 10); // Get top 10 first
 
       // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-      // Track which items have been moved to ensure each moves only once
-      const processed = new Set<number>();
+      // Track which fragrances have been moved to ensure each moves only once
+      const movedIds = new Set<string>();
       
       for (let i = 0; i < filtered.length; i++) {
-        if (processed.has(i)) continue;
+        const currentFrag = filtered[i];
+        if (movedIds.has(currentFrag.id)) continue;
         
-        if (filtered[i].liked === true && i > 0 && !processed.has(i - 1)) {
+        if (currentFrag.liked === true && i > 0) {
           // Swap with the item above (move up 1 position)
           [filtered[i - 1], filtered[i]] = [filtered[i], filtered[i - 1]];
-          processed.add(i);
-          processed.add(i - 1);
-        } else if (filtered[i].liked === false && i < filtered.length - 1 && !processed.has(i + 1)) {
+          movedIds.add(currentFrag.id);
+        } else if (currentFrag.liked === false && i < filtered.length - 1) {
           // Swap with the item below (move down 1 position)
           [filtered[i], filtered[i + 1]] = [filtered[i + 1], filtered[i]];
-          processed.add(i);
-          processed.add(i + 1);
+          movedIds.add(currentFrag.id);
         }
       }
 
