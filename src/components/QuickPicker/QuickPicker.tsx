@@ -97,15 +97,16 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       .slice(0, 10); // Get top 10 first
 
     // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-    scored.forEach((frag, index) => {
-      if (frag.liked === true && index > 0) {
+    // Iterate backwards to avoid re-processing swapped items
+    for (let i = scored.length - 1; i >= 0; i--) {
+      if (scored[i].liked === true && i > 0) {
         // Swap with the item above (move up 1 position)
-        [scored[index - 1], scored[index]] = [scored[index], scored[index - 1]];
-      } else if (frag.liked === false && index < scored.length - 1) {
+        [scored[i - 1], scored[i]] = [scored[i], scored[i - 1]];
+      } else if (scored[i].liked === false && i < scored.length - 1) {
         // Swap with the item below (move down 1 position)
-        [scored[index], scored[index + 1]] = [scored[index + 1], scored[index]];
+        [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
       }
-    });
+    }
 
     return scored;
   };
@@ -319,15 +320,16 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         .slice(0, 10); // Get top 10 first
 
       // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-      filtered.forEach((frag, index) => {
-        if (frag.liked === true && index > 0) {
+      // Iterate backwards to avoid re-processing swapped items
+      for (let i = filtered.length - 1; i >= 0; i--) {
+        if (filtered[i].liked === true && i > 0) {
           // Swap with the item above (move up 1 position)
-          [filtered[index - 1], filtered[index]] = [filtered[index], filtered[index - 1]];
-        } else if (frag.liked === false && index < filtered.length - 1) {
+          [filtered[i - 1], filtered[i]] = [filtered[i], filtered[i - 1]];
+        } else if (filtered[i].liked === false && i < filtered.length - 1) {
           // Swap with the item below (move down 1 position)
-          [filtered[index], filtered[index + 1]] = [filtered[index + 1], filtered[index]];
+          [filtered[i], filtered[i + 1]] = [filtered[i + 1], filtered[i]];
         }
-      });
+      }
 
       finalResults = filtered;
     }
