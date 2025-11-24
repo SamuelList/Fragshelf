@@ -96,26 +96,56 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       .sort((a, b) => b.matchScore! - a.matchScore!)
       .slice(0, 10); // Get top 10 first
 
-    // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-    // Track which fragrances have been moved to ensure each moves only once
-    const movedIds = new Set<string>();
+    return applyLikeDislikeAdjustments(scored);
+  };
+
+  const applyLikeDislikeAdjustments = (list: CategorizedFragrance[]) => {
+    const adjusted = [...list];
+    const netMoves = new Map<string, number>();
     
-    for (let i = 0; i < scored.length; i++) {
-      const currentFrag = scored[i];
-      if (movedIds.has(currentFrag.id)) continue;
+    // Initialize moves
+    adjusted.forEach(f => netMoves.set(f.id, 0));
+
+    // Pass 1: Likes (Move Up)
+    for (let i = 1; i < adjusted.length; i++) {
+      const current = adjusted[i];
+      const prev = adjusted[i-1];
       
-      if (currentFrag.liked === true && i > 0) {
-        // Swap with the item above (move up 1 position)
-        [scored[i - 1], scored[i]] = [scored[i], scored[i - 1]];
-        movedIds.add(currentFrag.id);
-      } else if (currentFrag.liked === false && i < scored.length - 1) {
-        // Swap with the item below (move down 1 position)
-        [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
-        movedIds.add(currentFrag.id);
+      if (current.liked === true && (netMoves.get(current.id) || 0) === 0) {
+        // Only swap if previous is not also liked (to preserve relative order of likes)
+        if (prev.liked !== true) {
+          // Swap
+          adjusted[i] = prev;
+          adjusted[i-1] = current;
+          
+          // Update moves
+          netMoves.set(current.id, (netMoves.get(current.id) || 0) - 1);
+          netMoves.set(prev.id, (netMoves.get(prev.id) || 0) + 1);
+        }
       }
     }
 
-    return scored;
+    // Pass 2: Dislikes (Move Down)
+    // Iterate backwards to bubble down
+    for (let i = adjusted.length - 2; i >= 0; i--) {
+      const current = adjusted[i];
+      const next = adjusted[i+1];
+      
+      if (current.liked === false && (netMoves.get(current.id) || 0) === 0) {
+        // Only swap if next is not also disliked
+        if (next.liked !== false) {
+          // Swap
+          adjusted[i] = next;
+          adjusted[i+1] = current;
+          
+          // Update moves
+          netMoves.set(current.id, (netMoves.get(current.id) || 0) + 1);
+          netMoves.set(next.id, (netMoves.get(next.id) || 0) - 1);
+        }
+      }
+    }
+    
+    return adjusted;
   };
 
   const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
@@ -326,26 +356,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         .sort((a, b) => b.selectedScore - a.selectedScore)
         .slice(0, 10); // Get top 10 first
 
-      // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-      // Track which fragrances have been moved to ensure each moves only once
-      const movedIds = new Set<string>();
-      
-      for (let i = 0; i < filtered.length; i++) {
-        const currentFrag = filtered[i];
-        if (movedIds.has(currentFrag.id)) continue;
-        
-        if (currentFrag.liked === true && i > 0) {
-          // Swap with the item above (move up 1 position)
-          [filtered[i - 1], filtered[i]] = [filtered[i], filtered[i - 1]];
-          movedIds.add(currentFrag.id);
-        } else if (currentFrag.liked === false && i < filtered.length - 1) {
-          // Swap with the item below (move down 1 position)
-          [filtered[i], filtered[i + 1]] = [filtered[i + 1], filtered[i]];
-          movedIds.add(currentFrag.id);
-        }
-      }
-
-      finalResults = filtered;
+      finalResults = applyLikeDislikeAdjustments(filtered);
     }
 
     setResults(finalResults);
