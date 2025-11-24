@@ -413,11 +413,12 @@ CANDIDATES (Top ${results.length} from my collection):
 ${fragList}
 
 TASK:
-Analyze these fragrances against the specific definition provided above. 
-1. Evaluate suitability for ${seasonName} + ${occasionName}.
-2. Compare them against each other.
-3. Provide styling/usage advice (outfit, sprays, timing).
-4. Pick the single best option.
+You must first establish a complete understanding of each fragrance before recommending one.
+1. RESEARCH: For each candidate, recall its olfactory pyramid (notes), main accords, and performance reputation.
+2. ANALYZE: Evaluate how well each specific profile fits the "${seasonName} + ${occasionName}" definition provided above.
+3. COMPARE: Rank them for this specific scenario.
+4. ADVISE: Provide styling/usage advice (outfit, sprays, timing) for the winner.
+5. DECIDE: Pick the single best option.
 
 CRITICAL INSTRUCTION:
 Differentiate clearly between similar occasions. 
