@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { Fragrance, OccasionScores } from '../../types/fragrance';
 import styles from './QuickPicker.module.scss';
 
+/**
+ * QuickPicker component
+ * ---------------------
+ * Shows a small modal that recommends fragrances from the user's collection
+ * based on chosen season and occasion. This file is intentionally documented
+ * and split into small, easy-to-edit logical blocks.
+ */
+
 interface QuickPickerProps {
   fragrances: Fragrance[];
   onClose: () => void;
@@ -29,6 +37,8 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
   const [promptCopied, setPromptCopied] = useState(false);
 
+  
+
   // Prevent background scrolling
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -45,9 +55,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     const evening = frag.occasions.evening || 0;
     const nightOut = frag.occasions['night out'] || 0;
 
-    const professional = (business * 1.5) + (daily / 2);
-    const casual = (daily + leisure + (sport / 2)) / 2;
-    const specialOccasion = (evening + nightOut) / 2;
+    const professional = (business * PROF_WEIGHT_BUSINESS) + (daily * PROF_WEIGHT_DAILY);
+    const casual = (daily + leisure + (sport * CASUAL_SPORT_FACTOR)) / 2;
+    const specialOccasion = ((evening + nightOut) / 2) * SPECIAL_OCCASION_FACTOR;
 
     return {
       professional,
@@ -55,6 +65,19 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       specialOccasion
     };
   };
+
+  // --------------------------
+  // CONFIG CONSTANTS (easy to tweak)
+  // --------------------------
+  const MAX_RESULTS = 10; // How many picks to display
+  const MIN_INTELLIGENT_MATCH_SCORE = 15; // min match score for intelligent mode
+  const MIN_CLASSIC_SELECTED_SCORE = 20; // min selectedScore for classic mode
+  // Scoring weights — adjust for different balancing strategies
+  const PROF_WEIGHT_BUSINESS = 1.5; // multiplier for business when calculating professional score
+  const PROF_WEIGHT_DAILY = 0.5; // multiplier contribution for daily in professional score
+  const CASUAL_SPORT_FACTOR = 0.5; // sport contribution factor for casual
+  const SPECIAL_OCCASION_FACTOR = 1; // combine evening/nightOut with this factor (default 1)
+  // --------------------------
 
   const handleSeasonSelect = (season: Season) => {
     setSelectedSeason(season);
@@ -92,21 +115,32 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
           selectedScore: matchScore
         };
       })
-      .filter(frag => frag.matchScore! >= 15) // Must have at least 15% combined score
+      .filter(frag => frag.matchScore! >= MIN_INTELLIGENT_MATCH_SCORE) // Must have at least MIN_INTELLIGENT_MATCH_SCORE combined score
       .sort((a, b) => b.matchScore! - a.matchScore!)
-      .slice(0, 10); // Get top 10 first
+      .slice(0, MAX_RESULTS); // Get top MAX_RESULTS first
 
     return applyLikeDislikeAdjustments(scored);
   };
 
+  /**
+   * applyLikeDislikeAdjustments(list)
+   * - 2-pass algorithm that adjusts collection ordering to account for user feedback
+   * - Liked items are bubbled up by one position (if not blocked by another like)
+   * - Disliked items are dropped down by one position (if not blocked by another dislike)
+   * - A `netMoves` map prevents a fragrance from moving multiple times during a
+   *   single operation so ordering remains predictable and stable.
+   *
+   * Example: [A, B(liked), C] => pass 1: [B, A, C]
+   * Example: [A(disliked), B, C] => pass 2: [B, A, C]
+   */
   const applyLikeDislikeAdjustments = (list: CategorizedFragrance[]) => {
     const adjusted = [...list];
     const netMoves = new Map<string, number>();
     
-    // Initialize moves
+    // Initialize moves tracker to ensure we only move each item once per operation
     adjusted.forEach(f => netMoves.set(f.id, 0));
 
-    // Pass 1: Likes (Move Up)
+    // Pass 1: Likes (Move Up) — iterate forwards so likes bubble upwards one position
     for (let i = 1; i < adjusted.length; i++) {
       const current = adjusted[i];
       const prev = adjusted[i-1];
@@ -148,6 +182,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     return adjusted;
   };
 
+  // Generates an intelligent, concise reason for why a fragrance matched.
+  // The result is a short, conversational string composed from pieces. Tweak
+  // the listed arrays to adjust tone and content.
   const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
     const seasonScore = frag.seasons[season] || 0;
     let occasionScore = 0;
@@ -218,6 +255,8 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       : parts.join(', ');
   };
 
+  // Generates a classic-mode reason for a pick, balancing season score and
+  // relevant occasion score. This string is designed to be short and readable.
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
     const seasonScore = frag.seasons[season] || 0;
     const occasionScores = {
@@ -318,6 +357,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
   };
 
+  // Main handler when an occasion is selected. This function computes the
+  // relevant matching scores, applies thresholds and adjustments, and
+  // generates the list of final results to display.
   const handleOccasionSelect = (occasion: OccasionCategory | OccasionKey) => {
     setSelectedOccasion(occasion);
     
@@ -352,9 +394,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
             selectedScore
           };
         })
-        .filter(frag => frag.selectedScore >= 20)
+        .filter(frag => frag.selectedScore >= MIN_CLASSIC_SELECTED_SCORE)
         .sort((a, b) => b.selectedScore - a.selectedScore)
-        .slice(0, 10); // Get top 10 first
+        .slice(0, MAX_RESULTS); // Get top MAX_RESULTS first
 
       finalResults = applyLikeDislikeAdjustments(filtered);
     }
@@ -572,6 +614,7 @@ Consider factors like weather conditions typical for ${seasonName.toLowerCase()}
               {results.length > 0 ? (
                 <>
                   <div className={styles.resultsGrid}>
+                    {/* Display top N results here; change visible count if you'd like */}
                     {results.slice(0, 3).map((frag, index) => (
                       <div 
                         key={frag.id} 
