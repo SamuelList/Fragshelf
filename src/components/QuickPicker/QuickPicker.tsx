@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react';
 import { Fragrance, OccasionScores } from '../../types/fragrance';
 import styles from './QuickPicker.module.scss';
 
-/**
- * QuickPicker component
- * ---------------------
- * Shows a small modal that recommends fragrances from the user's collection
- * based on chosen season and occasion. This file is intentionally documented
- * and split into small, easy-to-edit logical blocks.
- */
-
 interface QuickPickerProps {
   fragrances: Fragrance[];
   onClose: () => void;
@@ -37,8 +29,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
   const [promptCopied, setPromptCopied] = useState(false);
 
-  
-
   // Prevent background scrolling
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -55,9 +45,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     const evening = frag.occasions.evening || 0;
     const nightOut = frag.occasions['night out'] || 0;
 
-    const professional = (business * PROF_WEIGHT_BUSINESS) + (daily * PROF_WEIGHT_DAILY);
-    const casual = (daily + leisure + (sport * CASUAL_SPORT_FACTOR)) / 2;
-    const specialOccasion = ((evening + nightOut) / 2) * SPECIAL_OCCASION_FACTOR;
+    const professional = (business * 1.5) + (daily / 2);
+    const casual = (daily + leisure + (sport / 2)) / 2;
+    const specialOccasion = (evening + nightOut) / 2;
 
     return {
       professional,
@@ -65,19 +55,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       specialOccasion
     };
   };
-
-  // --------------------------
-  // CONFIG CONSTANTS (easy to tweak)
-  // --------------------------
-  const MAX_RESULTS = 10; // How many picks to display
-  const MIN_INTELLIGENT_MATCH_SCORE = 15; // min match score for intelligent mode
-  const MIN_CLASSIC_SELECTED_SCORE = 20; // min selectedScore for classic mode
-  // Scoring weights — adjust for different balancing strategies
-  const PROF_WEIGHT_BUSINESS = 1.5; // multiplier for business when calculating professional score
-  const PROF_WEIGHT_DAILY = 0.5; // multiplier contribution for daily in professional score
-  const CASUAL_SPORT_FACTOR = 0.5; // sport contribution factor for casual
-  const SPECIAL_OCCASION_FACTOR = 1; // combine evening/nightOut with this factor (default 1)
-  // --------------------------
 
   const handleSeasonSelect = (season: Season) => {
     setSelectedSeason(season);
@@ -115,76 +92,32 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
           selectedScore: matchScore
         };
       })
-      .filter(frag => frag.matchScore! >= MIN_INTELLIGENT_MATCH_SCORE) // Must have at least MIN_INTELLIGENT_MATCH_SCORE combined score
+      .filter(frag => frag.matchScore! >= 15) // Must have at least 15% combined score
       .sort((a, b) => b.matchScore! - a.matchScore!)
-      .slice(0, MAX_RESULTS); // Get top MAX_RESULTS first
+      .slice(0, 10); // Get top 10 first
 
-    return applyLikeDislikeAdjustments(scored);
-  };
-
-  /**
-   * applyLikeDislikeAdjustments(list)
-   * - 2-pass algorithm that adjusts collection ordering to account for user feedback
-   * - Liked items are bubbled up by one position (if not blocked by another like)
-   * - Disliked items are dropped down by one position (if not blocked by another dislike)
-   * - A `netMoves` map prevents a fragrance from moving multiple times during a
-   *   single operation so ordering remains predictable and stable.
-   *
-   * Example: [A, B(liked), C] => pass 1: [B, A, C]
-   * Example: [A(disliked), B, C] => pass 2: [B, A, C]
-   */
-  const applyLikeDislikeAdjustments = (list: CategorizedFragrance[]) => {
-    const adjusted = [...list];
-    const netMoves = new Map<string, number>();
+    // Apply like/dislike adjustments: +1 for liked, -1 for disliked
+    // Track which fragrances have been moved to ensure each moves only once
+    const movedIds = new Set<string>();
     
-    // Initialize moves tracker to ensure we only move each item once per operation
-    adjusted.forEach(f => netMoves.set(f.id, 0));
-
-    // Pass 1: Likes (Move Up) — iterate forwards so likes bubble upwards one position
-    for (let i = 1; i < adjusted.length; i++) {
-      const current = adjusted[i];
-      const prev = adjusted[i-1];
+    for (let i = 0; i < scored.length; i++) {
+      const currentFrag = scored[i];
+      if (movedIds.has(currentFrag.id)) continue;
       
-      if (current.liked === true && (netMoves.get(current.id) || 0) === 0) {
-        // Only swap if previous is not also liked (to preserve relative order of likes)
-        if (prev.liked !== true) {
-          // Swap
-          adjusted[i] = prev;
-          adjusted[i-1] = current;
-          
-          // Update moves
-          netMoves.set(current.id, (netMoves.get(current.id) || 0) - 1);
-          netMoves.set(prev.id, (netMoves.get(prev.id) || 0) + 1);
-        }
+      if (currentFrag.liked === true && i > 0) {
+        // Swap with the item above (move up 1 position)
+        [scored[i - 1], scored[i]] = [scored[i], scored[i - 1]];
+        movedIds.add(currentFrag.id);
+      } else if (currentFrag.liked === false && i < scored.length - 1) {
+        // Swap with the item below (move down 1 position)
+        [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
+        movedIds.add(currentFrag.id);
       }
     }
 
-    // Pass 2: Dislikes (Move Down)
-    // Iterate backwards to bubble down
-    for (let i = adjusted.length - 2; i >= 0; i--) {
-      const current = adjusted[i];
-      const next = adjusted[i+1];
-      
-      if (current.liked === false && (netMoves.get(current.id) || 0) === 0) {
-        // Only swap if next is not also disliked
-        if (next.liked !== false) {
-          // Swap
-          adjusted[i] = next;
-          adjusted[i+1] = current;
-          
-          // Update moves
-          netMoves.set(current.id, (netMoves.get(current.id) || 0) + 1);
-          netMoves.set(next.id, (netMoves.get(next.id) || 0) - 1);
-        }
-      }
-    }
-    
-    return adjusted;
+    return scored;
   };
 
-  // Generates an intelligent, concise reason for why a fragrance matched.
-  // The result is a short, conversational string composed from pieces. Tweak
-  // the listed arrays to adjust tone and content.
   const generateIntelligentReason = (frag: Fragrance, rank: number, season: Season, occasion: OccasionKey): string => {
     const seasonScore = frag.seasons[season] || 0;
     let occasionScore = 0;
@@ -255,8 +188,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       : parts.join(', ');
   };
 
-  // Generates a classic-mode reason for a pick, balancing season score and
-  // relevant occasion score. This string is designed to be short and readable.
   const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
     const seasonScore = frag.seasons[season] || 0;
     const occasionScores = {
@@ -357,9 +288,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
   };
 
-  // Main handler when an occasion is selected. This function computes the
-  // relevant matching scores, applies thresholds and adjustments, and
-  // generates the list of final results to display.
   const handleOccasionSelect = (occasion: OccasionCategory | OccasionKey) => {
     setSelectedOccasion(occasion);
     
@@ -394,11 +322,30 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
             selectedScore
           };
         })
-        .filter(frag => frag.selectedScore >= MIN_CLASSIC_SELECTED_SCORE)
+        .filter(frag => frag.selectedScore >= 20)
         .sort((a, b) => b.selectedScore - a.selectedScore)
-        .slice(0, MAX_RESULTS); // Get top MAX_RESULTS first
+        .slice(0, 10); // Get top 10 first
 
-      finalResults = applyLikeDislikeAdjustments(filtered);
+      // Apply like/dislike adjustments: +1 for liked, -1 for disliked
+      // Track which fragrances have been moved to ensure each moves only once
+      const movedIds = new Set<string>();
+      
+      for (let i = 0; i < filtered.length; i++) {
+        const currentFrag = filtered[i];
+        if (movedIds.has(currentFrag.id)) continue;
+        
+        if (currentFrag.liked === true && i > 0) {
+          // Swap with the item above (move up 1 position)
+          [filtered[i - 1], filtered[i]] = [filtered[i], filtered[i - 1]];
+          movedIds.add(currentFrag.id);
+        } else if (currentFrag.liked === false && i < filtered.length - 1) {
+          // Swap with the item below (move down 1 position)
+          [filtered[i], filtered[i + 1]] = [filtered[i + 1], filtered[i]];
+          movedIds.add(currentFrag.id);
+        }
+      }
+
+      finalResults = filtered;
     }
 
     setResults(finalResults);
@@ -421,41 +368,60 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     
     let occasionName = '';
     let occasionContext = '';
+    let occasionDefinition = '';
     
     if (mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)) {
       const occasion = intelligentOccasions.find(o => o.key === selectedOccasion);
       occasionName = occasion?.label || selectedOccasion;
       occasionContext = occasion?.description || '';
+
+      // Add specific clarifications based on user feedback
+      if (selectedOccasion === 'night out') {
+        occasionDefinition = "This occasion refers specifically to high-energy social environments like bars, clubs, and parties. It is distinct from 'Evening' which implies more formal, elegant, or intimate settings (dinner, theater).";
+      } else if (selectedOccasion === 'evening') {
+        occasionDefinition = "This occasion refers to formal, elegant, or intimate settings like dinner dates, theater, or cultural events. It is distinct from 'Night Out' which implies high-energy partying/clubbing.";
+      } else if (selectedOccasion === 'daily') {
+        occasionDefinition = "This occasion refers to casual, versatile everyday wear for routine activities. It is distinct from 'Business' which implies a professional, office-appropriate setting.";
+      } else if (selectedOccasion === 'business') {
+        occasionDefinition = "This occasion refers to professional, corporate, or formal work environments. It is distinct from 'Daily' which implies casual, unstructured routine wear.";
+      } else {
+         occasionDefinition = `This occasion is defined as: ${occasionContext}`;
+      }
     } else {
       const occasion = occasions.find(o => o.key === selectedOccasion);
       occasionName = occasion?.label || selectedOccasion as string;
       occasionContext = occasion?.description || '';
+      occasionDefinition = `This is a broad category covering: ${occasionContext}`;
     }
 
     const fragList = results.map((frag, index) => {
       return `${index + 1}. ${frag.name} ${frag.brand}`;
     }).join('\n');
 
-    const prompt = `I'm looking for the perfect fragrance recommendation for the following context:
+    const prompt = `I need a fragrance recommendation from my collection for a specific scenario.
 
-**Season:** ${seasonName}
-**Occasion:** ${occasionName} - ${occasionContext}
+CONTEXT:
+- Season: ${seasonName}
+- Occasion: ${occasionName}
+- Definition: ${occasionDefinition}
 
-Based on my fragrance collection analysis, here are my top ${results.length} matches:
-
+CANDIDATES (Top ${results.length} from my collection):
 ${fragList}
 
-Please provide:
-1. A detailed analysis of why each fragrance is suitable for this ${seasonName.toLowerCase()} ${occasionName.toLowerCase()} scenario
-2. Comparative insights on how these fragrances differ in their approach to the occasion
-3. Specific recommendations on:
-   - Time of day considerations
-   - Outfit pairing suggestions
-   - Longevity and projection expectations
-   - Any potential layering opportunities
-4. A final recommendation on which fragrance to choose and why
+TASK:
+Analyze these fragrances against the specific definition provided above. 
+1. Evaluate suitability for ${seasonName} + ${occasionName}.
+2. Compare them against each other.
+3. Provide styling/usage advice (outfit, sprays, timing).
+4. Pick the single best option.
 
-Consider factors like weather conditions typical for ${seasonName.toLowerCase()}, the formality level of ${occasionName.toLowerCase()} settings, and how each fragrance's notes profile aligns with the context.`;
+CRITICAL INSTRUCTION:
+Differentiate clearly between similar occasions. 
+- If "Business": Focus on professional, non-offensive, office-safe scents. Do NOT treat as casual daily wear.
+- If "Daily": Focus on versatile, casual, easy-reach scents.
+- If "Evening": Focus on elegant, romantic, or formal dinner scents.
+- If "Night Out": Focus on loud, playful, club/bar scents. Do NOT treat as formal evening wear.
+`;
 
     try {
       await navigator.clipboard.writeText(prompt);
@@ -614,7 +580,6 @@ Consider factors like weather conditions typical for ${seasonName.toLowerCase()}
               {results.length > 0 ? (
                 <>
                   <div className={styles.resultsGrid}>
-                    {/* Display top N results here; change visible count if you'd like */}
                     {results.slice(0, 3).map((frag, index) => (
                       <div 
                         key={frag.id} 
