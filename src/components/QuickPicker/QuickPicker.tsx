@@ -381,9 +381,13 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       } else if (selectedOccasion === 'evening') {
         occasionDefinition = "This occasion refers to formal, elegant, or intimate settings like dinner dates, theater, or cultural events. It is distinct from 'Night Out' which implies high-energy partying/clubbing.";
       } else if (selectedOccasion === 'daily') {
-        occasionDefinition = "This occasion refers to casual, versatile everyday wear for routine activities. It is distinct from 'Business' which implies a professional, office-appropriate setting.";
+        occasionDefinition = "This occasion refers to casual, versatile everyday wear for routine activities (errands, work-from-home). It is distinct from 'Business' (professional) and 'Leisure' (social downtime).";
       } else if (selectedOccasion === 'business') {
         occasionDefinition = "This occasion refers to professional, corporate, or formal work environments. It is distinct from 'Daily' which implies casual, unstructured routine wear.";
+      } else if (selectedOccasion === 'leisure') {
+        occasionDefinition = "This occasion refers to relaxed social outings like coffee dates, shopping, or hanging out with friends. It is distinct from 'Daily' (routine chores) and 'Sport' (physical exertion).";
+      } else if (selectedOccasion === 'sport') {
+        occasionDefinition = "This occasion refers to active lifestyle moments, gym sessions, or outdoor physical activities. It requires fresh, non-cloying scents.";
       } else {
          occasionDefinition = `This occasion is defined as: ${occasionContext}`;
       }
@@ -417,10 +421,12 @@ Analyze these fragrances against the specific definition provided above.
 
 CRITICAL INSTRUCTION:
 Differentiate clearly between similar occasions. 
-- If "Business": Focus on professional, non-offensive, office-safe scents. Do NOT treat as casual daily wear.
-- If "Daily": Focus on versatile, casual, easy-reach scents.
+- If "Business": Focus on professional, non-offensive, office-safe scents.
+- If "Daily": Focus on versatile, casual, easy-reach scents for routine tasks.
+- If "Leisure": Focus on relaxed, pleasant scents for social downtime (coffee, shopping).
+- If "Sport": Focus on fresh, invigorating, non-cloying scents for physical activity.
 - If "Evening": Focus on elegant, romantic, or formal dinner scents.
-- If "Night Out": Focus on loud, playful, club/bar scents. Do NOT treat as formal evening wear.
+- If "Night Out": Focus on loud, playful, club/bar scents.
 `;
 
     try {
