@@ -59,6 +59,19 @@
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
   }
+
+  &.whatToWearButton {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-color: #f093fb;
+    font-weight: 600;
+
+    &:hover {
+      background: linear-gradient(135deg, #d97edc 0%, #dc4458 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(240, 147, 251, 0.3);
+    }
+  }
 }
 
 .badge {

@@ -150,15 +150,23 @@ exports.handler = async (event) => {
           }
         } catch (dbError) {
           // If column doesn't exist, run migration and retry
-          if (dbError.message && dbError.message.includes('column "wearability" does not exist')) {
-            console.log('Wearability column missing, running migration...');
+          if (dbError.message && (dbError.message.includes('column "wearability" does not exist') || 
+              dbError.message.includes('column "occasion_months" does not exist') ||
+              dbError.message.includes('column "formality" does not exist') ||
+              dbError.message.includes('column "midday_touch_up" does not exist'))) {
+            console.log('Missing column detected, running migration...');
             await initSchema();
             
             // Retry the query
             const result = await sql`
               SELECT 
                 id, brand, name, image_url as "imageUrl",
-                seasons, occasions, types, wearability, liked, review
+                seasons, occasions, season_occasions as "seasonOccasions", types, 
+                COALESCE(wearability, '{"special_occasion": 50, "daily_wear": 50}'::jsonb) as wearability,
+                liked, review,
+                occasion_months as "occasionMonths",
+                formality,
+                midday_touch_up as "middayTouchUp"
               FROM fragrances
               WHERE user_id = ${parseInt(userId)}
               ORDER BY created_at DESC
@@ -171,10 +179,14 @@ exports.handler = async (event) => {
               imageUrl: row.imageUrl,
               seasons: row.seasons,
               occasions: row.occasions,
+              seasonOccasions: row.seasonOccasions,
               types: row.types,
               wearability: row.wearability || { special_occasion: 50, daily_wear: 50 },
               liked: row.liked,
-              review: row.review
+              review: row.review,
+              occasionMonths: row.occasionMonths,
+              formality: row.formality,
+              middayTouchUp: row.middayTouchUp
             }));
             
             if (!id) {
@@ -224,67 +236,142 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'POST') {
       const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability, occasionMonths, formality, middayTouchUp } = JSON.parse(event.body);
       
-      const result = await sql`
-        INSERT INTO fragrances 
-          (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability, occasion_months, formality, midday_touch_up)
-        VALUES 
-          (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
-           ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(seasonOccasions || null)}, 
-           ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)},
-           ${JSON.stringify(occasionMonths || null)}, ${formality || null}, ${middayTouchUp !== undefined ? middayTouchUp : null})
-        RETURNING 
-          id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
-      `;
-      
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify(result[0])
-      };
+      try {
+        const result = await sql`
+          INSERT INTO fragrances 
+            (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability, occasion_months, formality, midday_touch_up)
+          VALUES 
+            (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
+             ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(seasonOccasions || null)}, 
+             ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)},
+             ${JSON.stringify(occasionMonths || null)}, ${formality || null}, ${middayTouchUp !== undefined ? middayTouchUp : null})
+          RETURNING 
+            id, brand, name, image_url as "imageUrl", 
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+        `;
+        
+        return {
+          statusCode: 201,
+          headers,
+          body: JSON.stringify(result[0])
+        };
+      } catch (dbError) {
+        if (dbError.message && (dbError.message.includes('column') && dbError.message.includes('does not exist'))) {
+          console.log('Missing column in POST, running migration...');
+          await initSchema();
+          
+          // Retry
+          const result = await sql`
+            INSERT INTO fragrances 
+              (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability, occasion_months, formality, midday_touch_up)
+            VALUES 
+              (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
+               ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(seasonOccasions || null)}, 
+               ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)},
+               ${JSON.stringify(occasionMonths || null)}, ${formality || null}, ${middayTouchUp !== undefined ? middayTouchUp : null})
+            RETURNING 
+              id, brand, name, image_url as "imageUrl", 
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+          `;
+          
+          return {
+            statusCode: 201,
+            headers,
+            body: JSON.stringify(result[0])
+          };
+        }
+        throw dbError;
+      }
     }
 
     // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
       const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability, occasionMonths, formality, middayTouchUp } = JSON.parse(event.body);
       
-      const result = await sql`
-        UPDATE fragrances 
-        SET 
-          brand = ${brand},
-          name = ${name},
-          image_url = ${imageUrl},
-          seasons = ${JSON.stringify(seasons)},
-          occasions = ${JSON.stringify(occasions)},
-          season_occasions = ${JSON.stringify(seasonOccasions || null)},
-          types = ${JSON.stringify(types)},
-          review = ${review || null},
-          wearability = ${JSON.stringify(wearability || null)},
-          occasion_months = ${JSON.stringify(occasionMonths || null)},
-          formality = ${formality || null},
-          midday_touch_up = ${middayTouchUp !== undefined ? middayTouchUp : null},
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-        RETURNING 
-          id, brand, name, image_url as "imageUrl",
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
-      `;
-      
-      if (result.length === 0) {
+      try {
+        const result = await sql`
+          UPDATE fragrances 
+          SET 
+            brand = ${brand},
+            name = ${name},
+            image_url = ${imageUrl},
+            seasons = ${JSON.stringify(seasons)},
+            occasions = ${JSON.stringify(occasions)},
+            season_occasions = ${JSON.stringify(seasonOccasions || null)},
+            types = ${JSON.stringify(types)},
+            review = ${review || null},
+            wearability = ${JSON.stringify(wearability || null)},
+            occasion_months = ${JSON.stringify(occasionMonths || null)},
+            formality = ${formality || null},
+            midday_touch_up = ${middayTouchUp !== undefined ? middayTouchUp : null},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+          RETURNING 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+        `;
+        
+        if (result.length === 0) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'Fragrance not found' })
+          };
+        }
+        
         return {
-          statusCode: 404,
+          statusCode: 200,
           headers,
-          body: JSON.stringify({ error: 'Fragrance not found' })
+          body: JSON.stringify(result[0])
         };
+      } catch (dbError) {
+        if (dbError.message && (dbError.message.includes('column') && dbError.message.includes('does not exist'))) {
+          console.log('Missing column in PUT, running migration...');
+          await initSchema();
+          
+          // Retry
+          const result = await sql`
+            UPDATE fragrances 
+            SET 
+              brand = ${brand},
+              name = ${name},
+              image_url = ${imageUrl},
+              seasons = ${JSON.stringify(seasons)},
+              occasions = ${JSON.stringify(occasions)},
+              season_occasions = ${JSON.stringify(seasonOccasions || null)},
+              types = ${JSON.stringify(types)},
+              review = ${review || null},
+              wearability = ${JSON.stringify(wearability || null)},
+              occasion_months = ${JSON.stringify(occasionMonths || null)},
+              formality = ${formality || null},
+              midday_touch_up = ${middayTouchUp !== undefined ? middayTouchUp : null},
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+            RETURNING 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+          `;
+          
+          if (result.length === 0) {
+            return {
+              statusCode: 404,
+              headers,
+              body: JSON.stringify({ error: 'Fragrance not found' })
+            };
+          }
+          
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(result[0])
+          };
+        }
+        throw dbError;
       }
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(result[0])
-      };
     }
 
     // PATCH /api/fragrances/:id (for updating liked status only)

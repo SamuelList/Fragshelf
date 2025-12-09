@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import FilterBar from '../components/FilterBar/FilterBar';
 import FragranceGrid from '../components/FragranceGrid/FragranceGrid';
 import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
@@ -261,6 +260,7 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
+          onWhatToWearClick={() => window.location.href = '/what-to-wear'}
         />
         <div className={styles.loading}>Loading...</div>
       </div>
@@ -279,6 +279,7 @@ const Home = () => {
           activeOccasionCount={activeOccasionCount}
           resultCount={0}
           onQuickPickerClick={() => setShowQuickPicker(true)}
+          onWhatToWearClick={() => window.location.href = '/what-to-wear'}
         />
         <div className={styles.error}>
           {error}
@@ -301,6 +302,7 @@ const Home = () => {
         activeOccasionCount={activeOccasionCount}
         resultCount={filteredFragrances.length}
         onQuickPickerClick={() => setShowQuickPicker(true)}
+        onWhatToWearClick={() => window.location.href = '/what-to-wear'}
       />
       {fragrances.length > 0 && (
         <TypeFilter 
@@ -356,9 +358,6 @@ const Home = () => {
 
       {filteredFragrances.length > 0 && (
         <div className={styles.analyticsSection}>
-          <Link to="/what-to-wear" className={styles.whatToWearButton}>
-            🎯 What to Wear
-          </Link>
           {isAuthenticated && (
             <button 
               className={styles.addButton}
