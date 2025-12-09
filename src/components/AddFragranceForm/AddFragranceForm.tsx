@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Fragrance, FragranceType, SeasonOccasionMatrix, OccasionScores } from '../../types/fragrance';
+import { Fragrance, FragranceType, SeasonOccasionMatrix, OccasionScores, OccasionMonths, Month, Formality, OccasionCategory } from '../../types/fragrance';
 import styles from './AddFragranceForm.module.scss';
 
 interface AddFragranceFormProps {
@@ -13,6 +13,15 @@ const allFragranceTypes: FragranceType[] = [
   'Fougere', 'Fresh', 'Fruity', 'Gourmand', 'Green', 'Woody',
   'Leathery', 'Oriental', 'Powdery', 'Smoky', 'Resinous',
   'Sweet', 'Synthetic', 'Spicy', 'Citrus'
+];
+
+const ALL_MONTHS: Month[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const FORMALITY_OPTIONS: Formality[] = ['Ultra Casual', 'Casual', 'Smart Casual', 'Formal', 'Black Tie'];
+const OCCASION_CATEGORIES: { key: OccasionCategory; label: string; emoji: string }[] = [
+  { key: 'dateNight', label: 'Date Night', emoji: '💕' },
+  { key: 'nightOut', label: 'Night Out', emoji: '🎉' },
+  { key: 'leisure', label: 'Leisure', emoji: '☀️' },
+  { key: 'work', label: 'Work', emoji: '💼' },
 ];
 
 const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormProps) => {
@@ -58,6 +67,33 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
 
   const [seasonOccasions, setSeasonOccasions] = useState<SeasonOccasionMatrix>(getInitialSeasonOccasions());
   const [editingSeason, setEditingSeason] = useState<'spring' | 'summer' | 'autumn' | 'winter' | null>(null);
+
+  // Occasion Months state
+  const getInitialOccasionMonths = (): OccasionMonths => {
+    if (initialData?.occasionMonths) {
+      return initialData.occasionMonths;
+    }
+    return {
+      dateNight: [],
+      nightOut: [],
+      leisure: [],
+      work: []
+    };
+  };
+
+  const [occasionMonths, setOccasionMonths] = useState<OccasionMonths>(getInitialOccasionMonths());
+  const [formality, setFormality] = useState<Formality | ''>(initialData?.formality || '');
+  const [middayTouchUp, setMiddayTouchUp] = useState<boolean | undefined>(initialData?.middayTouchUp);
+
+  const handleOccasionMonthToggle = (category: OccasionCategory, month: Month) => {
+    setOccasionMonths(prev => {
+      const currentMonths = prev[category];
+      const newMonths = currentMonths.includes(month)
+        ? currentMonths.filter(m => m !== month)
+        : [...currentMonths, month];
+      return { ...prev, [category]: newMonths };
+    });
+  };
 
   const handleSeasonOccasionChange = (season: keyof SeasonOccasionMatrix, occasion: keyof OccasionScores, value: number) => {
     setSeasonOccasions(prev => ({
@@ -168,7 +204,7 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    const newFragrance = {
+    const newFragrance: Omit<Fragrance, 'id'> = {
       brand,
       name,
       imageUrl: imageUrl || '/images/placeholder.jpg',
@@ -177,7 +213,10 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
       seasonOccasions,
       types: typeScores,
       wearability: { special_occasion: specialOccasion, daily_wear: dailyWear },
-      review
+      review,
+      occasionMonths,
+      formality: formality || undefined,
+      middayTouchUp
     };
 
     onSubmit(newFragrance);
@@ -480,6 +519,92 @@ const AddFragranceForm = ({ onClose, onSubmit, initialData }: AddFragranceFormPr
                 value={dailyWear} 
                 onChange={(e) => handleDailyWearChange(Number(e.target.value))} 
               />
+            </div>
+          </section>
+
+          {/* What to Wear - Occasion Months */}
+          <section className={styles.section}>
+            <h3>🎯 What to Wear</h3>
+            <p className={styles.helpText}>Select which months this fragrance is suitable for each occasion</p>
+            
+            {OCCASION_CATEGORIES.map(cat => (
+              <div key={cat.key} className={styles.occasionCategoryGroup}>
+                <div className={styles.occasionCategoryHeader}>
+                  <span className={styles.occasionEmoji}>{cat.emoji}</span>
+                  <span className={styles.occasionLabel}>{cat.label}</span>
+                  <span className={styles.occasionCount}>
+                    {occasionMonths[cat.key].length} months
+                  </span>
+                </div>
+                <div className={styles.monthsGrid}>
+                  {ALL_MONTHS.map(month => (
+                    <button
+                      key={month}
+                      type="button"
+                      className={`${styles.monthButton} ${occasionMonths[cat.key].includes(month) ? styles.selected : ''}`}
+                      onClick={() => handleOccasionMonthToggle(cat.key, month)}
+                    >
+                      {month}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* Formality */}
+          <section className={styles.section}>
+            <h3>👔 Formality</h3>
+            <div className={styles.formGroup}>
+              <label>Select formality level</label>
+              <select
+                value={formality}
+                onChange={(e) => setFormality(e.target.value as Formality | '')}
+                className={styles.selectInput}
+              >
+                <option value="">-- Select --</option>
+                {FORMALITY_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formalityScale}>
+              {FORMALITY_OPTIONS.map((opt, idx) => (
+                <span 
+                  key={opt}
+                  className={`${styles.formalityOption} ${formality === opt ? styles.selected : ''}`}
+                  onClick={() => setFormality(opt)}
+                >
+                  {idx === 0 ? '🩴' : idx === 4 ? '🎩' : ''}
+                  <span className={styles.formalityLabel}>{opt}</span>
+                </span>
+              ))}
+            </div>
+          </section>
+
+          {/* Midday Touch-Up */}
+          <section className={styles.section}>
+            <h3>💧 Midday Touch-Up Verdict</h3>
+            <p className={styles.helpText}>Should you bring the bottle for long days out?</p>
+            <div className={styles.touchUpOptions}>
+              <button
+                type="button"
+                className={`${styles.touchUpButton} ${middayTouchUp === false ? styles.selected : ''}`}
+                onClick={() => setMiddayTouchUp(false)}
+              >
+                <span className={styles.touchUpIcon}>✅</span>
+                <span className={styles.touchUpLabel}>No Need</span>
+                <span className={styles.touchUpDesc}>Lasts all day</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.touchUpButton} ${middayTouchUp === true ? styles.selected : ''}`}
+                onClick={() => setMiddayTouchUp(true)}
+              >
+                <span className={styles.touchUpIcon}>💧</span>
+                <span className={styles.touchUpLabel}>Bring It</span>
+                <span className={styles.touchUpDesc}>Touch-up needed</span>
+              </button>
             </div>
           </section>
 

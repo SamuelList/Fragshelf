@@ -30,6 +30,21 @@ export interface WearabilityScores {
   daily_wear: number;       // Percentage (0-100, must sum to 100 with special_occasion)
 }
 
+// --- Occasion Months Types ---
+export type Month = 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
+
+export type OccasionCategory = 'dateNight' | 'nightOut' | 'leisure' | 'work';
+
+export interface OccasionMonths {
+  dateNight: Month[];
+  nightOut: Month[];
+  leisure: Month[];
+  work: Month[];
+}
+
+// --- Formality Types ---
+export type Formality = 'Ultra Casual' | 'Casual' | 'Smart Casual' | 'Formal' | 'Black Tie';
+
 // --- Fragrance Types ---
 export type FragranceType =
   | 'Animalic' | 'Aquatic' | 'Floral' | 'Chypre' | 'Creamy' | 'Earthy'
@@ -54,4 +69,7 @@ export interface Fragrance {
   wearability?: WearabilityScores; // Must sum to 100, optional for backwards compatibility
   liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating
   review?: string;         // User's personal review or notes
+  occasionMonths?: OccasionMonths; // Months for each occasion category
+  formality?: Formality;   // Formality level of the fragrance
+  middayTouchUp?: boolean; // Whether to bring the bottle for long days
 }

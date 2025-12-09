@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import FilterBar from '../components/FilterBar/FilterBar';
 import FragranceGrid from '../components/FragranceGrid/FragranceGrid';
 import AddFragranceForm from '../components/AddFragranceForm/AddFragranceForm';
@@ -355,6 +356,9 @@ const Home = () => {
 
       {filteredFragrances.length > 0 && (
         <div className={styles.analyticsSection}>
+          <Link to="/what-to-wear" className={styles.whatToWearButton}>
+            🎯 What to Wear
+          </Link>
           {isAuthenticated && (
             <button 
               className={styles.addButton}

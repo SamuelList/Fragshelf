@@ -362,3 +362,168 @@
     cursor: not-allowed;
   }
 }
+
+// Occasion Months (What to Wear)
+.occasionCategoryGroup {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.occasionCategoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.occasionEmoji {
+  font-size: 1.25rem;
+}
+
+.occasionLabel {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.occasionCount {
+  font-size: 0.8rem;
+  color: #666;
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.monthsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.monthButton {
+  padding: 0.5rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #4a90e2;
+    color: #4a90e2;
+  }
+
+  &.selected {
+    background: #4a90e2;
+    border-color: #4a90e2;
+    color: white;
+  }
+}
+
+// Formality
+.selectInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background: white;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #4a90e2;
+  }
+}
+
+.formalityScale {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.formalityOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 60px;
+  text-align: center;
+
+  &:hover {
+    background: #e0e0e0;
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+}
+
+.formalityLabel {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+// Touch-Up
+.touchUpOptions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.touchUpButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #4a90e2;
+  }
+
+  &.selected {
+    border-color: #4a90e2;
+    background: #f0f7ff;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  }
+}
+
+.touchUpIcon {
+  font-size: 2rem;
+}
+
+.touchUpLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.touchUpDesc {
+  font-size: 0.8rem;
+  color: #666;
+}

@@ -187,8 +187,27 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
             />
           </div>
           <div className={styles.info}>
+            {fragrance.formality && (
+              <div className={styles.formalityBadge}>
+                <span className={styles.formalityIcon}>
+                  {fragrance.formality === 'Ultra Casual' ? '🩴' : 
+                   fragrance.formality === 'Casual' ? '👟' :
+                   fragrance.formality === 'Smart Casual' ? '👔' :
+                   fragrance.formality === 'Formal' ? '🎩' : '🤵'}
+                </span>
+                <span className={styles.formalityText}>{fragrance.formality}</span>
+              </div>
+            )}
             <h2 className={styles.brand}>{fragrance.brand}</h2>
             <h3 className={styles.name}>{fragrance.name}</h3>
+            {fragrance.middayTouchUp !== undefined && (
+              <div className={`${styles.touchUpBadge} ${fragrance.middayTouchUp ? styles.needsTouchUp : styles.noTouchUp}`}>
+                <span className={styles.touchUpIcon}>{fragrance.middayTouchUp ? '💧' : '✅'}</span>
+                <span className={styles.touchUpText}>
+                  {fragrance.middayTouchUp ? 'Bring for touch-up' : 'Lasts all day'}
+                </span>
+              </div>
+            )}
             {onLikeChange && (
               <div className={styles.thumbsContainer}>
                 <button
