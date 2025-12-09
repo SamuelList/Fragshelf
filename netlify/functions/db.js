@@ -76,6 +76,45 @@ const initSchema = async () => {
       END $$;
     `;
 
+    // Add occasion_months column if it doesn't exist (for "What to Wear" feature)
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='occasion_months'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN occasion_months JSONB DEFAULT NULL;
+        END IF;
+      END $$;
+    `;
+
+    // Add formality column if it doesn't exist
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='formality'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN formality VARCHAR(50) DEFAULT NULL;
+        END IF;
+      END $$;
+    `;
+
+    // Add midday_touch_up column if it doesn't exist
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='midday_touch_up'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN midday_touch_up BOOLEAN DEFAULT NULL;
+        END IF;
+      END $$;
+    `;
+
     // Create index on user_id for faster queries
     await sql`
       CREATE INDEX IF NOT EXISTS idx_fragrances_user_id ON fragrances(user_id)

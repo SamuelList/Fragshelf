@@ -100,7 +100,10 @@ exports.handler = async (event) => {
               id, brand, name, image_url as "imageUrl",
               seasons, occasions, season_occasions as "seasonOccasions", types, 
               COALESCE(wearability, '{"special_occasion": 50, "daily_wear": 50}'::jsonb) as wearability,
-              liked, review
+              liked, review,
+              occasion_months as "occasionMonths",
+              formality,
+              midday_touch_up as "middayTouchUp"
             FROM fragrances
             WHERE user_id = ${parseInt(userId)}
             ORDER BY created_at DESC
@@ -117,7 +120,10 @@ exports.handler = async (event) => {
             types: row.types,
             wearability: row.wearability,
             liked: row.liked,
-            review: row.review
+            review: row.review,
+            occasionMonths: row.occasionMonths,
+            formality: row.formality,
+            middayTouchUp: row.middayTouchUp
           }));
         
           if (!id) {
@@ -216,18 +222,20 @@ exports.handler = async (event) => {
 
     // POST /api/fragrances
     if (event.httpMethod === 'POST') {
-      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability, occasionMonths, formality, middayTouchUp } = JSON.parse(event.body);
       
       const result = await sql`
         INSERT INTO fragrances 
-          (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability)
+          (user_id, brand, name, image_url, seasons, occasions, season_occasions, types, review, wearability, occasion_months, formality, midday_touch_up)
         VALUES 
           (${parseInt(userId)}, ${brand}, ${name}, ${imageUrl}, 
            ${JSON.stringify(seasons)}, ${JSON.stringify(occasions)}, ${JSON.stringify(seasonOccasions || null)}, 
-           ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)})
+           ${JSON.stringify(types)}, ${review || null}, ${JSON.stringify(wearability || null)},
+           ${JSON.stringify(occasionMonths || null)}, ${formality || null}, ${middayTouchUp !== undefined ? middayTouchUp : null})
         RETURNING 
           id, brand, name, image_url as "imageUrl", 
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
       `;
       
       return {
@@ -239,7 +247,7 @@ exports.handler = async (event) => {
 
     // PUT /api/fragrances/:id
     if (event.httpMethod === 'PUT' && id) {
-      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability } = JSON.parse(event.body);
+      const { brand, name, imageUrl, seasons, occasions, seasonOccasions, types, review, wearability, occasionMonths, formality, middayTouchUp } = JSON.parse(event.body);
       
       const result = await sql`
         UPDATE fragrances 
@@ -253,11 +261,15 @@ exports.handler = async (event) => {
           types = ${JSON.stringify(types)},
           review = ${review || null},
           wearability = ${JSON.stringify(wearability || null)},
+          occasion_months = ${JSON.stringify(occasionMonths || null)},
+          formality = ${formality || null},
+          midday_touch_up = ${middayTouchUp !== undefined ? middayTouchUp : null},
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
       `;
       
       if (result.length === 0) {
@@ -287,7 +299,8 @@ exports.handler = async (event) => {
         WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
         RETURNING 
           id, brand, name, image_url as "imageUrl",
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability
+          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
       `;
       
       if (result.length === 0) {
