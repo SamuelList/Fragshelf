@@ -472,33 +472,53 @@ Then state: "**Final Formality Verdict: [LEVEL]** because [specific reasoning ci
 * **Purchase Decision:** Blind Buy Safe? / Sample First? / Niche Collectors Only?
 
 ### 10. Target Persona Audit: The School Facilities Protocol
-*Specific analysis for a Male, Mid-30s, School District Maintenance worker (in classrooms/interactions with staff/occasional meetings/Contractor Management/Light Repairs).*
+*Specific analysis for a Male, Mid-30s, School District Maintenance worker (Active role: classrooms/hallways/contractor meetings/light repairs).*
 
-**Job Fit Score Calculation (SHOW YOUR WORK):**
-- Base: 50
-- [+/- adjustment]: [reason]
-- [+/- adjustment]: [reason]
-- [+/- adjustment]: [reason]
-- **FINAL SCORE: [X]/100**
+**A. Job Fit Score Calculation (SHOW YOUR MATH):**
+*The goal is to determine if the scent is safe for a semi-public, active work environment.*
+* **Base Score:** 60
+* **The "Soap & Water" Bonus:** (+5 to +15) [Is it clean/fresh/barbershop?]
+* **The "Skin Scent" Bonus:** (+10) [Does it sit close to skin/low projection?]
+* **The "Mass Appeal" Bonus:** (+5) [Is it generally liked by non-enthusiasts?]
+* **The "Clashing Note" Penalty:** (-5 to -15) [Heavy Oud, Animalics, Cumin, heavy Booze?]
+* **The "Physical Labor/Heat" Penalty:** (-10 to -20) [Will this scent become cloying/choking if the wearer's body temperature rises due to manual labor?]
+* **The "Club" Penalty:** (-15) [Is it clearly designed for night/partying?]
 
-**Logic Gate Result:** [State bracket and green month allowance]
+**FINAL JOB FIT SCORE: [X]/100**
 
-* **Standard Job Fit Score:** [X]/100
-    * *Reasoning:* [Detailed explanation]
-* **Indoor-Only Job Fit Score:** [X]/100
-* **The "Clock-In" Analysis (6AM → 7AM):** [State of scent at shift start]
-* **The "Lunch Workout" Test:** [Will this scent survive a 30-45 min strength session in a weight room? Will it turn sour or amplify unpleasantly with sweat?]
-* **Midday Touch-Up Verdict:** Bring Bottle? [Yes/No] — [Reasoning]
+**B. Green Month Logic Gate (The Allowance System):**
+*Apply the Final Score to this matrix to determine the MAXIMUM number of Green circles allowed.*
 
-**Work Seasonality Guide (Kansas City):**
-> Climate Reference: Jan (38°/20°), Feb (44°/24°), Mar (55°/34°), Apr (66°/44°), May (75°/54°), Jun (84°/64°), Jul (88°/68°), Aug (87°/66°), Sep (79°/58°), Oct (67°/46°), Nov (54°/34°), Dec (42°/24°)
+| Job Fit Score | Green Circle Allowance | Selection Criteria for Green Months |
+| :--- | :--- | :--- |
+| **90 - 100** | **10-12 Months** | Almost year-round, excluding only extreme weather mismatches. |
+| **80 - 89** | **6-9 Months** | The fragrance's optimal seasons + shoulder seasons. |
+| **70 - 79** | **4-6 Months** | STRICTLY the fragrance's peak season (e.g., only Winter, or only Summer). |
+| **55 - 69** | **1-3 Months** | Only the absolute perfect weather match. (e.g., "Only Jan/Feb"). |
+| **< 55** | **0 Months** | **UNSAFE FOR WORK.** All months must be Red or Yellow. |
 
-**⚠️ APPLYING GREEN MONTH LOGIC GATE: Job Fit Score = [X] → [Bracket] → [Allowance]**
+**C. The Work Calendar (Kansas City Context):**
+*Assign a status to each month based on the Logic Gate allowance and KC Climate.*
+> **Climate Data:** Jan(38°), Feb(44°), Mar(55°), Apr(66°), May(75°), Jun(84°), Jul(88°), Aug(87°), Sep(79°), Oct(67°), Nov(54°), Dec(42°)
 
-* 🟢 **Green Months:** [List based on logic gate — may be "NONE"] | Max Sprays: [X]
-* 🟡 **Yellow Months:** [List] | Max Sprays: [X]
-* 🔴 **Red Months:** [List] | Max Sprays: [X or "Do Not Wear"]
+**Status Key:**
+🟢 = **Safe:** Fits logic allowance + optimal weather + safe for physical labor.
+🟡 = **Caution:** Borderline weather OR requires reduced sprays (1-2 max).
+🔴 = **Stop:** Wrong season OR Job Fit Score too low (risk of cloying/offending).
 
+| Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] | [🟢/🟡/🔴] |
+
+**D. 11-Hour Shift Logistics (6:00 AM - 5:00 PM)**
+* **Longevity Audit:** Can this specific fragrance survive 11 hours on skin? [Yes/No]
+* **Projected "Skin Death" Time:** [Time of day the scent becomes undetectable if applied at 6 AM]
+* **The "Lunch Workout" Variable:**
+    * *Heat Check:* Will the 6 AM application reactivate/project loudly during the workout? [Yes/No/Risk]
+    * *Scent Stability:* Will the dry-down turn sour when mixed with workout sweat? [Yes/No]
+* **Reapplication Verdict:**
+    * **Strategy:** [Select: **"One & Done"** (Lasts all day) / **"The Post-Gym Reset"** (Reapply after gym) / **"Fade Out"** (Let it die)]
+    * **The Protocol:** [e.g., "Do NOT spray before gym. Apply 1 spray to chest at 1:00 PM strictly AFTER cooling down."]
 ### 11. The "I'm Going to Wear It Anyway" Protocol
 *Only include if Job Fit Score < 70*
 
