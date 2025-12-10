@@ -477,12 +477,14 @@ Then state: "**Final Formality Verdict: [LEVEL]** because [specific reasoning ci
 **A. Job Fit Score Calculation (SHOW YOUR MATH):**
 *The goal is to determine if the scent is safe for a semi-public, active work environment.*
 * **Base Score:** 60
-* **The "Soap & Water" Bonus:** (+5 to +15) [Is it clean/fresh/barbershop?]
-* **The "Skin Scent" Bonus:** (+10) [Does it sit close to skin/low projection?]
-* **The "Mass Appeal" Bonus:** (+5) [Is it generally liked by non-enthusiasts?]
-* **The "Clashing Note" Penalty:** (-5 to -15) [Heavy Oud, Animalics, Cumin, heavy Booze?]
-* **The "Physical Labor/Heat" Penalty:** (-10 to -20) [Will this scent become cloying/choking if the wearer's body temperature rises due to manual labor?]
-* **The "Club" Penalty:** (-15) [Is it clearly designed for night/partying?]
+
+* **The "Soap & Water" Bonus:** (+0 to +20) [Is it clean/fresh/barbershop?]
+* **The "Skin Scent" Bonus:** (+0 to +10) [Does it sit close to skin/low projection?]
+* **The "Mass Appeal" Bonus:** (+0 to +10) [Is it generally liked by non-enthusiasts?]
+* **The "Clashing Note" Penalty:** (-0 to -15) [Heavy Oud, Animalics, Cumin, heavy Booze?]
+* **The "Physical Labor/Heat" Penalty:** (-0 to -10) [Will this scent become cloying/choking if the wearer's body temperature rises due to manual labor?]
+* **The "Club" Penalty:** (-0 to -15) [Is it clearly designed for night/partying?]
+
 
 **FINAL JOB FIT SCORE: [X]/100**
 
