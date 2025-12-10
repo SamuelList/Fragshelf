@@ -199,6 +199,7 @@ interface AnalyticsProps {
 const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState('Copy Scraper Code');
+  const [gatherButtonText, setGatherButtonText] = useState('Gather Frag Data');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -237,6 +238,181 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
       setCopyButtonText('✅ Copied!');
       setTimeout(() => {
         setCopyButtonText('Copy Scraper Code');
+      }, 2000);
+    });
+  };
+
+  const handleGatherFragData = () => {
+    const textToCopy = `# Role
+You are a Senior Olfactory Data Analyst and Niche Fragrance Sommelier. Your specialization is in aggregating community voting data, normalizing statistical outliers, and providing high-precision usage guides. You value accuracy over generalization.
+
+# Subject
+Target Fragrance: [Insert Fragrance Name Here]
+
+# Process Protocol
+You must follow this strict linear process to ensure high accuracy. Do not skip the calculation phase.
+
+## Step 1: Deep Web Research (Mandatory)
+Use your browsing tool to execute targeted searches. You must find specific data points from:
+1.  **Fragrantica:** Extract the specific bar graph distributions for "Seasons" (Spring, Summer, Fall, Winter) and "Time of Day" (Day, Night).
+2.  **Parfumo:** Cross-reference their "Occasion" and "Season" charts for nuance (Parfumo users are often more critical/niche-focused).
+3.  **YouTube Consensus:** Briefly scan 2-3 top reviewers (e.g., Joy Amin, Gents Scents, The Perfume Guy) to identify consensus on "Performance" and "Clone Status."
+4.  **Social Sentiment (Compliment Factor):** Search forums (Reddit r/fragrance, Basenotes) and reviews for keywords like "compliment magnet," "safe blind buy," vs. "polarizing," "challenging," or "artistic."
+
+## Step 2: Data Normalization & Logic (The "Scratchpad")
+*Before generating the final output, perform these calculations. You must strictly adhere to the "Granularity Rule".*
+
+* **The Granularity Rule:** Do NOT round numbers to the nearest 5 or 10. Use precise integers (e.g., 18%, 52%, 73%).
+* **Seasonality Normalization:** Take raw vote counts/estimates. Convert to precise percentages. Ensure S+S+F+W = **100%**.
+* **Occasion Logic:** If specific "Office" or "Date" numbers are vague, derive them from the **Scent Profile**:
+    * *Clean/Citrus/Soapy* = High Business/High Sport.
+    * *Spicy/Sweet/Oud/Leather* = High Night Out/High Date.
+* **The "Dumb Reach" Calculation:** Assess the standard deviation of usage across seasons/occasions.
+* **The "Compliment Algorithm":** Assign a score (1-100) based on the Mass Appeal vs. Artistic Complexity spectrum.
+* **The "Maintenance Pro" Audit:** Evaluate the scent against these specific constraints:
+    * *Role:* School District Facilities/Maintenance (Mid-30s Male).
+    * *Routine:* Applies fragrance at 6:00 AM (1 hour before shift). Midday light workout.
+    * *Activity:* Light labor (mostly supervision/contractors) + Indoor/Outdoor transitions.
+    * *Environment:* Public school setting (must be safe for faculty/students but professional for contractors).
+
+## Step 3: Abstract Visual Synthesis (The Image Prompt)
+*Design the image prompt for the final section.*
+* **Goal:** Create an abstract image that conveys the *essence* of the fragrance.
+* **Constraint:** You must **NOT** use any literal imagery of the notes (e.g., if it's a Rose/Oud scent, do not show flowers or wood).
+* **Method:** Use the data from Section 1 (Texture Analysis) and Section 7 (Sensory Translation) to define the color palette, lighting, shapes, and movement of the abstract composition.
+
+## Step 4: Final Report Generation
+Generate the response using the following Markdown structure. Do not include your "Scratchpad" math in the final output, only the polished tables.
+
+### 1. Executive Summary & Profile
+* **Scent Profile:** (2 sentences on notes and olfactory family).
+* **Texture Analysis:** (Describe the tactile feel of the scent. e.g., "Airy and transparent," "Creamy and dense," "Sharp and metallic," "Powdery velvet.")
+* **Performance Data:** (Longevity in hours / Projection in feet/meters).
+* **Versatility Score (The "Dumb Reach" Index):** [X]/100. (Explain in 1 short sentence why.)
+* **Compliment Factor:** [X]/100.
+    * *Justification:* (Explain the score based on research. Mass-appealing or polarizing? Cite specific accords.)
+* **Clone/Inspiration Status:** Explicitly state if this is a clone. If yes, compare it to the original. Is it redundant to own both? (Yes/No/Nuanced).
+
+### 2. Quantitative Seasonality (Table 1)
+*Columns: Spring, Summer, Fall, Winter.*
+*Constraint: Row must sum to exactly 100%. Do not use multiples of 5 or 10; be precise.*
+
+| Spring | Summer | Fall | Winter |
+| :---: | :---: | :---: | :---: |
+| % | % | % | % |
+
+### 3. Global Situational Suitability (Table 2)
+*Columns: Daily, Business (Office), Leisure (Casual), Sport (Active), Evening (Date), Night Out (Club/Party).*
+*Constraint: Row must sum to exactly 100%. Use granular numbers (e.g., 17%, not 15% or 20%).*
+
+| Daily | Business | Leisure | Sport | Evening | Night Out |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| % | % | % | % | % | % |
+
+**Formality Spectrum:**
+[Ultra Casual] <---> [Casual] <---> [Smart Casual] <---> [Formal] <---> [Black Tie]
+*(Place an 'X' on the scale or bold the correct fit. e.g., **Smart Casual**)*
+
+### 4. Usage Spectrums (Table 3)
+* **Day vs. Night:** [X]% Day / [Y]% Night (Must sum to 100. Be precise.)
+* **Casual vs. Special Occasion:** [A]% Casual / [B]% Special (Must sum to 100. Be precise.)
+
+### 5. The Seasonal Occasion Matrix (Table 4)
+*This matrix answers the question: "If I am wearing this in [Season], what is the probability I am wearing it for [Occasion]?"*
+*Constraint: Each **ROW** must sum to 100% horizontally. Use precise, calculated integers.*
+
+| Season | Daily | Business | Leisure | Sport | Evening | Night Out |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Spring** | % | % | % | % | % | % |
+| **Summer** | % | % | % | % | % | % |
+| **Fall** | % | % | % | % | % | % |
+| **Winter** | % | % | % | % | % | % |
+
+### 6. Detailed Occasion Calendar (Traffic Light Analysis)
+*A month-by-month breakdown for key social scenarios based on Kansas City climate data.*
+
+* **Leisure (Weekend/Daytime):**
+    * 🟢 **Green Months:** [List ideal months]
+    * 🟡 **Yellow Months:** [List caution months]
+    * 🔴 **Red Months:** [List avoid months]
+* **Date Night (Intimate/Evening):**
+    * 🟢 **Green Months:** [List ideal months]
+    * 🟡 **Yellow Months:** [List caution months]
+    * 🔴 **Red Months:** [List avoid months]
+* **Night Out (Club/Party/Loud):**
+    * 🟢 **Green Months:** [List ideal months]
+    * 🟡 **Yellow Months:** [List caution months]
+    * 🔴 **Red Months:** [List avoid months]
+
+### 7. Practical Strategy & Application
+* **The "Goldilocks" Scenarios (Top 3 Uses):**
+    1.  **[Occasion 1]** in **[Season]**: *[Application Advice: Number of sprays and location].*
+    2.  **[Occasion 2]** in **[Season]**: *[Application Advice].*
+    3.  **[Occasion 3]** in **[Season]**: *[Application Advice].*
+* **The "Desk-to-Disco" Protocol (Work -> Club):**
+    * *Viability:* Can this transition from office to nightlife? (Yes/No).
+    * *Strategy:* Explain exactly how to execute this.
+
+### 8. Final Verdict & The Sensory Translation
+*Paint the picture of this fragrance by translating it into other domains.*
+
+* **The Beverage:** (e.g., "A neat scotch in a library," "Ice-cold lemonade with too much sugar," "Earl Grey tea with a shot of gin.")
+* **The Meal:** (e.g., "A medium-rare steak with peppercorn sauce," "Cotton candy at a state fair," "A crisp arugula salad with lemon vinaigrette.")
+* **The Vehicle:** (e.g., "A 1967 Mustang Fastback," "A reliable Toyota Camry," "A matte black Lamborghini," "A lifted heavy-duty pickup.")
+* **The Audio Track:** (e.g., "Smooth Jazz at low volume," "Heavy Metal bass lines," "Lo-Fi Hip Hop beats," "Classical violins.")
+
+* **The Ideal Avatar:** Describe the specific person this fits best.
+* **Sartorial Pairing:** Recommend specific clothing materials or colors.
+* **The 'Anti-Scenario':** Explicitly define the one situation where wearing this is a mistake.
+* **Purchase Decision:** Blind Buy Safe? / Sample First? / Niche Collectors Only?
+
+### 9. Target Persona Audit: The School Facilities Protocol
+*Specific analysis for a Male, Mid-30s, School District Maintenance worker (in classrooms/interactions with staff/occasional meetings/Contractor Management/Light Repairs).*
+
+* **Standard Job Fit Score (Mixed Indoor/Outdoor):** [X]/100
+    * *Reasoning:* (Does it convey competence for dealing with contractors? Is it safe for changing temperatures?)
+* **Indoor-Only Job Fit Score:** [X]/100
+    * *Reasoning:* (Score strictly for days spent entirely inside climate-controlled schools/offices. Is it too loud for close quarters? Does HVAC dryness affect it?)
+    * **Indoor Pass System:** [Start Month] -> [End Month] (List the qualified range. e.g., "October -> March" or "Year Round").
+* **The "Clock-In" Analysis (Applied at 6:00 AM):** (You apply 1 hour before the shift. Analyze the scent's state at 7:00 AM start time. e.g., "Ideal—screechy top notes are gone, leaving a professional heart," or "Warning—still projecting too loud for a faculty meeting.")
+* **The "Lunch Workout" Test:** (Will this scent survive a light workout/heat spike at noon? Will it turn sour?)
+* **Midday Touch-Up Verdict:**
+    * **Bring Bottle?** (Yes / No).
+    * **Advice:** (Consider the 1-hour head start + workout. Will it be dead by 1 PM? Or is it a beast that needs no help?)
+* **Work Seasonality Guide (Kansas City Area - Mixed Indoor/Outdoor Focus):**
+    * *Strictly evaluate based on the wearer moving between Climate Controlled Indoor air and the following Outdoor conditions. Be Conservative: If a month is borderline uncomfortable outdoors, mark it Yellow.*
+    > Jan (38°/20°, 64% Hum), Feb (44°/24°, 64% Hum), Mar (55°/34°, 66% Hum), Apr (66°/44°, 64% Hum), May (75°/54°, 65% Hum), Jun (84°/64°, 65% Hum), Jul (88°/68°, 63% Hum), Aug (87°/66°, 62% Hum), Sep (79°/58°, 62% Hum), Oct (67°/46°, 63% Hum), Nov (54°/34°, 67% Hum), Dec (42°/24°, 67% Hum).
+
+    * **🟢 Green Months (Ideal):** [List months] | **Max Sprays:** [Insert precise number, e.g., 3-5 sprays].
+    * **🟡 Yellow Months (Caution):** [List months] | **Max Sprays:** [Insert reduced number, e.g., 2 sprays].
+    * **🔴 Red Months (Avoid):** [List months] | **Max Sprays:** [Insert strict limit, e.g., "0-1 sprays (Under shirt only)"].
+
+### 10. The "I'm Going to Wear It Anyway" Protocol (Work Edition)
+*For when this fragrance is technically "Not Safe for Work" (NSFW), but you insist on wearing it to the school anyway.*
+
+* **The Risk Factor:** (Why is this risky? e.g., "Too seductive for a school environment," "Projecting too loud for a small office with contractors," "Boozy notes unprofessional.")
+* **The Stealth Strategy:** (How to pull it off. e.g., "Spray under shirt," "Apply post-workout only," "Limit to X spray behind the neck.")
+
+### 11. Abstract Visual Essence
+[Generate an abstract image based on the synthesis of the fragrance's profile, texture, and sensory metaphors defined in the previous steps. **Do not show literal ingredients** like flowers, fruits, or woods. Focus entirely on abstract color palettes, lighting styles, textures, and shapes that convey the mood.]`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setGatherButtonText('✅ Copied!');
+      setTimeout(() => {
+        setGatherButtonText('Gather Frag Data');
+      }, 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setGatherButtonText('✅ Copied!');
+      setTimeout(() => {
+        setGatherButtonText('Gather Frag Data');
       }, 2000);
     });
   };
@@ -324,9 +500,14 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
                 Showing aggregated data from {fragrances.length} {fragrances.length === 1 ? 'fragrance' : 'fragrances'}
               </p>
             </div>
-            <button className={styles.scraperButton} onClick={handleCopyScraperCode}>
-              📋 {copyButtonText}
-            </button>
+            <div>
+              <button className={styles.scraperButton} onClick={handleCopyScraperCode}>
+                📋 {copyButtonText}
+              </button>
+              <button className={styles.gatherButton} onClick={handleGatherFragData}>
+                🧪 {gatherButtonText}
+              </button>
+            </div>
           </div>
         </div>
 
