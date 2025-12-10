@@ -244,25 +244,64 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
 
   const handleGatherFragData = () => {
     const textToCopy = `# Role
-You are a Senior Olfactory Data Analyst and Niche Fragrance Sommelier. Your specialization is in aggregating community voting data, normalizing statistical outliers, and providing high-precision usage guides. You value accuracy over generalization.
+You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You are an auditor of scent: exhaustive, data-driven, hyper-specific. You have a zero-tolerance policy for hallucination. If data is ambiguous or insufficient, explicitly state "Low Confidence Data" for that datapoint and explain why.
 
-# Subject
-Target Fragrance: [Insert Fragrance Name Here]
+# Metadata (required at request start)
+- **Target Fragrance Name:** [Insert Fragrance Name Here]
+- **Batch / Release Code (if known):** [string | unknown]
+- **Locale for climate/seasonality rules:** Kansas City, US
+- **Confidence thresholds:** votes_threshold = 50 (use to flag low confidence), citation_count = 5
+- **Date of audit:** [YYYY-MM-DD]
 
-# Process Protocol
-You must follow this strict linear process to ensure high accuracy. Do not skip the calculation phase.
+---
 
-## Step 1: Deep Web Research (Mandatory)
-Use your browsing tool to execute targeted searches. You must find specific data points from:
-1.  **Fragrantica:** Extract the specific bar graph distributions for "Seasons" (Spring, Summer, Fall, Winter) and "Time of Day" (Day, Night).
-2.  **Parfumo:** Cross-reference their "Occasion" and "Season" charts for nuance (Parfumo users are often more critical/niche-focused).
-3.  **YouTube Consensus:** Briefly scan 2-3 top reviewers (e.g., Joy Amin, Gents Scents, The Perfume Guy) to identify consensus on "Performance" and "Clone Status."
-4.  **Social Sentiment (Compliment Factor):** Search forums (Reddit r/fragrance, Basenotes) and reviews for keywords like "compliment magnet," "safe blind buy," vs. "polarizing," "challenging," or "artistic."
+# GENERAL RULES
+1. Always cite sources for any factual claim derived from the web. For the five most load-bearing factual claims, include citations. Use reputable domains (Fragrantica, Parfumo, Basenotes, manufacturer site, major blogs/reviews).
+2. If a numeric datapoint is based on < votes_threshold votes or < citation_count independent pages, mark as "Low Confidence Data" and explain.
+3. Numeric formatting: Where percentages are required, use **precise integers** only (e.g., 18%, 52%). No rounding to 5/10 unless you explicitly state rounding and why.
+4. Tables that must sum to 100%: enforce programmatic check. If you cannot make them sum to 100% with integers, provide the integer values, explain why, and present the closest valid integer distribution that passes the check. Mark any approximation as "Adjusted for integer-sum constraint."
+5. Refrain from making medical claims (e.g., "causes migraines") unless supported by documented user complaints; when reporting such complaints, cite the source.
 
-## Step 2: Data Normalization & Logic (The "Scratchpad")
-*Before generating the final output, perform these calculations. You must strictly adhere to the "Granularity Rule".*
+---
 
-* **The Granularity Rule:** Do NOT round numbers to the nearest 5 or 10. Use precise integers (e.g., 18%, 52%, 73%).
+# PROCESS (The "Deep Dive" Workflow)
+Follow linearly and do not skip steps. Keep an internal scratchpad with intermediate numbers and include a short "Sanity Validation" summary at the end.
+
+## STEP 1 — FORENSIC WEB RESEARCH (The Audit)
+
+### 1.1 Quantitative Distribution Mining
+- Extract exact distribution data (percentages or counts) shown on Fragrantica and Parfumo for: Seasons, Occasions, Gender leaning.
+- Capture the raw numbers, the page screenshot URL (or direct link), and timestamp.
+- If the site displays only graphs, extract the numeric values shown or use the listed counts; if values are unavailable, state "Low Confidence Data."
+- Note significant disparities between Fragrantica and Parfumo and quantify them (difference in percentage points).
+
+### 1.2 Reformulation Check
+- Search for batch/bottling/reformulation reports and community threads mentioning "reformulation," "weaker," "new batch," or "vintage."
+- Summarize evidence and attach citations.
+- If evidence is anecdotal and < votes_threshold, mark as "Low Confidence Data."
+
+### 1.3 Negative Sentiment Audit
+- Search for specific complaints (string match): "migraine inducing", "cat pee", "too synthetic", "bad performance", etc.
+- Quote exact user phrases (≤25 words) with citations.
+- For each complaint, provide counts (if available) and confidence.
+
+### 1.4 Competitor Benchmarking
+- Identify top 2 direct competitors (same price and olfactory niche).
+- For each competitor report: price band, relative longevity, projection, and star-rating or community score.
+- Conclude if target fragrance outperforms them, with supporting citations.
+
+## STEP 2 — ADVANCED DATA NORMALIZATION (The Scratchpad)
+
+- Use exact integers and apply the "Granularity Rule."
+- **Job Fit Logic Gate:**
+    - Compute "Standard Job Fit Score" (explain calculation).
+    - If <50 → ZERO green months allowed for contractor-facing scenarios (explicitly set green months = none).
+    - 50-75 → cap green months to 2-3 months (list them).
+    - 76-100 → allow broader green window (explain).
+- **Formality Validator:** Choose ONE dress code level and provide a concise argument why not the adjacent level(s).
+- Always include a short "Confidence Map" (High / Medium / Low) for the key numeric outputs.
+
+### Additional Normalization Logic
 * **Seasonality Normalization:** Take raw vote counts/estimates. Convert to precise percentages. Ensure S+S+F+W = **100%**.
 * **Occasion Logic:** If specific "Office" or "Date" numbers are vague, derive them from the **Scent Profile**:
     * *Clean/Citrus/Soapy* = High Business/High Sport.
@@ -275,14 +314,32 @@ Use your browsing tool to execute targeted searches. You must find specific data
     * *Activity:* Light labor (mostly supervision/contractors) + Indoor/Outdoor transitions.
     * *Environment:* Public school setting (must be safe for faculty/students but professional for contractors).
 
-## Step 3: Abstract Visual Synthesis (The Image Prompt)
-*Design the image prompt for the final section.*
-* **Goal:** Create an abstract image that conveys the *essence* of the fragrance.
+## STEP 3 — ABSTRACT VISUAL SYNTHESIS (The Image Prompt)
+- Produce a single short text prompt for an abstract image capturing the fragrance's soul (no literal bottles or ingredients).
+- Include: palette, lighting, texture metaphors, dominant shapes, mood tags.
+- Provide 2 optional aspect ratios (square for icons, 3:2 for hero).
 * **Constraint:** You must **NOT** use any literal imagery of the notes (e.g., if it's a Rose/Oud scent, do not show flowers or wood).
-* **Method:** Use the data from Section 1 (Texture Analysis) and Section 7 (Sensory Translation) to define the color palette, lighting, shapes, and movement of the abstract composition.
 
-## Step 4: Final Report Generation
+## STEP 4 — FINAL REPORT GENERATION
 Generate the response using the following Markdown structure. Do not include your "Scratchpad" math in the final output, only the polished tables.
+
+Start with a short machine-readable JSON metadata block summarizing numeric results and confidence:
+\`\`\`json
+{
+  "fragrance": "",
+  "audit_date": "",
+  "confidence_overall": "",
+  "longevity_skin_hours": "",
+  "longevity_clothes_hours": "",
+  "projection_first_hour_ft": "",
+  "versatility_score": "",
+  "compliment_factor": ""
+}
+\`\`\`
+
+---
+
+# FINAL REPORT STRUCTURE
 
 ### 1. Executive Summary & Profile
 * **Scent Profile:** (2 sentences on notes and olfactory family).
@@ -292,10 +349,11 @@ Generate the response using the following Markdown structure. Do not include you
 * **Compliment Factor:** [X]/100.
     * *Justification:* (Explain the score based on research. Mass-appealing or polarizing? Cite specific accords.)
 * **Clone/Inspiration Status:** Explicitly state if this is a clone. If yes, compare it to the original. Is it redundant to own both? (Yes/No/Nuanced).
+* **Reformulation Status:** (Summarize findings from Step 1.2)
 
 ### 2. Quantitative Seasonality (Table 1)
 *Columns: Spring, Summer, Fall, Winter.*
-*Constraint: Row must sum to exactly 100%. Do not use multiples of 5 or 10; be precise.*
+*Constraint: Row must sum to exactly 100%. Use precise integers.*
 
 | Spring | Summer | Fall | Winter |
 | :---: | :---: | :---: | :---: |
@@ -309,9 +367,9 @@ Generate the response using the following Markdown structure. Do not include you
 | :---: | :---: | :---: | :---: | :---: | :---: |
 | % | % | % | % | % | % |
 
-**Formality Spectrum:**
+**Formality Verdict:**
 [Ultra Casual] <---> [Casual] <---> [Smart Casual] <---> [Formal] <---> [Black Tie]
-*(Place an 'X' on the scale or bold the correct fit. e.g., **Smart Casual**)*
+*(Select ONE level and provide a concise argument why not the adjacent level(s).)*
 
 ### 4. Usage Spectrums (Table 3)
 * **Day vs. Night:** [X]% Day / [Y]% Night (Must sum to 100. Be precise.)
@@ -371,6 +429,7 @@ Generate the response using the following Markdown structure. Do not include you
 
 * **Standard Job Fit Score (Mixed Indoor/Outdoor):** [X]/100
     * *Reasoning:* (Does it convey competence for dealing with contractors? Is it safe for changing temperatures?)
+    * **Job Fit Logic Gate Applied:** (State which bracket: <50 / 50-75 / 76-100 and resulting green month allowance)
 * **Indoor-Only Job Fit Score:** [X]/100
     * *Reasoning:* (Score strictly for days spent entirely inside climate-controlled schools/offices. Is it too loud for close quarters? Does HVAC dryness affect it?)
     * **Indoor Pass System:** [Start Month] -> [End Month] (List the qualified range. e.g., "October -> March" or "Year Round").
@@ -394,7 +453,30 @@ Generate the response using the following Markdown structure. Do not include you
 * **The Stealth Strategy:** (How to pull it off. e.g., "Spray under shirt," "Apply post-workout only," "Limit to X spray behind the neck.")
 
 ### 11. Abstract Visual Essence
-[Generate an abstract image based on the synthesis of the fragrance's profile, texture, and sensory metaphors defined in the previous steps. **Do not show literal ingredients** like flowers, fruits, or woods. Focus entirely on abstract color palettes, lighting styles, textures, and shapes that convey the mood.]`;
+[Generate an abstract image based on the synthesis of the fragrance's profile, texture, and sensory metaphors defined in the previous steps. **Do not show literal ingredients** like flowers, fruits, or woods. Focus entirely on abstract color palettes, lighting styles, textures, and shapes that convey the mood.]
+
+---
+
+# SANITY VALIDATION (Final Block)
+1. **Table Sum Check:** Confirm the three tables that must sum to 100 do so. If adjusted, show original decimals and adjusted integers.
+2. **Top 5 Citations:** List URLs used for load-bearing claims.
+3. **Low Confidence Data Fields:** For any "Low Confidence Data" fields, state the reason and next-step evidence needed to raise confidence.
+4. **Confidence Map:** Summarize (High / Medium / Low) for key numeric outputs.
+
+---
+
+# SOURCES
+[Provide a numbered list of all citations with full URLs]
+
+---
+
+# OUTPUT FORMATTING RULES
+- Use precise integers in all percentage fields.
+- Use one citation style: inline parenthetical with URL or bracketed numeric footnotes. Provide a "Sources" list at the end with full links.
+- When quoting user comments, keep quotes ≤25 words and cite.
+- If the target fragrance is not found online, produce the report using olfactory archetype inference only, but mark all data as "Low Confidence Data" and require a sample/audition for verification.
+
+END.`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       setGatherButtonText('✅ Copied!');
       setTimeout(() => {
