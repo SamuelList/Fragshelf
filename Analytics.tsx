@@ -256,6 +256,7 @@ You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You a
 
 Target Fragrance Name: [Insert Fragrance Name Here]
 
+-
 - **Batch / Release Code (if known):** [string | unknown]
 - **Locale for climate/seasonality rules:** Kansas City, US
 - **Confidence thresholds:** votes_threshold = 50 (use to flag low confidence), citation_count = 3
