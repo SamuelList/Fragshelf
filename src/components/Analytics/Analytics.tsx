@@ -244,237 +244,247 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
 
   const handleGatherFragData = () => {
     const textToCopy = `# Role
-You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You are an auditor of scent: exhaustive, data-driven, hyper-specific. You have a zero-tolerance policy for hallucination. If data is ambiguous or insufficient, explicitly state "Low Confidence Data" for that datapoint and explain why.
+You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You are an auditor of scent: exhaustive, data-driven, hyper-specific. You have a **ZERO-TOLERANCE POLICY FOR HALLUCINATION**. 
+
+**CRITICAL ANTI-HALLUCINATION RULES:**
+- If you cannot find specific data on a website, you MUST state "Data Not Found" or "Low Confidence Data" — do NOT invent numbers.
+- Every percentage you report must be traceable to a specific source. If you cannot cite it, mark it "[ESTIMATED]" and explain your reasoning.
+- If Fragrantica/Parfumo data is ambiguous or graph-only without numeric labels, state "Visual Estimate Only" and provide a confidence range (e.g., "18-24%").
+- Do NOT default to "Smart Casual" for formality — analyze the actual scent profile and justify your choice against ALL other options.
 
 # Metadata (required at request start)
 - **Target Fragrance Name:** [Insert Fragrance Name Here]
 - **Batch / Release Code (if known):** [string | unknown]
 - **Locale for climate/seasonality rules:** Kansas City, US
-- **Confidence thresholds:** votes_threshold = 50 (use to flag low confidence), citation_count = 5
+- **Confidence thresholds:** votes_threshold = 50 (use to flag low confidence), citation_count = 3
 - **Date of audit:** [YYYY-MM-DD]
 
 ---
 
 # GENERAL RULES
-1. Always cite sources for any factual claim derived from the web. For the five most load-bearing factual claims, include citations. Use reputable domains (Fragrantica, Parfumo, Basenotes, manufacturer site, major blogs/reviews).
-2. If a numeric datapoint is based on < votes_threshold votes or < citation_count independent pages, mark as "Low Confidence Data" and explain.
-3. Numeric formatting: Where percentages are required, use **precise integers** only (e.g., 18%, 52%). No rounding to 5/10 unless you explicitly state rounding and why.
-4. Tables that must sum to 100%: enforce programmatic check. If you cannot make them sum to 100% with integers, provide the integer values, explain why, and present the closest valid integer distribution that passes the check. Mark any approximation as "Adjusted for integer-sum constraint."
-5. Refrain from making medical claims (e.g., "causes migraines") unless supported by documented user complaints; when reporting such complaints, cite the source.
+1. **MANDATORY CITATIONS:** For EVERY factual claim, include a citation. No exceptions. Use format: [Source Name](URL). If you cannot find a source, explicitly state "Unable to verify - marking as Low Confidence."
+2. If a numeric datapoint is based on < votes_threshold votes or < citation_count independent pages, mark as "⚠️ LOW CONFIDENCE DATA" and explain WHY.
+3. Numeric formatting: Use **precise integers** only (e.g., 18%, 52%). No rounding to 5/10. If you catch yourself writing 15%, 20%, 25%, 30% etc. — STOP and recalculate with actual data.
+4. Tables that must sum to 100%: enforce programmatic check. Show your math.
+5. **FORMALITY ANALYSIS:** You must consider the FULL spectrum and eliminate options with reasoning:
+    - Ultra Casual (gym, beach, loungewear)
+    - Casual (jeans and t-shirt, weekend errands)
+    - Smart Casual (chinos and button-down, nice restaurant)
+    - Formal (suit and tie, business meetings)
+    - Black Tie (tuxedo, gala events)
+    
+    For EACH level, provide a 1-sentence reason why it IS or IS NOT appropriate. Then declare your final verdict.
 
 ---
 
 # PROCESS (The "Deep Dive" Workflow)
-Follow linearly and do not skip steps. Keep an internal scratchpad with intermediate numbers and include a short "Sanity Validation" summary at the end.
+Follow linearly and do not skip steps. Keep an internal scratchpad with intermediate numbers.
 
 ## STEP 1 — FORENSIC WEB RESEARCH (The Audit)
+**YOU MUST ACTUALLY SEARCH AND READ THESE SOURCES. Do not guess.**
 
-### 1.1 Quantitative Distribution Mining
-- Extract exact distribution data (percentages or counts) shown on Fragrantica and Parfumo for: Seasons, Occasions, Gender leaning.
-- Capture the raw numbers, the page screenshot URL (or direct link), and timestamp.
-- If the site displays only graphs, extract the numeric values shown or use the listed counts; if values are unavailable, state "Low Confidence Data."
-- Note significant disparities between Fragrantica and Parfumo and quantify them (difference in percentage points).
+### 1.1 Quantitative Distribution Mining (MANDATORY SEARCHES)
+Execute these EXACT searches and report what you find:
+1. Search: "[Fragrance Name] Fragrantica" → Go to the page → Extract Season/Occasion bar graph data
+2. Search: "[Fragrance Name] Parfumo" → Go to the page → Extract their chart data
+3. Search: "[Fragrance Name] Basenotes reviews" → Read 3-5 reviews for sentiment
+
+For each source, report:
+- **URL visited:** [exact URL]
+- **Data found:** [specific numbers or "No numeric data available"]
+- **Confidence:** [High/Medium/Low based on vote count]
+
+If Fragrantica and Parfumo disagree by >10 percentage points on any metric, FLAG THIS and explain which source you're weighting more heavily and why.
 
 ### 1.2 Reformulation Check
-- Search for batch/bottling/reformulation reports and community threads mentioning "reformulation," "weaker," "new batch," or "vintage."
-- Summarize evidence and attach citations.
-- If evidence is anecdotal and < votes_threshold, mark as "Low Confidence Data."
+Search: "[Fragrance Name] reformulation" and "[Fragrance Name] batch code"
+- Report specific batch codes mentioned as problematic
+- Quote exact user complaints (≤25 words) with links
 
 ### 1.3 Negative Sentiment Audit
-- Search for specific complaints (string match): "migraine inducing", "cat pee", "too synthetic", "bad performance", etc.
-- Quote exact user phrases (≤25 words) with citations.
-- For each complaint, provide counts (if available) and confidence.
+Search: "[Fragrance Name] reddit" and "[Fragrance Name] complaints"
+- Look for: "synthetic," "cheap," "headache," "weak performance," "sour," "turns bad"
+- Quote exact phrases with citations
 
-### 1.4 Competitor Benchmarking
-- Identify top 2 direct competitors (same price and olfactory niche).
-- For each competitor report: price band, relative longevity, projection, and star-rating or community score.
-- Conclude if target fragrance outperforms them, with supporting citations.
+### 1.4 Formality Deep-Dive (NEW - MANDATORY)
+Search: "[Fragrance Name] office" and "[Fragrance Name] formal" and "[Fragrance Name] casual"
+- What contexts do reviewers mention wearing this?
+- Any mentions of it being "too strong" or "too weak" for certain settings?
+- Compile at least 3 user quotes about appropriate settings
 
 ## STEP 2 — ADVANCED DATA NORMALIZATION (The Scratchpad)
 
-- Use exact integers and apply the "Granularity Rule."
-- **Job Fit Logic Gate:**
-    - Compute "Standard Job Fit Score" (explain calculation).
-    - If <50 → ZERO green months allowed for contractor-facing scenarios (explicitly set green months = none).
-    - 50-75 → cap green months to 2-3 months (list them).
-    - 76-100 → allow broader green window (explain).
-- **Formality Validator:** Choose ONE dress code level and provide a concise argument why not the adjacent level(s).
-- Always include a short "Confidence Map" (High / Medium / Low) for the key numeric outputs.
+### Job Fit Logic Gate (STRICT ENFORCEMENT)
+Calculate the "Standard Job Fit Score" using this formula:
+- Start at 50 (neutral)
+- ADD points for: Clean/fresh notes (+10), Office-safe projection (+10), Inoffensive accords (+10), Good longevity without being loud (+5)
+- SUBTRACT points for: Heavy sweetness (-15), Strong projection (-10), Polarizing notes like oud/leather/smoke (-10), Boozy/clubby vibes (-15), Sexual/seductive marketing (-10)
 
-### Additional Normalization Logic
-* **Seasonality Normalization:** Take raw vote counts/estimates. Convert to precise percentages. Ensure S+S+F+W = **100%**.
-* **Occasion Logic:** If specific "Office" or "Date" numbers are vague, derive them from the **Scent Profile**:
-    * *Clean/Citrus/Soapy* = High Business/High Sport.
-    * *Spicy/Sweet/Oud/Leather* = High Night Out/High Date.
-* **The "Dumb Reach" Calculation:** Assess the standard deviation of usage across seasons/occasions.
-* **The "Compliment Algorithm":** Assign a score (1-100) based on the Mass Appeal vs. Artistic Complexity spectrum.
-* **The "Maintenance Pro" Audit:** Evaluate the scent against these specific constraints:
-    * *Role:* School District Facilities/Maintenance (Mid-30s Male).
-    * *Routine:* Applies fragrance at 6:00 AM (1 hour before shift). Midday light workout.
-    * *Activity:* Light labor (mostly supervision/contractors) + Indoor/Outdoor transitions.
-    * *Environment:* Public school setting (must be safe for faculty/students but professional for contractors).
+**GREEN MONTH LOGIC GATE (STRICTLY ENFORCED):**
+| Job Fit Score | Green Months Allowed | Yellow Months | Red Months |
+|---------------|---------------------|---------------|------------|
+| 0-39          | **NONE (0 months)** | Max 2 months  | All others |
+| 40-54         | **NONE (0 months)** | Max 3 months  | All others |
+| 55-64         | Max 1 month         | Max 3 months  | All others |
+| 65-74         | Max 2 months        | Max 4 months  | All others |
+| 75-84         | Max 4 months        | Max 4 months  | Remainder  |
+| 85-100        | Max 6 months        | Max 4 months  | Remainder  |
+
+**If Job Fit Score < 55, there are NO GREEN MONTHS for work. Period. The fragrance is fundamentally unsuitable for that environment.**
+
+### Formality Validator (ELIMINATION METHOD)
+You MUST go through each level and provide reasoning:
+1. **Ultra Casual** — Is this appropriate? Why/why not?
+2. **Casual** — Is this appropriate? Why/why not?
+3. **Smart Casual** — Is this appropriate? Why/why not?
+4. **Formal** — Is this appropriate? Why/why not?
+5. **Black Tie** — Is this appropriate? Why/why not?
+
+Then state: "**Final Formality Verdict: [LEVEL]** because [specific reasoning citing scent profile]"
 
 ## STEP 3 — ABSTRACT VISUAL SYNTHESIS (The Image Prompt)
-- Produce a single short text prompt for an abstract image capturing the fragrance's soul (no literal bottles or ingredients).
+- Produce a single short text prompt for an abstract image (no literal bottles or ingredients).
 - Include: palette, lighting, texture metaphors, dominant shapes, mood tags.
-- Provide 2 optional aspect ratios (square for icons, 3:2 for hero).
-* **Constraint:** You must **NOT** use any literal imagery of the notes (e.g., if it's a Rose/Oud scent, do not show flowers or wood).
-
-## STEP 4 — FINAL REPORT GENERATION
-Generate the response using the following Markdown structure. Do not include your "Scratchpad" math in the final output, only the polished tables.
-
-Start with a short machine-readable JSON metadata block summarizing numeric results and confidence:
-\`\`\`json
-{
-  "fragrance": "",
-  "audit_date": "",
-  "confidence_overall": "",
-  "longevity_skin_hours": "",
-  "longevity_clothes_hours": "",
-  "projection_first_hour_ft": "",
-  "versatility_score": "",
-  "compliment_factor": ""
-}
-\`\`\`
 
 ---
 
 # FINAL REPORT STRUCTURE
 
 ### 1. Executive Summary & Profile
-* **Scent Profile:** (2 sentences on notes and olfactory family).
-* **Texture Analysis:** (Describe the tactile feel of the scent. e.g., "Airy and transparent," "Creamy and dense," "Sharp and metallic," "Powdery velvet.")
-* **Performance Data:** (Longevity in hours / Projection in feet/meters).
-* **Versatility Score (The "Dumb Reach" Index):** [X]/100. (Explain in 1 short sentence why.)
-* **Compliment Factor:** [X]/100.
-    * *Justification:* (Explain the score based on research. Mass-appealing or polarizing? Cite specific accords.)
-* **Clone/Inspiration Status:** Explicitly state if this is a clone. If yes, compare it to the original. Is it redundant to own both? (Yes/No/Nuanced).
-* **Reformulation Status:** (Summarize findings from Step 1.2)
+* **Scent Profile:** (2 sentences on notes and olfactory family). **[CITE SOURCE]**
+* **Texture Analysis:** (e.g., "Airy and transparent," "Creamy and dense," "Sharp and metallic")
+* **Performance Data:** Longevity: [X] hours on skin / [Y] hours on clothes. Projection: [Z] feet first hour. **[CITE SOURCE]**
+* **Versatility Score:** [X]/100 — [1-sentence explanation]
+* **Compliment Factor:** [X]/100 — [Cite specific reviews mentioning compliments or lack thereof]
+* **Clone/Inspiration Status:** [State clearly with citation]
+* **Reformulation Status:** [Findings from Step 1.2]
 
 ### 2. Quantitative Seasonality (Table 1)
-*Columns: Spring, Summer, Fall, Winter.*
-*Constraint: Row must sum to exactly 100%. Use precise integers.*
+*Row must sum to exactly 100%.*
 
-| Spring | Summer | Fall | Winter |
-| :---: | :---: | :---: | :---: |
-| % | % | % | % |
+| Spring | Summer | Fall | Winter | **Source** |
+| :---: | :---: | :---: | :---: | :--- |
+| X% | X% | X% | X% | [Fragrantica/Parfumo/Averaged] |
 
 ### 3. Global Situational Suitability (Table 2)
-*Columns: Daily, Business (Office), Leisure (Casual), Sport (Active), Evening (Date), Night Out (Club/Party).*
-*Constraint: Row must sum to exactly 100%. Use granular numbers (e.g., 17%, not 15% or 20%).*
+*Row must sum to exactly 100%.*
 
-| Daily | Business | Leisure | Sport | Evening | Night Out |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| % | % | % | % | % | % |
+| Daily | Business | Leisure | Sport | Evening | Night Out | **Source** |
+| :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| X% | X% | X% | X% | X% | X% | [Source] |
 
-**Formality Verdict:**
-[Ultra Casual] <---> [Casual] <---> [Smart Casual] <---> [Formal] <---> [Black Tie]
-*(Select ONE level and provide a concise argument why not the adjacent level(s).)*
+### 4. Formality Analysis (FULL BREAKDOWN)
+**Elimination Analysis:**
+- ❌/✅ **Ultra Casual:** [Reasoning]
+- ❌/✅ **Casual:** [Reasoning]
+- ❌/✅ **Smart Casual:** [Reasoning]
+- ❌/✅ **Formal:** [Reasoning]
+- ❌/✅ **Black Tie:** [Reasoning]
 
-### 4. Usage Spectrums (Table 3)
-* **Day vs. Night:** [X]% Day / [Y]% Night (Must sum to 100. Be precise.)
-* **Casual vs. Special Occasion:** [A]% Casual / [B]% Special (Must sum to 100. Be precise.)
+**FINAL VERDICT: [Selected Level]**
+*Justification: [Why this and not the adjacent levels]*
 
-### 5. The Seasonal Occasion Matrix (Table 4)
-*This matrix answers the question: "If I am wearing this in [Season], what is the probability I am wearing it for [Occasion]?"*
-*Constraint: Each **ROW** must sum to 100% horizontally. Use precise, calculated integers.*
+### 5. Usage Spectrums (Table 3)
+* **Day vs. Night:** [X]% Day / [Y]% Night (Must sum to 100)
+* **Casual vs. Special Occasion:** [A]% Casual / [B]% Special (Must sum to 100)
+
+### 6. The Seasonal Occasion Matrix (Table 4)
+*Each ROW must sum to 100%.*
 
 | Season | Daily | Business | Leisure | Sport | Evening | Night Out |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Spring** | % | % | % | % | % | % |
-| **Summer** | % | % | % | % | % | % |
-| **Fall** | % | % | % | % | % | % |
-| **Winter** | % | % | % | % | % | % |
+| **Spring** | X% | X% | X% | X% | X% | X% |
+| **Summer** | X% | X% | X% | X% | X% | X% |
+| **Fall** | X% | X% | X% | X% | X% | X% |
+| **Winter** | X% | X% | X% | X% | X% | X% |
 
-### 6. Detailed Occasion Calendar (Traffic Light Analysis)
-*A month-by-month breakdown for key social scenarios based on Kansas City climate data.*
+### 7. Detailed Occasion Calendar (Traffic Light Analysis)
+*Based on Kansas City climate. Apply the GREEN MONTH LOGIC GATE from Step 2.*
 
 * **Leisure (Weekend/Daytime):**
-    * 🟢 **Green Months:** [List ideal months]
-    * 🟡 **Yellow Months:** [List caution months]
-    * 🔴 **Red Months:** [List avoid months]
-* **Date Night (Intimate/Evening):**
-    * 🟢 **Green Months:** [List ideal months]
-    * 🟡 **Yellow Months:** [List caution months]
-    * 🔴 **Red Months:** [List avoid months]
-* **Night Out (Club/Party/Loud):**
-    * 🟢 **Green Months:** [List ideal months]
-    * 🟡 **Yellow Months:** [List caution months]
-    * 🔴 **Red Months:** [List avoid months]
+    * 🟢 **Green Months:** [List or "NONE" if score <55]
+    * 🟡 **Yellow Months:** [List]
+    * 🔴 **Red Months:** [List]
+* **Date Night:**
+    * 🟢 **Green Months:** [List]
+    * 🟡 **Yellow Months:** [List]
+    * 🔴 **Red Months:** [List]
+* **Night Out:**
+    * 🟢 **Green Months:** [List]
+    * 🟡 **Yellow Months:** [List]
+    * 🔴 **Red Months:** [List]
 
-### 7. Practical Strategy & Application
-* **The "Goldilocks" Scenarios (Top 3 Uses):**
-    1.  **[Occasion 1]** in **[Season]**: *[Application Advice: Number of sprays and location].*
-    2.  **[Occasion 2]** in **[Season]**: *[Application Advice].*
-    3.  **[Occasion 3]** in **[Season]**: *[Application Advice].*
-* **The "Desk-to-Disco" Protocol (Work -> Club):**
-    * *Viability:* Can this transition from office to nightlife? (Yes/No).
-    * *Strategy:* Explain exactly how to execute this.
+### 8. Practical Strategy & Application
+* **Top 3 Uses:**
+    1.  **[Occasion]** in **[Season]**: [Spray count and placement]
+    2.  **[Occasion]** in **[Season]**: [Spray count and placement]
+    3.  **[Occasion]** in **[Season]**: [Spray count and placement]
 
-### 8. Final Verdict & The Sensory Translation
-*Paint the picture of this fragrance by translating it into other domains.*
-
-* **The Beverage:** (e.g., "A neat scotch in a library," "Ice-cold lemonade with too much sugar," "Earl Grey tea with a shot of gin.")
-* **The Meal:** (e.g., "A medium-rare steak with peppercorn sauce," "Cotton candy at a state fair," "A crisp arugula salad with lemon vinaigrette.")
-* **The Vehicle:** (e.g., "A 1967 Mustang Fastback," "A reliable Toyota Camry," "A matte black Lamborghini," "A lifted heavy-duty pickup.")
-* **The Audio Track:** (e.g., "Smooth Jazz at low volume," "Heavy Metal bass lines," "Lo-Fi Hip Hop beats," "Classical violins.")
-
-* **The Ideal Avatar:** Describe the specific person this fits best.
-* **Sartorial Pairing:** Recommend specific clothing materials or colors.
-* **The 'Anti-Scenario':** Explicitly define the one situation where wearing this is a mistake.
+### 9. Sensory Translation
+* **The Beverage:** [Specific example]
+* **The Meal:** [Specific example]
+* **The Vehicle:** [Specific example]
+* **The Audio Track:** [Specific example]
+* **The Ideal Avatar:** [Specific person description]
+* **The 'Anti-Scenario':** [When NOT to wear this]
 * **Purchase Decision:** Blind Buy Safe? / Sample First? / Niche Collectors Only?
 
-### 9. Target Persona Audit: The School Facilities Protocol
-*Specific analysis for a Male, Mid-30s, School District Maintenance worker (in classrooms/interactions with staff/occasional meetings/Contractor Management/Light Repairs).*
+### 10. Target Persona Audit: The School Facilities Protocol
+*For: Male, Mid-30s, School District Maintenance (contractor management, indoor/outdoor, 6AM application).*
 
-* **Standard Job Fit Score (Mixed Indoor/Outdoor):** [X]/100
-    * *Reasoning:* (Does it convey competence for dealing with contractors? Is it safe for changing temperatures?)
-    * **Job Fit Logic Gate Applied:** (State which bracket: <50 / 50-75 / 76-100 and resulting green month allowance)
+**Job Fit Score Calculation (SHOW YOUR WORK):**
+- Base: 50
+- [+/- adjustment]: [reason]
+- [+/- adjustment]: [reason]
+- [+/- adjustment]: [reason]
+- **FINAL SCORE: [X]/100**
+
+**Logic Gate Result:** [State bracket and green month allowance]
+
+* **Standard Job Fit Score:** [X]/100
+    * *Reasoning:* [Detailed explanation]
 * **Indoor-Only Job Fit Score:** [X]/100
-    * *Reasoning:* (Score strictly for days spent entirely inside climate-controlled schools/offices. Is it too loud for close quarters? Does HVAC dryness affect it?)
-    * **Indoor Pass System:** [Start Month] -> [End Month] (List the qualified range. e.g., "October -> March" or "Year Round").
-* **The "Clock-In" Analysis (Applied at 6:00 AM):** (You apply 1 hour before the shift. Analyze the scent's state at 7:00 AM start time. e.g., "Ideal—screechy top notes are gone, leaving a professional heart," or "Warning—still projecting too loud for a faculty meeting.")
-* **The "Lunch Workout" Test:** (Will this scent survive a light workout/heat spike at noon? Will it turn sour?)
-* **Midday Touch-Up Verdict:**
-    * **Bring Bottle?** (Yes / No).
-    * **Advice:** (Consider the 1-hour head start + workout. Will it be dead by 1 PM? Or is it a beast that needs no help?)
-* **Work Seasonality Guide (Kansas City Area - Mixed Indoor/Outdoor Focus):**
-    * *Strictly evaluate based on the wearer moving between Climate Controlled Indoor air and the following Outdoor conditions. Be Conservative: If a month is borderline uncomfortable outdoors, mark it Yellow.*
-    > Jan (38°/20°, 64% Hum), Feb (44°/24°, 64% Hum), Mar (55°/34°, 66% Hum), Apr (66°/44°, 64% Hum), May (75°/54°, 65% Hum), Jun (84°/64°, 65% Hum), Jul (88°/68°, 63% Hum), Aug (87°/66°, 62% Hum), Sep (79°/58°, 62% Hum), Oct (67°/46°, 63% Hum), Nov (54°/34°, 67% Hum), Dec (42°/24°, 67% Hum).
+* **The "Clock-In" Analysis (6AM → 7AM):** [State of scent at shift start]
+* **The "Lunch Workout" Test:** [Survival assessment]
+* **Midday Touch-Up Verdict:** Bring Bottle? [Yes/No] — [Reasoning]
 
-    * **🟢 Green Months (Ideal):** [List months] | **Max Sprays:** [Insert precise number, e.g., 3-5 sprays].
-    * **🟡 Yellow Months (Caution):** [List months] | **Max Sprays:** [Insert reduced number, e.g., 2 sprays].
-    * **🔴 Red Months (Avoid):** [List months] | **Max Sprays:** [Insert strict limit, e.g., "0-1 sprays (Under shirt only)"].
+**Work Seasonality Guide (Kansas City):**
+> Climate Reference: Jan (38°/20°), Feb (44°/24°), Mar (55°/34°), Apr (66°/44°), May (75°/54°), Jun (84°/64°), Jul (88°/68°), Aug (87°/66°), Sep (79°/58°), Oct (67°/46°), Nov (54°/34°), Dec (42°/24°)
 
-### 10. The "I'm Going to Wear It Anyway" Protocol (Work Edition)
-*For when this fragrance is technically "Not Safe for Work" (NSFW), but you insist on wearing it to the school anyway.*
+**⚠️ APPLYING GREEN MONTH LOGIC GATE: Job Fit Score = [X] → [Bracket] → [Allowance]**
 
-* **The Risk Factor:** (Why is this risky? e.g., "Too seductive for a school environment," "Projecting too loud for a small office with contractors," "Boozy notes unprofessional.")
-* **The Stealth Strategy:** (How to pull it off. e.g., "Spray under shirt," "Apply post-workout only," "Limit to X spray behind the neck.")
+* 🟢 **Green Months:** [List based on logic gate — may be "NONE"] | Max Sprays: [X]
+* 🟡 **Yellow Months:** [List] | Max Sprays: [X]
+* 🔴 **Red Months:** [List] | Max Sprays: [X or "Do Not Wear"]
 
-### 11. Abstract Visual Essence
-[Generate an abstract image based on the synthesis of the fragrance's profile, texture, and sensory metaphors defined in the previous steps. **Do not show literal ingredients** like flowers, fruits, or woods. Focus entirely on abstract color palettes, lighting styles, textures, and shapes that convey the mood.]
+### 11. The "I'm Going to Wear It Anyway" Protocol
+*Only include if Job Fit Score < 70*
+
+* **Risk Factor:** [Why this is risky for work]
+* **Stealth Strategy:** [How to minimize risk]
+
+### 12. Abstract Visual Essence
+[Image prompt from Step 3]
 
 ---
 
-# SANITY VALIDATION (Final Block)
-1. **Table Sum Check:** Confirm the three tables that must sum to 100 do so. If adjusted, show original decimals and adjusted integers.
-2. **Top 5 Citations:** List URLs used for load-bearing claims.
-3. **Low Confidence Data Fields:** For any "Low Confidence Data" fields, state the reason and next-step evidence needed to raise confidence.
-4. **Confidence Map:** Summarize (High / Medium / Low) for key numeric outputs.
+# SANITY VALIDATION CHECKLIST
+- [ ] Table 1 (Seasons) sums to 100%: [Show math]
+- [ ] Table 2 (Occasions) sums to 100%: [Show math]
+- [ ] Table 4 (Matrix) each row sums to 100%: [Confirm]
+- [ ] Green Month Logic Gate correctly applied: [State score → bracket → result]
+- [ ] Formality determined via elimination, not default: [Confirm]
+- [ ] All percentages are precise integers (not multiples of 5): [Confirm]
 
----
+# TOP 5 CITATIONS
+1. [Source Name](URL) — [What it was used for]
+2. [Source Name](URL) — [What it was used for]
+3. [Source Name](URL) — [What it was used for]
+4. [Source Name](URL) — [What it was used for]
+5. [Source Name](URL) — [What it was used for]
 
-# SOURCES
-[Provide a numbered list of all citations with full URLs]
-
----
-
-# OUTPUT FORMATTING RULES
-- Use precise integers in all percentage fields.
-- Use one citation style: inline parenthetical with URL or bracketed numeric footnotes. Provide a "Sources" list at the end with full links.
-- When quoting user comments, keep quotes ≤25 words and cite.
-- If the target fragrance is not found online, produce the report using olfactory archetype inference only, but mark all data as "Low Confidence Data" and require a sample/audition for verification.
+# LOW CONFIDENCE DATA FLAGS
+[List any fields marked as Low Confidence and what additional research would improve them]
 
 END.`;
     navigator.clipboard.writeText(textToCopy).then(() => {
