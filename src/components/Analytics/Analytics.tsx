@@ -243,7 +243,11 @@ const Analytics = ({ fragrances, onClose }: AnalyticsProps) => {
   };
 
   const handleGatherFragData = () => {
-    const textToCopy = `# Role
+    const textToCopy = `# Target Fragrance Name: [INSERT NAME HERE]
+
+---
+
+# Role
 You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You are an auditor of scent: exhaustive, data-driven, hyper-specific. You have a **ZERO-TOLERANCE POLICY FOR HALLUCINATION**. 
 
 **CRITICAL ANTI-HALLUCINATION RULES:**
@@ -252,8 +256,7 @@ You are the Chief Olfactory Data Scientist and Senior Fragrance Sommelier. You a
 - If Fragrantica/Parfumo data is ambiguous or graph-only without numeric labels, state "Visual Estimate Only" and provide a confidence range (e.g., "18-24%").
 - Do NOT default to "Smart Casual" for formality — analyze the actual scent profile and justify your choice against ALL other options.
 
-# Metadata (required at request start)
-- **Target Fragrance Name:** [Insert Fragrance Name Here]
+# Metadata
 - **Batch / Release Code (if known):** [string | unknown]
 - **Locale for climate/seasonality rules:** Kansas City, US
 - **Confidence thresholds:** votes_threshold = 50 (use to flag low confidence), citation_count = 3
@@ -399,20 +402,59 @@ Then state: "**Final Formality Verdict: [LEVEL]** because [specific reasoning ci
 | **Winter** | X% | X% | X% | X% | X% | X% |
 
 ### 7. Detailed Occasion Calendar (Traffic Light Analysis)
-*Based on Kansas City climate. Apply the GREEN MONTH LOGIC GATE from Step 2.*
+*Based on Kansas City climate. This section analyzes each occasion type independently — the same fragrance may be Green for Date Night but Yellow for Leisure.*
 
-* **Leisure (Weekend/Daytime):**
-    * 🟢 **Green Months:** [List or "NONE" if score <55]
-    * 🟡 **Yellow Months:** [List]
-    * 🔴 **Red Months:** [List]
-* **Date Night:**
-    * 🟢 **Green Months:** [List]
-    * 🟡 **Yellow Months:** [List]
-    * 🔴 **Red Months:** [List]
-* **Night Out:**
-    * 🟢 **Green Months:** [List]
-    * 🟡 **Yellow Months:** [List]
-    * 🔴 **Red Months:** [List]
+**Climate Context (Kansas City - Use this data, do not search):**
+> Jan (38°/20°, 64% Hum), Feb (44°/24°, 64% Hum), Mar (55°/34°, 66% Hum), Apr (66°/44°, 64% Hum), May (75°/54°, 65% Hum), Jun (84°/64°, 65% Hum), Jul (88°/68°, 63% Hum), Aug (87°/66°, 62% Hum), Sep (79°/58°, 62% Hum), Oct (67°/46°, 63% Hum), Nov (54°/34°, 67% Hum), Dec (42°/24°, 67% Hum)
+
+**Traffic Light Criteria:**
+- 🟢 **Green:** Optimal synergy between scent profile and weather/occasion. Wear confidently.
+- 🟡 **Yellow:** Wearable with adjustments (fewer sprays, strategic placement). Borderline fit.
+- 🔴 **Red:** Poor match — scent will underperform, overwhelm, or clash with conditions.
+
+---
+
+#### 7.1 Leisure (Weekend/Daytime Casual)
+*Context: Running errands, brunch, coffee with friends, shopping, parks.*
+
+| Color | Months | Reasoning |
+|-------|--------|-----------|
+| 🟢 Green | [List] | [Why these months are optimal — cite scent weight, projection, temperature compatibility] |
+| 🟡 Yellow | [List] | [Why these months are borderline — what compromises are needed?] |
+| 🔴 Red | [List] | [Why these months should be avoided — too heavy? too light? clashes with heat/cold?] |
+
+---
+
+#### 7.2 Date Night (Intimate/Romantic Evening)
+*Context: Dinner for two, movie night, romantic walk, close-quarters seating.*
+
+| Color | Months | Reasoning |
+|-------|--------|-----------|
+| 🟢 Green | [List] | [Why these months are optimal for romance — allure factor, sillage at intimate distance] |
+| 🟡 Yellow | [List] | [Why these months require caution — what adjustments?] |
+| 🔴 Red | [List] | [Why avoid — too cloying in heat? too faint in cold? wrong vibe?] |
+
+---
+
+#### 7.3 Night Out (Club/Party/Social)
+*Context: Loud environments, dancing, crowded spaces, need to project and stand out.*
+
+| Color | Months | Reasoning |
+|-------|--------|-----------|
+| 🟢 Green | [List] | [Why these months work — projection needs, crowd-cutting ability, energy match] |
+| 🟡 Yellow | [List] | [Why borderline — competition with other scents, heat amplification concerns] |
+| 🔴 Red | [List] | [Why avoid — will it get lost? become overwhelming? wrong character?] |
+
+---
+
+#### 7.4 Special Events (Weddings/Galas/Formal)
+*Context: Formal dress code, photos, long duration (4-6+ hours), mixed indoor/outdoor.*
+
+| Color | Months | Reasoning |
+|-------|--------|-----------|
+| 🟢 Green | [List] | [Why optimal — elegance factor, longevity for long events, appropriateness] |
+| 🟡 Yellow | [List] | [Why caution needed — formality mismatch? performance concerns?] |
+| 🔴 Red | [List] | [Why avoid — too casual? too loud? inappropriate for setting?] |
 
 ### 8. Practical Strategy & Application
 * **Top 3 Uses:**
