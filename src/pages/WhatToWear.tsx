@@ -30,11 +30,25 @@ const WhatToWear = () => {
   const [editingFragrance, setEditingFragrance] = useState<Fragrance | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Get current month
-  const currentMonth = useMemo(() => {
-    const monthIndex = new Date().getMonth();
-    return MONTHS[monthIndex];
-  }, []);
+  // Month navigation state - start with current month
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(() => new Date().getMonth());
+  const selectedMonth = MONTHS[selectedMonthIndex];
+
+  // Navigate months with arrows
+  const goToPrevMonth = () => {
+    setSelectedMonthIndex(prev => (prev === 0 ? 11 : prev - 1));
+  };
+
+  const goToNextMonth = () => {
+    setSelectedMonthIndex(prev => (prev === 11 ? 0 : prev + 1));
+  };
+
+  // Jump to current month
+  const goToCurrentMonth = () => {
+    setSelectedMonthIndex(new Date().getMonth());
+  };
+
+  const isCurrentMonth = selectedMonthIndex === new Date().getMonth();
 
   useEffect(() => {
     if (!authLoading) {
@@ -54,14 +68,14 @@ const WhatToWear = () => {
     }
   };
 
-  // Filter fragrances for the selected category and current month
+  // Filter fragrances for the selected category and selected month
   const filteredFragrances = useMemo(() => {
     return fragrances.filter(frag => {
       if (!frag.occasionMonths) return false;
       const months = frag.occasionMonths[selectedCategory];
-      return months && months.includes(currentMonth);
+      return months && months.includes(selectedMonth);
     });
-  }, [fragrances, selectedCategory, currentMonth]);
+  }, [fragrances, selectedCategory, selectedMonth]);
 
   const handleFragranceClick = (fragrance: Fragrance) => {
     setSelectedFragrance(fragrance);
@@ -130,9 +144,35 @@ const WhatToWear = () => {
       <div className={styles.header}>
         <Link to="/" className={styles.backButton}>← Back</Link>
         <h1 className={styles.title}>What to Wear</h1>
-        <div className={styles.currentMonth}>
-          <span className={styles.monthLabel}>Current Month</span>
-          <span className={styles.monthValue}>{MONTH_NAMES[currentMonth]}</span>
+        
+        {/* Month Navigation */}
+        <div className={styles.monthNav}>
+          <button 
+            className={styles.monthArrow} 
+            onClick={goToPrevMonth}
+            title="Previous month"
+          >
+            ←
+          </button>
+          <div className={styles.monthDisplay}>
+            <span className={styles.monthValue}>{MONTH_NAMES[selectedMonth]}</span>
+            {!isCurrentMonth && (
+              <button 
+                className={styles.todayButton} 
+                onClick={goToCurrentMonth}
+                title="Go to current month"
+              >
+                Today
+              </button>
+            )}
+          </div>
+          <button 
+            className={styles.monthArrow} 
+            onClick={goToNextMonth}
+            title="Next month"
+          >
+            →
+          </button>
         </div>
       </div>
 
@@ -161,7 +201,7 @@ const WhatToWear = () => {
         >
           <span className={styles.resultsEmoji}>{selectedCategoryInfo.emoji}</span>
           <h2 className={styles.resultsTitle}>
-            {selectedCategoryInfo.label} in {MONTH_NAMES[currentMonth]}
+            {selectedCategoryInfo.label} in {MONTH_NAMES[selectedMonth]}
           </h2>
           <span className={styles.resultsCount}>
             {filteredFragrances.length} {filteredFragrances.length === 1 ? 'fragrance' : 'fragrances'}
@@ -171,7 +211,7 @@ const WhatToWear = () => {
         {filteredFragrances.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyEmoji}>🔍</span>
-            <p className={styles.emptyText}>No fragrances found for {selectedCategoryInfo.label} in {MONTH_NAMES[currentMonth]}</p>
+            <p className={styles.emptyText}>No fragrances found for {selectedCategoryInfo.label} in {MONTH_NAMES[selectedMonth]}</p>
             <p className={styles.emptyHint}>Edit your fragrances to add occasion months!</p>
           </div>
         ) : (

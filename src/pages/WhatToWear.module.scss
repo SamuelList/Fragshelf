@@ -85,6 +85,82 @@
   }
 }
 
+// Month Navigation
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.monthArrow {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (min-width: 768px) {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+}
+
+.monthDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 90px;
+  text-align: center;
+
+  @media (min-width: 768px) {
+    min-width: 120px;
+  }
+}
+
+.todayButton {
+  background: rgba(100, 200, 255, 0.2);
+  border: 1px solid rgba(100, 200, 255, 0.4);
+  color: #7dd3fc;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0.15rem;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    background: rgba(100, 200, 255, 0.35);
+    transform: scale(1.05);
+  }
+
+  @media (min-width: 768px) {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+  }
+}
+
 .monthLabel {
   font-size: 0.55rem;
   color: rgba(255, 255, 255, 0.6);
