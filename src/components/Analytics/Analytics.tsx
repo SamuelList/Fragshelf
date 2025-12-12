@@ -318,33 +318,34 @@ Search: "[Fragrance Name] office" and "[Fragrance Name] formal" and "[Fragrance 
 ## STEP 2 — ADVANCED DATA NORMALIZATION (The Scratchpad)
 
 ### Job Fit Logic Gate (STRICT ENFORCEMENT)
-Calculate the "Standard Job Fit Score" using this formula:
-- Start at 50 (neutral)
-- ADD points for: Clean/fresh notes (+10), Office-safe projection (+10), Inoffensive accords (+10), Good longevity without being loud (+5)
-- SUBTRACT points for: Heavy sweetness (-15), Strong projection (-10), Polarizing notes like oud/leather/smoke (-10), Boozy/clubby vibes (-15), Sexual/seductive marketing (-10)
+Calculate the "Standard Job Fit Score" using the **School Facilities Protocol** (Base 60):
+* **Base Score:** 60
+* **ADD:** Soap/Fresh/Barbershop (+5 to +15), Skin Scent/Low Projection (+10), Mass Appeal (+5)
+* **SUBTRACT:** Clashing Notes/Animalics (-5 to -15), Physical Labor Heat Risk (Sweet/Cloying if sweating) (-10 to -20), Club/Nightlife Vibe (-15)
 
-**GREEN MONTH LOGIC GATE (STRICTLY ENFORCED):**
-| Job Fit Score | Green Months Allowed | Yellow Months | Red Months |
-|---------------|---------------------|---------------|------------|
-| 0-39          | **NONE (0 months)** | Max 2 months  | All others |
-| 40-54         | **NONE (0 months)** | Max 3 months  | All others |
-| 55-64         | Max 1 month         | Max 3 months  | All others |
-| 65-74         | Max 2 months        | Max 4 months  | All others |
-| 75-84         | Max 4 months        | Max 4 months  | Remainder  |
-| 85-100        | Max 6 months        | Max 4 months  | Remainder  |
+**GREEN CIRCLE ALLOWANCE (STRICTLY ENFORCED):**
+| Job Fit Score | Max Green Months | Max Yellow Months | Red Months |
+| :--- | :--- | :--- | :--- |
+| **0-54** | **NONE (0 months)** | Max 3 months | All others |
+| **55-69** | **1-3 Months** | Max 4 months | All others |
+| **70-79** | **4-6 Months** | Max 4 months | All others |
+| **80-89** | **6-9 Months** | Max 4 months | Remainder |
+| **90-100** | **10-12 Months** | Remainder | Rare/None |
 
-**If Job Fit Score < 55, there are NO GREEN MONTHS for work. Period. The fragrance is fundamentally unsuitable for that environment.**
+**CRITICAL RULE:** If Job Fit Score < 55, there are **NO GREEN MONTHS** for work. Period. The fragrance is fundamentally unsuitable for a maintenance environment.
 
-### Formality Validator (ELIMINATION METHOD)
-You MUST go through each level and provide reasoning:
-1. **Ultra Casual** — Is this appropriate? Why/why not?
-2. **Casual** — Is this appropriate? Why/why not?
-3. **Smart Casual** — Is this appropriate? Why/why not?
-4. **Formal** — Is this appropriate? Why/why not?
-5. **Black Tie** — Is this appropriate? Why/why not?
+### Formality Validator (Traffic Light Analysis)
+Assess each level using: 🟢 (Ideal), 🟡 (Passable/Risky), 🔴 (Clash/Avoid).
 
-Then state: "**Final Formality Verdict: [LEVEL]** because [specific reasoning citing scent profile]"
+1.  **Ultra Casual** (Gym, Beach, Loungewear): [Emoji] — [Reasoning]
+2.  **Casual** (Jeans/T-shirt, Weekend Errands): [Emoji] — [Reasoning]
+3.  **Smart Casual** (Date Night, Office, Chinos): [Emoji] — [Reasoning]
+4.  **Formal** (Suit & Tie, Boardroom): [Emoji] — [Reasoning]
+5.  **Black Tie** (Tuxedo, Gala): [Emoji] — [Reasoning]
 
+**⛔ CONSTRAINT:** You are **FORBIDDEN** from choosing "Smart Casual" as the Final Verdict. It is a lazy answer. You must commit: does the scent profile lean decisively **Casual** or decisively **Formal**?
+
+**Final Formality Verdict:** [MUST BE "Casual", "Formal", etc. - NOT "Smart Casual"] because [Specific reasoning]
 ## STEP 3 — ABSTRACT VISUAL SYNTHESIS (The Image Prompt)
 - Produce a single short text prompt for an abstract image (no literal bottles or ingredients).
 - Include: palette, lighting, texture metaphors, dominant shapes, mood tags.
