@@ -378,12 +378,15 @@ Assess each level using: 🟢 (Ideal), 🟡 (Passable/Risky), 🔴 (Clash/Avoid)
 | X% | X% | X% | X% | X% | X% | [Source] |
 
 ### 4. Formality Analysis (FULL BREAKDOWN)
-**Elimination Analysis:**
-- ❌/✅ **Ultra Casual:** [Reasoning]
-- ❌/✅ **Casual:** [Reasoning]
-- ❌/✅ **Smart Casual:** [Reasoning]
-- ❌/✅ **Formal:** [Reasoning]
-- ❌/✅ **Black Tie:** [Reasoning]
+**Spectrum Analysis:**
+- [🟢/🟡/🔴] **Ultra Casual** (Gym, Beach, Lounge): [Reasoning]
+- [🟢/🟡/🔴] **Casual** (Jeans/T-shirt, Errands): [Reasoning]
+- [🟢/🟡/🔴] **Smart Casual** (Office, Date Night): [Reasoning]
+- [🟢/🟡/🔴] **Formal** (Suit & Tie, Business): [Reasoning]
+- [🟢/🟡/🔴] **Black Tie** (Tuxedo, Gala): [Reasoning]
+
+**FINAL VERDICT: [Selected Level]** *(Constraint: Do NOT select "Smart Casual" — you must decide if it leans Casual or Formal)*
+*Justification: [Why this fits the specific selected level better than the others]*
 
 **FINAL VERDICT: [Selected Level]**
 *Justification: [Why this and not the adjacent levels]*
