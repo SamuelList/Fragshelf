@@ -12,12 +12,13 @@ type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 type TemperatureZone = 'highHeat' | 'transitionalMild' | 'deepCold';
 type OccasionKey = keyof OccasionScores;
 type PickerMode = 'classic' | 'intelligent' | null;
-type OccasionCategory = 'Professional' | 'Casual' | 'SpecialOccasion';
+type ShoeCategory = 'Athletic' | 'WorkBoots' | 'CasualSneakers' | 'DressShoes';
 
 interface CategorizedFragrance extends Fragrance {
-  professionalScore: number;
-  casualScore: number;
-  specialOccasionScore: number;
+  athleticScore: number;
+  workBootsScore: number;
+  casualSneakersScore: number;
+  dressShoesScore: number;
   selectedScore: number;
   matchScore?: number;
 }
@@ -27,7 +28,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedTemperature, setSelectedTemperature] = useState<TemperatureZone | null>(null);
-  const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | OccasionKey | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<ShoeCategory | OccasionKey | null>(null);
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
   const [promptCopied, setPromptCopied] = useState(false);
 
@@ -47,14 +48,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     const evening = frag.occasions.evening || 0;
     const nightOut = frag.occasions['night out'] || 0;
 
-    const professional = (business * 1.5) + (daily / 2);
-    const casual = (daily + leisure + (sport / 2)) / 2;
-    const specialOccasion = (evening + nightOut) / 2;
+    // Raw shoe scores
+    const rawAthletic = sport;
+    const rawWorkBoots = daily + (business * 0.5);
+    const rawCasualSneakers = leisure + (daily * 0.5) + (business * 0.5);
+    const rawDressShoes = evening + nightOut + (business * 0.5);
+
+    // Normalize to 100%
+    const total = rawAthletic + rawWorkBoots + rawCasualSneakers + rawDressShoes;
+    if (total === 0) return { athletic: 0, workBoots: 0, casualSneakers: 0, dressShoes: 0 };
 
     return {
-      professional,
-      casual,
-      specialOccasion
+      athletic: (rawAthletic / total) * 100,
+      workBoots: (rawWorkBoots / total) * 100,
+      casualSneakers: (rawCasualSneakers / total) * 100,
+      dressShoes: (rawDressShoes / total) * 100
     };
   };
 
@@ -68,16 +76,33 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setTimeout(() => setStep(2), 300);
   };
 
-  // Get the effective season score for a fragrance based on temperature zone
-  const getTemperatureScore = (frag: Fragrance, zone: TemperatureZone): number => {
+  // Type-based climate score from fragrance accord/type data
+  const getTypeClimateScore = (frag: Fragrance, zone: TemperatureZone): number => {
+    const t = frag.types;
+    const rawHighHeat = (t.Fresh || 0) + (t.Citrus || 0) + (t.Aquatic || 0) + (t.Fruity || 0) + (t.Green || 0);
+    const rawTransitional = (t.Woody || 0) + (t.Floral || 0) + (t.Synthetic || 0) + (t.Powdery || 0) + (t.Earthy || 0) + (t.Fougere || 0);
+    const rawDeepCold = (t.Spicy || 0) + (t.Sweet || 0) + (t.Resinous || 0) + (t.Gourmand || 0) + (t.Leathery || 0) + (t.Smoky || 0) + (t.Oriental || 0) + (t.Creamy || 0);
+
+    const total = rawHighHeat + rawTransitional + rawDeepCold;
+    if (total === 0) return 0;
+
     switch (zone) {
-      case 'highHeat':
-        return frag.seasons.summer;
-      case 'transitionalMild':
-        return (frag.seasons.spring + frag.seasons.autumn) / 2;
-      case 'deepCold':
-        return frag.seasons.winter;
+      case 'highHeat': return (rawHighHeat / total) * 100;
+      case 'transitionalMild': return (rawTransitional / total) * 100;
+      case 'deepCold': return (rawDeepCold / total) * 100;
     }
+  };
+
+  // Get the effective temperature score: average of season data + type climate data
+  const getTemperatureScore = (frag: Fragrance, zone: TemperatureZone): number => {
+    let seasonScore: number;
+    switch (zone) {
+      case 'highHeat': seasonScore = frag.seasons.summer; break;
+      case 'transitionalMild': seasonScore = (frag.seasons.spring + frag.seasons.autumn) / 2; break;
+      case 'deepCold': seasonScore = frag.seasons.winter; break;
+    }
+    const typeScore = getTypeClimateScore(frag, zone);
+    return (seasonScore + typeScore) / 2;
   };
 
   const getTemperatureLabel = (zone: TemperatureZone): string => {
@@ -109,9 +134,10 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         return {
           ...frag,
           matchScore,
-          professionalScore: 0,
-          casualScore: 0,
-          specialOccasionScore: 0,
+          athleticScore: 0,
+          workBootsScore: 0,
+          casualSneakersScore: 0,
+          dressShoesScore: 0,
           selectedScore: matchScore
         };
       })
@@ -211,35 +237,17 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       : parts.join(', ');
   };
 
-  const generateReasonForPick = (frag: Fragrance, rank: number, tempZone: TemperatureZone, occasion: OccasionCategory): string => {
+  const generateReasonForPick = (frag: Fragrance, rank: number, tempZone: TemperatureZone, shoe: ShoeCategory): string => {
     const tempScore = Math.round(getTemperatureScore(frag, tempZone));
     const tempLabel = getTemperatureLabel(tempZone).toLowerCase();
-    const occasionScores = {
-      daily: frag.occasions.daily || 0,
-      business: frag.occasions.business || 0,
-      leisure: frag.occasions.leisure || 0,
-      sport: frag.occasions.sport || 0,
-      evening: frag.occasions.evening || 0,
-      nightOut: frag.occasions['night out'] || 0
-    };
+    const scores = categorizeFragrance(frag);
 
-    // Calculate the relevant occasion score
     let relevantScore = 0;
     let scoreName = '';
-    if (occasion === 'Professional') {
-      relevantScore = Math.round(occasionScores.business + (occasionScores.daily / 2));
-      scoreName = 'professional';
-    } else if (occasion === 'Casual') {
-      relevantScore = Math.round((occasionScores.daily + occasionScores.leisure + occasionScores.sport) / 2);
-      scoreName = 'casual';
-    } else {
-      relevantScore = Math.round((occasionScores.evening + occasionScores.nightOut) / 2);
-      scoreName = 'special occasion';
-    }
-
-    const topType = Object.entries(frag.types)
-      .filter(([_, value]) => value > 0)
-      .sort((a, b) => b[1] - a[1])[0];
+    if (shoe === 'Athletic') { relevantScore = Math.round(scores.athletic); scoreName = 'athletic'; }
+    else if (shoe === 'WorkBoots') { relevantScore = Math.round(scores.workBoots); scoreName = 'work boots'; }
+    else if (shoe === 'CasualSneakers') { relevantScore = Math.round(scores.casualSneakers); scoreName = 'casual sneakers'; }
+    else { relevantScore = Math.round(scores.dressShoes); scoreName = 'dress shoes'; }
 
     // Build concise, conversational reason
     const parts: string[] = [];
@@ -255,27 +263,13 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
     parts.push(`with a ${tempScore}% weather fit`);
 
-    // Add occasion context
-    if (relevantScore >= 70) {
-      parts.push(`and a strong ${scoreName} score of ${relevantScore}`);
-    } else if (relevantScore >= 50) {
-      parts.push(`plus ${relevantScore} for ${scoreName} wear`);
-    } else if (relevantScore >= 30) {
-      parts.push(`with ${relevantScore} ${scoreName} points`);
-    }
-
-    // Add type insight if strong
-    if (topType && topType[1] >= 80) {
-      const typeComments: { [key: string]: string } = {
-        'Eau de Parfum': 'long-lasting EDP',
-        'Eau de Toilette': 'fresh EDT',
-        'Cologne': 'light cologne',
-        'Perfume': 'intense perfume'
-      };
-      const comment = typeComments[topType[0]];
-      if (comment) {
-        parts.push(`this ${comment} delivers`);
-      }
+    // Add shoe context
+    if (relevantScore >= 40) {
+      parts.push(`and a strong ${relevantScore}% ${scoreName} fit`);
+    } else if (relevantScore >= 25) {
+      parts.push(`plus ${relevantScore}% ${scoreName} match`);
+    } else if (relevantScore >= 15) {
+      parts.push(`with ${relevantScore}% ${scoreName} affinity`);
     }
 
     // Personal touch ending
@@ -312,7 +306,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
   };
 
-  const handleOccasionSelect = (occasion: OccasionCategory | OccasionKey) => {
+  const handleOccasionSelect = (occasion: ShoeCategory | OccasionKey) => {
     setSelectedOccasion(occasion);
     
     // Intelligent mode needs a season, classic mode needs a temperature zone
@@ -321,12 +315,12 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
     let finalResults: CategorizedFragrance[] = [];
 
-    if (mode === 'intelligent' && typeof occasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(occasion)) {
+    if (mode === 'intelligent' && typeof occasion === 'string' && !['Athletic', 'WorkBoots', 'CasualSneakers', 'DressShoes'].includes(occasion)) {
       // Intelligent mode with specific occasion
       finalResults = handleIntelligentPick(selectedSeason!, occasion as OccasionKey);
     } else {
-      // Classic mode - uses temperature zones
-      const occasionCategory = occasion as OccasionCategory;
+      // Classic mode - uses temperature zones + shoe categories
+      const shoeCategory = occasion as ShoeCategory;
       const filtered = fragrances
         .filter(frag => {
           const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
@@ -336,19 +330,21 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
           const scores = categorizeFragrance(frag);
           let selectedScore = 0;
           
-          if (occasionCategory === 'Professional') selectedScore = scores.professional;
-          else if (occasionCategory === 'Casual') selectedScore = scores.casual;
-          else selectedScore = scores.specialOccasion;
+          if (shoeCategory === 'Athletic') selectedScore = scores.athletic;
+          else if (shoeCategory === 'WorkBoots') selectedScore = scores.workBoots;
+          else if (shoeCategory === 'CasualSneakers') selectedScore = scores.casualSneakers;
+          else selectedScore = scores.dressShoes;
 
           return {
             ...frag,
-            professionalScore: scores.professional,
-            casualScore: scores.casual,
-            specialOccasionScore: scores.specialOccasion,
+            athleticScore: scores.athletic,
+            workBootsScore: scores.workBoots,
+            casualSneakersScore: scores.casualSneakers,
+            dressShoesScore: scores.dressShoes,
             selectedScore
           };
         })
-        .filter(frag => frag.selectedScore >= 20)
+        .filter(frag => frag.selectedScore >= 15)
         .sort((a, b) => b.selectedScore - a.selectedScore)
         .slice(0, 10); // Get top 10 first
 
@@ -423,10 +419,18 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
          occasionDefinition = `This occasion is defined as: ${occasionContext}`;
       }
     } else {
-      const occasion = occasions.find(o => o.key === selectedOccasion);
-      occasionName = occasion?.label || selectedOccasion as string;
-      occasionContext = occasion?.description || '';
-      occasionDefinition = `This is a broad category covering: ${occasionContext}`;
+      const shoe = shoeCategories.find(s => s.key === selectedOccasion);
+      occasionName = shoe?.label || selectedOccasion as string;
+      occasionContext = shoe?.description || '';
+      if (selectedOccasion === 'Athletic') {
+        occasionDefinition = 'Active/sporty occasions requiring fresh, energetic, non-cloying scents. Think gym, outdoor activities, and athletic wear.';
+      } else if (selectedOccasion === 'WorkBoots') {
+        occasionDefinition = 'Daily grind, commuting, errands, and routine work. Reliable, versatile, get-things-done energy.';
+      } else if (selectedOccasion === 'CasualSneakers') {
+        occasionDefinition = 'Relaxed social outings, brunches, coffee dates, shopping. Easy-going and approachable vibes.';
+      } else {
+        occasionDefinition = 'Evening events, dates, parties, upscale nights. Making a statement and turning heads.';
+      }
     }
 
     const fragList = results.map((frag, index) => {
@@ -454,7 +458,11 @@ You must first establish a complete understanding of each fragrance before recom
 5. DECIDE: Pick the single best option.
 
 CRITICAL INSTRUCTION:
-Differentiate clearly between similar occasions. 
+Differentiate clearly between similar occasions.
+- If "Athletic": Focus on fresh, energetic, sporty scents for physical activity.
+- If "Work Boots": Focus on versatile, reliable everyday scents for the daily grind.
+- If "Casual Sneakers": Focus on relaxed, approachable scents for social hangouts.
+- If "Dress Shoes": Focus on elegant, impactful scents for evenings and events.
 - If "Business": Focus on professional, non-offensive, office-safe scents.
 - If "Daily": Focus on versatile, casual, easy-reach scents for routine tasks.
 - If "Leisure": Focus on relaxed, pleasant scents for social downtime (coffee, shopping).
@@ -485,10 +493,11 @@ Differentiate clearly between similar occasions.
     { key: 'deepCold' as TemperatureZone, label: 'Deep Cold', emoji: '❄️', color: '#4682B4', description: 'Winter chill' }
   ];
 
-  const occasions = [
-    { key: 'Professional' as OccasionCategory, label: 'Professional', emoji: '💼', description: 'Office & Business' },
-    { key: 'Casual' as OccasionCategory, label: 'Casual', emoji: '👕', description: 'Everyday & Leisure' },
-    { key: 'SpecialOccasion' as OccasionCategory, label: 'Special Occasion', emoji: '✨', description: 'Evening & Night Out' }
+  const shoeCategories = [
+    { key: 'Athletic' as ShoeCategory, label: 'Athletic', emoji: '🏃', description: 'Gym, sports & active lifestyle' },
+    { key: 'WorkBoots' as ShoeCategory, label: 'Work Boots', emoji: '🥾', description: 'Daily grind & getting things done' },
+    { key: 'CasualSneakers' as ShoeCategory, label: 'Casual Sneakers', emoji: '👟', description: 'Hanging out, errands & social outings' },
+    { key: 'DressShoes' as ShoeCategory, label: 'Dress Shoes', emoji: '👞', description: 'Evenings out, events & making an impression' }
   ];
 
   const intelligentOccasions = [
@@ -522,7 +531,7 @@ Differentiate clearly between similar occasions.
                   <span className={styles.modeEmoji}>🎯</span>
                   <span className={styles.modeLabel}>Classic Picker</span>
                   <span className={styles.modeDescription}>
-                    Temperature vibe + 3 broad occasions
+                    Temperature vibe + shoe-based occasions
                   </span>
                 </button>
                 <button
@@ -598,8 +607,8 @@ Differentiate clearly between similar occasions.
             <div className={`${styles.step} ${styles.fadeIn}`}>
               <div className={styles.stepHeader}>
                 <span className={styles.stepNumber}>Step 2 of 2</span>
-                <h2 className={styles.stepTitle}>Choose Your Occasion</h2>
-                <p className={styles.stepSubtitle}>Where will you wear this fragrance?</p>
+                <h2 className={styles.stepTitle}>{mode === 'classic' ? "What Shoes Are You Wearing?" : "Choose Your Occasion"}</h2>
+                <p className={styles.stepSubtitle}>{mode === 'classic' ? "Pick the vibe that matches your fit" : "Where will you wear this fragrance?"}</p>
               </div>
 
               {mode === 'intelligent' ? (
@@ -619,16 +628,16 @@ Differentiate clearly between similar occasions.
                 </div>
               ) : (
                 <div className={styles.occasionGrid}>
-                  {occasions.map(occasion => (
+                  {shoeCategories.map(shoe => (
                     <button
-                      key={occasion.key}
+                      key={shoe.key}
                       className={styles.occasionCard}
-                      onClick={() => handleOccasionSelect(occasion.key)}
+                      onClick={() => handleOccasionSelect(shoe.key)}
                     >
-                      <span className={styles.occasionEmoji}>{occasion.emoji}</span>
+                      <span className={styles.occasionEmoji}>{shoe.emoji}</span>
                       <div>
-                        <span className={styles.occasionLabel}>{occasion.label}</span>
-                        <span className={styles.occasionDescription}>{occasion.description}</span>
+                        <span className={styles.occasionLabel}>{shoe.label}</span>
+                        <span className={styles.occasionDescription}>{shoe.description}</span>
                       </div>
                     </button>
                   ))}
@@ -651,7 +660,9 @@ Differentiate clearly between similar occasions.
                     ? <>{temperatureZones.find(t => t.key === selectedTemperature)?.emoji} {getTemperatureLabel(selectedTemperature)}</>
                     : <>{selectedSeason && seasons.find(s => s.key === selectedSeason)?.emoji} {selectedSeason}</>}
                   {' • '}
-                  {selectedOccasion && occasions.find(o => o.key === selectedOccasion)?.emoji} {selectedOccasion}
+                  {mode === 'classic'
+                    ? <>{shoeCategories.find(s => s.key === selectedOccasion)?.emoji} {shoeCategories.find(s => s.key === selectedOccasion)?.label}</>
+                    : <>{intelligentOccasions.find(o => o.key === selectedOccasion)?.label || selectedOccasion}</>}
                 </p>
               </div>
 
@@ -686,7 +697,7 @@ Differentiate clearly between similar occasions.
                           <p className={styles.resultReason}>
                             {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
                               ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
-                              : generateReasonForPick(frag, index, selectedTemperature!, selectedOccasion! as OccasionCategory)}
+                              : generateReasonForPick(frag, index, selectedTemperature!, selectedOccasion! as ShoeCategory)}
                           </p>
                         </div>
                       </div>
