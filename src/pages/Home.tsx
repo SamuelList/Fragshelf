@@ -236,13 +236,18 @@ const Home = () => {
       });
     }
     
-    // Sort by safest (daily + business) if safest filter is active
+    // Sort by risk score (lowest risk = safest first) if safest filter is active
     if (showSafest) {
-      result.sort((a, b) => {
-        const aScore = (a.occasions.daily || 0) + (a.occasions.business || 0);
-        const bScore = (b.occasions.daily || 0) + (b.occasions.business || 0);
-        return bScore - aScore;
-      });
+      const getRiskScore = (f: Fragrance): number => {
+        const occasionRisk = (f.occasions.evening || 0) + (f.occasions['night out'] || 0);
+        const fullWeightTypes = (f.types.Animalic || 0) + (f.types.Smoky || 0) + (f.types.Leathery || 0) +
+          (f.types.Resinous || 0) + (f.types.Earthy || 0) + (f.types.Chypre || 0) + (f.types.Oriental || 0);
+        const halfWeightTypes = (f.types.Spicy || 0) + (f.types.Sweet || 0) + (f.types.Floral || 0) +
+          (f.types.Powdery || 0) + (f.types.Creamy || 0) + (f.types.Gourmand || 0);
+        const typeRisk = fullWeightTypes + 0.5 * halfWeightTypes;
+        return (occasionRisk + typeRisk) / 2;
+      };
+      result.sort((a, b) => getRiskScore(a) - getRiskScore(b));
     }
     
     return result;
