@@ -225,6 +225,77 @@
   }
 }
 
+.temperatureGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+    justify-content: flex-start;
+  }
+}
+
+.temperatureCard {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 20px;
+  padding: 2rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--season-color);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateX(8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+
+    &::before {
+      transform: scaleY(1);
+    }
+  }
+
+  &:active {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+}
+
+.temperatureDescription {
+  font-size: 0.875rem;
+  color: #718096;
+  display: block;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+}
+
 .seasonGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

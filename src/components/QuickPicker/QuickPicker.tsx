@@ -9,6 +9,7 @@ interface QuickPickerProps {
 }
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+type TemperatureZone = 'highHeat' | 'transitionalMild' | 'deepCold';
 type OccasionKey = keyof OccasionScores;
 type PickerMode = 'classic' | 'intelligent' | null;
 type OccasionCategory = 'Professional' | 'Casual' | 'SpecialOccasion';
@@ -25,6 +26,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [mode, setMode] = useState<PickerMode>(null);
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
+  const [selectedTemperature, setSelectedTemperature] = useState<TemperatureZone | null>(null);
   const [selectedOccasion, setSelectedOccasion] = useState<OccasionCategory | OccasionKey | null>(null);
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
   const [promptCopied, setPromptCopied] = useState(false);
@@ -59,6 +61,27 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const handleSeasonSelect = (season: Season) => {
     setSelectedSeason(season);
     setTimeout(() => setStep(2), 300);
+  };
+
+  const handleTemperatureSelect = (zone: TemperatureZone) => {
+    setSelectedTemperature(zone);
+    setTimeout(() => setStep(2), 300);
+  };
+
+  // Get the effective season score for a fragrance based on temperature zone
+  const getTemperatureScore = (frag: Fragrance, zone: TemperatureZone): number => {
+    switch (zone) {
+      case 'highHeat':
+        return frag.seasons.summer;
+      case 'transitionalMild':
+        return (frag.seasons.spring + frag.seasons.autumn) / 2;
+      case 'deepCold':
+        return frag.seasons.winter;
+    }
+  };
+
+  const getTemperatureLabel = (zone: TemperatureZone): string => {
+    return temperatureZones.find(t => t.key === zone)?.label || zone;
   };
 
   const handleModeSelect = (selectedMode: PickerMode) => {
@@ -188,8 +211,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       : parts.join(', ');
   };
 
-  const generateReasonForPick = (frag: Fragrance, rank: number, season: Season, occasion: OccasionCategory): string => {
-    const seasonScore = frag.seasons[season] || 0;
+  const generateReasonForPick = (frag: Fragrance, rank: number, tempZone: TemperatureZone, occasion: OccasionCategory): string => {
+    const tempScore = Math.round(getTemperatureScore(frag, tempZone));
+    const tempLabel = getTemperatureLabel(tempZone).toLowerCase();
     const occasionScores = {
       daily: frag.occasions.daily || 0,
       business: frag.occasions.business || 0,
@@ -222,14 +246,14 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
     // Lead with match quality
     if (rank === 0) {
-      parts.push(`Perfect for ${season}`);
+      parts.push(`Perfect for ${tempLabel} weather`);
     } else if (rank === 1) {
-      parts.push(`Great ${season} choice`);
+      parts.push(`Great ${tempLabel} choice`);
     } else {
-      parts.push(`Solid ${season} pick`);
+      parts.push(`Solid ${tempLabel} pick`);
     }
 
-    parts.push(`with a ${seasonScore}% seasonal rating`);
+    parts.push(`with a ${tempScore}% weather fit`);
 
     // Add occasion context
     if (relevantScore >= 70) {
@@ -291,20 +315,22 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const handleOccasionSelect = (occasion: OccasionCategory | OccasionKey) => {
     setSelectedOccasion(occasion);
     
-    if (!selectedSeason) return;
+    // Intelligent mode needs a season, classic mode needs a temperature zone
+    if (mode === 'intelligent' && !selectedSeason) return;
+    if (mode === 'classic' && !selectedTemperature) return;
 
     let finalResults: CategorizedFragrance[] = [];
 
     if (mode === 'intelligent' && typeof occasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(occasion)) {
       // Intelligent mode with specific occasion
-      finalResults = handleIntelligentPick(selectedSeason, occasion as OccasionKey);
+      finalResults = handleIntelligentPick(selectedSeason!, occasion as OccasionKey);
     } else {
-      // Classic mode
+      // Classic mode - uses temperature zones
       const occasionCategory = occasion as OccasionCategory;
       const filtered = fragrances
         .filter(frag => {
-          const seasonScore = frag.seasons[selectedSeason] || 0;
-          return seasonScore >= 20;
+          const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
+          return tempScore >= 20;
         })
         .map(frag => {
           const scores = categorizeFragrance(frag);
@@ -356,15 +382,20 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setStep(0);
     setMode(null);
     setSelectedSeason(null);
+    setSelectedTemperature(null);
     setSelectedOccasion(null);
     setResults([]);
     setPromptCopied(false);
   };
 
   const handleCopyPrompt = async () => {
-    if (!selectedSeason || !selectedOccasion || results.length === 0) return;
+    if (!selectedOccasion || results.length === 0) return;
+    if (mode === 'intelligent' && !selectedSeason) return;
+    if (mode === 'classic' && !selectedTemperature) return;
 
-    const seasonName = seasons.find(s => s.key === selectedSeason)?.label || selectedSeason;
+    const seasonName = mode === 'classic'
+      ? (temperatureZones.find(t => t.key === selectedTemperature)?.label || selectedTemperature)
+      : (seasons.find(s => s.key === selectedSeason)?.label || selectedSeason);
     
     let occasionName = '';
     let occasionContext = '';
@@ -402,10 +433,12 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       return `${index + 1}. ${frag.name} ${frag.brand}`;
     }).join('\n');
 
+    const contextLabel = mode === 'classic' ? 'Weather' : 'Season';
+
     const prompt = `I need a fragrance recommendation from my collection for a specific scenario.
 
 CONTEXT:
-- Season: ${seasonName}
+- ${contextLabel}: ${seasonName}
 - Occasion: ${occasionName}
 - Definition: ${occasionDefinition}
 
@@ -446,6 +479,12 @@ Differentiate clearly between similar occasions.
     { key: 'winter' as Season, label: 'Winter', emoji: '❄️', color: '#4682B4' }
   ];
 
+  const temperatureZones = [
+    { key: 'highHeat' as TemperatureZone, label: 'High Heat', emoji: '🔥', color: '#FF4500', description: 'Peak summer warmth' },
+    { key: 'transitionalMild' as TemperatureZone, label: 'Transitional Mild', emoji: '🌤️', color: '#F0A030', description: 'Spring & fall weather' },
+    { key: 'deepCold' as TemperatureZone, label: 'Deep Cold', emoji: '❄️', color: '#4682B4', description: 'Winter chill' }
+  ];
+
   const occasions = [
     { key: 'Professional' as OccasionCategory, label: 'Professional', emoji: '💼', description: 'Office & Business' },
     { key: 'Casual' as OccasionCategory, label: 'Casual', emoji: '👕', description: 'Everyday & Leisure' },
@@ -483,7 +522,7 @@ Differentiate clearly between similar occasions.
                   <span className={styles.modeEmoji}>🎯</span>
                   <span className={styles.modeLabel}>Classic Picker</span>
                   <span className={styles.modeDescription}>
-                    Simple season + 3 broad occasions
+                    Temperature vibe + 3 broad occasions
                   </span>
                 </button>
                 <button
@@ -500,28 +539,57 @@ Differentiate clearly between similar occasions.
             </div>
           )}
 
-          {/* Step 1: Season Selection */}
+          {/* Step 1: Season/Temperature Selection */}
           {step === 1 && (
             <div className={`${styles.step} ${styles.fadeIn}`}>
-              <div className={styles.stepHeader}>
-                <span className={styles.stepNumber}>Step 1 of 2</span>
-                <h2 className={styles.stepTitle}>Choose Your Season</h2>
-                <p className={styles.stepSubtitle}>What season are you shopping for?</p>
-              </div>
+              {mode === 'classic' ? (
+                <>
+                  <div className={styles.stepHeader}>
+                    <span className={styles.stepNumber}>Step 1 of 2</span>
+                    <h2 className={styles.stepTitle}>How's the Weather?</h2>
+                    <p className={styles.stepSubtitle}>Pick the temperature vibe</p>
+                  </div>
 
-              <div className={styles.seasonGrid}>
-                {seasons.map(season => (
-                  <button
-                    key={season.key}
-                    className={styles.seasonCard}
-                    onClick={() => handleSeasonSelect(season.key)}
-                    style={{ '--season-color': season.color } as React.CSSProperties}
-                  >
-                    <span className={styles.seasonEmoji}>{season.emoji}</span>
-                    <span className={styles.seasonLabel}>{season.label}</span>
-                  </button>
-                ))}
-              </div>
+                  <div className={styles.temperatureGrid}>
+                    {temperatureZones.map(zone => (
+                      <button
+                        key={zone.key}
+                        className={styles.temperatureCard}
+                        onClick={() => handleTemperatureSelect(zone.key)}
+                        style={{ '--season-color': zone.color } as React.CSSProperties}
+                      >
+                        <span className={styles.seasonEmoji}>{zone.emoji}</span>
+                        <div>
+                          <span className={styles.seasonLabel}>{zone.label}</span>
+                          <span className={styles.temperatureDescription}>{zone.description}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.stepHeader}>
+                    <span className={styles.stepNumber}>Step 1 of 2</span>
+                    <h2 className={styles.stepTitle}>Choose Your Season</h2>
+                    <p className={styles.stepSubtitle}>What season are you shopping for?</p>
+                  </div>
+
+                  <div className={styles.seasonGrid}>
+                    {seasons.map(season => (
+                      <button
+                        key={season.key}
+                        className={styles.seasonCard}
+                        onClick={() => handleSeasonSelect(season.key)}
+                        style={{ '--season-color': season.color } as React.CSSProperties}
+                      >
+                        <span className={styles.seasonEmoji}>{season.emoji}</span>
+                        <span className={styles.seasonLabel}>{season.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -568,7 +636,7 @@ Differentiate clearly between similar occasions.
               )}
 
               <button className={styles.backButton} onClick={() => setStep(1)}>
-                ← Back to Seasons
+                ← Back to {mode === 'classic' ? 'Weather' : 'Seasons'}
               </button>
             </div>
           )}
@@ -579,7 +647,10 @@ Differentiate clearly between similar occasions.
               <div className={styles.stepHeader}>
                 <h2 className={styles.stepTitle}>Your Perfect Matches</h2>
                 <p className={styles.stepSubtitle}>
-                  {selectedSeason && seasons.find(s => s.key === selectedSeason)?.emoji} {selectedSeason} • {' '}
+                  {mode === 'classic' && selectedTemperature
+                    ? <>{temperatureZones.find(t => t.key === selectedTemperature)?.emoji} {getTemperatureLabel(selectedTemperature)}</>
+                    : <>{selectedSeason && seasons.find(s => s.key === selectedSeason)?.emoji} {selectedSeason}</>}
+                  {' • '}
                   {selectedOccasion && occasions.find(o => o.key === selectedOccasion)?.emoji} {selectedOccasion}
                 </p>
               </div>
@@ -615,7 +686,7 @@ Differentiate clearly between similar occasions.
                           <p className={styles.resultReason}>
                             {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
                               ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
-                              : generateReasonForPick(frag, index, selectedSeason!, selectedOccasion! as OccasionCategory)}
+                              : generateReasonForPick(frag, index, selectedTemperature!, selectedOccasion! as OccasionCategory)}
                           </p>
                         </div>
                       </div>
