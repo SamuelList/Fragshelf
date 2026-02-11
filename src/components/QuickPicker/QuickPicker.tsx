@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Fragrance, OccasionScores } from '../../types/fragrance';
 import styles from './QuickPicker.module.scss';
 
@@ -31,6 +31,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const [selectedOccasion, setSelectedOccasion] = useState<ShoeCategory | OccasionKey | null>(null);
   const [results, setResults] = useState<CategorizedFragrance[]>([]);
   const [promptCopied, setPromptCopied] = useState(false);
+  const [resultSortMode, setResultSortMode] = useState<'recommended' | 'safest' | 'riskiest'>('recommended');
 
   // Prevent background scrolling
   useEffect(() => {
@@ -39,6 +40,35 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       document.body.style.overflow = 'unset';
     };
   }, []);
+
+  const getRiskScore = (f: Fragrance): number => {
+    const occasionRisk = (f.occasions.evening || 0) + (f.occasions['night out'] || 0);
+    const fullWeightTypes = (f.types.Animalic || 0) + (f.types.Smoky || 0) + (f.types.Leathery || 0) +
+      (f.types.Resinous || 0) + (f.types.Earthy || 0) + (f.types.Chypre || 0) + (f.types.Oriental || 0);
+    const halfWeightTypes = (f.types.Spicy || 0) + (f.types.Sweet || 0) + (f.types.Floral || 0) +
+      (f.types.Powdery || 0) + (f.types.Creamy || 0) + (f.types.Gourmand || 0);
+    const typeRisk = fullWeightTypes + 0.5 * halfWeightTypes;
+    return (occasionRisk + typeRisk) / 2;
+  };
+
+  const sortedResults = useMemo(() => {
+    if (resultSortMode === 'recommended') return results.slice(0, 6);
+    const top6 = results.slice(0, 6);
+    const sorted = [...top6].sort((a, b) =>
+      resultSortMode === 'safest'
+        ? getRiskScore(a) - getRiskScore(b)
+        : getRiskScore(b) - getRiskScore(a)
+    );
+    return sorted;
+  }, [results, resultSortMode]);
+
+  const cycleSortMode = () => {
+    setResultSortMode(prev => {
+      if (prev === 'recommended') return 'safest';
+      if (prev === 'safest') return 'riskiest';
+      return 'recommended';
+    });
+  };
 
   const categorizeFragrance = (frag: Fragrance) => {
     const daily = frag.occasions.daily || 0;
@@ -355,6 +385,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setSelectedOccasion(null);
     setResults([]);
     setPromptCopied(false);
+    setResultSortMode('recommended');
   };
 
   const handleCopyPrompt = async () => {
@@ -637,12 +668,19 @@ Differentiate clearly between similar occasions.
                     ? <>{shoeCategories.find(s => s.key === selectedOccasion)?.emoji} {shoeCategories.find(s => s.key === selectedOccasion)?.label}</>
                     : <>{intelligentOccasions.find(o => o.key === selectedOccasion)?.label || selectedOccasion}</>}
                 </p>
+                {results.length > 0 && (
+                  <button className={styles.sortToggle} onClick={cycleSortMode}>
+                    {resultSortMode === 'recommended' && '⭐ Recommended'}
+                    {resultSortMode === 'safest' && '🛡️ Safest'}
+                    {resultSortMode === 'riskiest' && '🔥 Riskiest'}
+                  </button>
+                )}
               </div>
 
               {results.length > 0 ? (
                 <>
                   <div className={styles.resultsGrid}>
-                    {results.slice(0, 3).map((frag, index) => (
+                    {sortedResults.slice(0, 3).map((frag, index) => (
                       <div 
                         key={frag.id} 
                         className={styles.resultCard}
