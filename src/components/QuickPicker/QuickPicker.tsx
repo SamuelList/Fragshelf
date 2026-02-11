@@ -48,22 +48,41 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     const evening = frag.occasions.evening || 0;
     const nightOut = frag.occasions['night out'] || 0;
 
-    // Raw shoe scores
-    const rawAthletic = sport;
-    const rawWorkBoots = daily + (business * 0.5);
-    const rawCasualSneakers = leisure + (daily * 0.5) + (business * 0.5);
-    const rawDressShoes = evening + nightOut + (business * 0.5);
-
-    // Normalize to 100%
-    const total = rawAthletic + rawWorkBoots + rawCasualSneakers + rawDressShoes;
-    if (total === 0) return { athletic: 0, workBoots: 0, casualSneakers: 0, dressShoes: 0 };
-
+    // Raw shoe scores (unnormalized — used directly for ranking)
     return {
-      athletic: (rawAthletic / total) * 100,
-      workBoots: (rawWorkBoots / total) * 100,
-      casualSneakers: (rawCasualSneakers / total) * 100,
-      dressShoes: (rawDressShoes / total) * 100
+      athletic: sport,
+      workBoots: daily + (business * 0.5),
+      casualSneakers: leisure + (daily * 0.5) + (business * 0.5),
+      dressShoes: evening + nightOut + (business * 0.5)
     };
+  };
+
+  const clothingLabels: Record<TemperatureZone, { label: string; emoji: string }> = {
+    highHeat: { label: 'T-Shirt', emoji: '👕' },
+    transitionalMild: { label: 'Light Jacket', emoji: '🧥' },
+    deepCold: { label: 'Coat', emoji: '🧣' }
+  };
+
+  // Calculate a fragrance's natural top combo (best shoe + best climate)
+  const getTopCombo = (frag: Fragrance): string => {
+    const shoes = categorizeFragrance(frag);
+    const shoeEntries: { key: ShoeCategory; score: number; label: string }[] = [
+      { key: 'Athletic', score: shoes.athletic, label: 'Athletic' },
+      { key: 'WorkBoots', score: shoes.workBoots, label: 'Work Boots' },
+      { key: 'CasualSneakers', score: shoes.casualSneakers, label: 'Casual Sneakers' },
+      { key: 'DressShoes', score: shoes.dressShoes, label: 'Dress Shoes' }
+    ];
+    const bestShoe = shoeEntries.sort((a, b) => b.score - a.score)[0];
+
+    const tempEntries: { key: TemperatureZone; score: number }[] = [
+      { key: 'highHeat', score: getTemperatureScore(frag, 'highHeat') },
+      { key: 'transitionalMild', score: getTemperatureScore(frag, 'transitionalMild') },
+      { key: 'deepCold', score: getTemperatureScore(frag, 'deepCold') }
+    ];
+    const bestTemp = tempEntries.sort((a, b) => b.score - a.score)[0];
+    const clothing = clothingLabels[bestTemp.key];
+
+    return `${bestShoe.label} with ${clothing.label}`;
   };
 
   const handleSeasonSelect = (season: Season) => {
@@ -239,45 +258,27 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
 
   const generateReasonForPick = (frag: Fragrance, rank: number, tempZone: TemperatureZone, shoe: ShoeCategory): string => {
     const tempScore = Math.round(getTemperatureScore(frag, tempZone));
-    const tempLabel = getTemperatureLabel(tempZone).toLowerCase();
-    const scores = categorizeFragrance(frag);
-
-    let relevantScore = 0;
-    let scoreName = '';
-    if (shoe === 'Athletic') { relevantScore = Math.round(scores.athletic); scoreName = 'athletic'; }
-    else if (shoe === 'WorkBoots') { relevantScore = Math.round(scores.workBoots); scoreName = 'work boots'; }
-    else if (shoe === 'CasualSneakers') { relevantScore = Math.round(scores.casualSneakers); scoreName = 'casual sneakers'; }
-    else { relevantScore = Math.round(scores.dressShoes); scoreName = 'dress shoes'; }
+    const clothing = clothingLabels[tempZone].label.toLowerCase();
+    const shoeLabel = shoeCategories.find(s => s.key === shoe)?.label.toLowerCase() || shoe;
 
     // Build concise, conversational reason
     const parts: string[] = [];
 
-    // Lead with match quality
     if (rank === 0) {
-      parts.push(`Perfect for ${tempLabel} weather`);
+      parts.push(`Perfect ${shoeLabel} + ${clothing} combo`);
     } else if (rank === 1) {
-      parts.push(`Great ${tempLabel} choice`);
+      parts.push(`Great ${shoeLabel} + ${clothing} match`);
     } else {
-      parts.push(`Solid ${tempLabel} pick`);
+      parts.push(`Solid ${shoeLabel} + ${clothing} pick`);
     }
 
-    parts.push(`with a ${tempScore}% weather fit`);
-
-    // Add shoe context
-    if (relevantScore >= 40) {
-      parts.push(`and a strong ${relevantScore}% ${scoreName} fit`);
-    } else if (relevantScore >= 25) {
-      parts.push(`plus ${relevantScore}% ${scoreName} match`);
-    } else if (relevantScore >= 15) {
-      parts.push(`with ${relevantScore}% ${scoreName} affinity`);
-    }
+    parts.push(`${tempScore}% weather fit`);
 
     // Personal touch ending
     if (frag.liked === true) {
       const endings = [
-        "no wonder you gave it thumbs up!",
-        "already one of your favorites!",
         "and you already love it!",
+        "already one of your favorites!",
         "you know it's good!"
       ];
       parts.push(endings[Math.floor(Math.random() * endings.length)]);
@@ -287,23 +288,12 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       const neutralEndings = [
         "worth trying out!",
         "give it a shot!",
-        "could be your next favorite!",
-        "ready when you are!"
+        "could be your next favorite!"
       ];
       parts.push(neutralEndings[Math.floor(Math.random() * neutralEndings.length)]);
     }
 
-    // Join with proper grammar
-    const mainParts = parts.slice(0, -1);
-    const ending = parts[parts.length - 1];
-    
-    if (mainParts.length === 2) {
-      return `${mainParts[0]} ${mainParts[1]}, ${ending}`;
-    } else if (mainParts.length === 3) {
-      return `${mainParts[0]} ${mainParts[1]}, ${mainParts[2]}, ${ending}`;
-    } else {
-      return `${mainParts.join(', ')}, ${ending}`;
-    }
+    return `${parts[0]}, ${parts.slice(1).join(', ')}`;
   };
 
   const handleOccasionSelect = (occasion: ShoeCategory | OccasionKey) => {
@@ -320,20 +310,24 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       finalResults = handleIntelligentPick(selectedSeason!, occasion as OccasionKey);
     } else {
       // Classic mode - uses temperature zones + shoe categories
+      // Scoring: combined = (tempScore/100) * rawShoeScore — rewards both dimensions
       const shoeCategory = occasion as ShoeCategory;
       const filtered = fragrances
         .filter(frag => {
           const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
-          return tempScore >= 20;
+          return tempScore >= 15;
         })
         .map(frag => {
           const scores = categorizeFragrance(frag);
-          let selectedScore = 0;
+          let rawShoeScore = 0;
           
-          if (shoeCategory === 'Athletic') selectedScore = scores.athletic;
-          else if (shoeCategory === 'WorkBoots') selectedScore = scores.workBoots;
-          else if (shoeCategory === 'CasualSneakers') selectedScore = scores.casualSneakers;
-          else selectedScore = scores.dressShoes;
+          if (shoeCategory === 'Athletic') rawShoeScore = scores.athletic;
+          else if (shoeCategory === 'WorkBoots') rawShoeScore = scores.workBoots;
+          else if (shoeCategory === 'CasualSneakers') rawShoeScore = scores.casualSneakers;
+          else rawShoeScore = scores.dressShoes;
+
+          const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
+          const combinedScore = (tempScore / 100) * rawShoeScore;
 
           return {
             ...frag,
@@ -341,10 +335,10 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
             workBootsScore: scores.workBoots,
             casualSneakersScore: scores.casualSneakers,
             dressShoesScore: scores.dressShoes,
-            selectedScore
+            selectedScore: combinedScore
           };
         })
-        .filter(frag => frag.selectedScore >= 15)
+        .filter(frag => frag.selectedScore >= 5)
         .sort((a, b) => b.selectedScore - a.selectedScore)
         .slice(0, 10); // Get top 10 first
 
@@ -397,7 +391,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     let occasionContext = '';
     let occasionDefinition = '';
     
-    if (mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)) {
+    if (mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Athletic', 'WorkBoots', 'CasualSneakers', 'DressShoes'].includes(selectedOccasion)) {
       const occasion = intelligentOccasions.find(o => o.key === selectedOccasion);
       occasionName = occasion?.label || selectedOccasion;
       occasionContext = occasion?.description || '';
@@ -694,8 +688,11 @@ Differentiate clearly between similar occasions.
                           {mode === 'intelligent' && frag.matchScore !== undefined && (
                             <p className={styles.resultScore}>Match Score: {Math.round(frag.matchScore * 2)}%</p>
                           )}
+                          {mode === 'classic' && (
+                            <p className={styles.topCombo}>Best combo: {getTopCombo(frag)}</p>
+                          )}
                           <p className={styles.resultReason}>
-                            {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Professional', 'Casual', 'SpecialOccasion'].includes(selectedOccasion)
+                            {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Athletic', 'WorkBoots', 'CasualSneakers', 'DressShoes'].includes(selectedOccasion)
                               ? generateIntelligentReason(frag, index, selectedSeason!, selectedOccasion as OccasionKey)
                               : generateReasonForPick(frag, index, selectedTemperature!, selectedOccasion! as ShoeCategory)}
                           </p>
