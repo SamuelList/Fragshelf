@@ -63,28 +63,6 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     deepCold: { label: 'Coat', emoji: '🧣' }
   };
 
-  // Calculate a fragrance's natural top combo (best shoe + best climate)
-  const getTopCombo = (frag: Fragrance): string => {
-    const shoes = categorizeFragrance(frag);
-    const shoeEntries: { key: ShoeCategory; score: number; label: string }[] = [
-      { key: 'Athletic', score: shoes.athletic, label: 'Athletic' },
-      { key: 'WorkBoots', score: shoes.workBoots, label: 'Work Boots' },
-      { key: 'CasualSneakers', score: shoes.casualSneakers, label: 'Casual Sneakers' },
-      { key: 'DressShoes', score: shoes.dressShoes, label: 'Dress Shoes' }
-    ];
-    const bestShoe = shoeEntries.sort((a, b) => b.score - a.score)[0];
-
-    const tempEntries: { key: TemperatureZone; score: number }[] = [
-      { key: 'highHeat', score: getTemperatureScore(frag, 'highHeat') },
-      { key: 'transitionalMild', score: getTemperatureScore(frag, 'transitionalMild') },
-      { key: 'deepCold', score: getTemperatureScore(frag, 'deepCold') }
-    ];
-    const bestTemp = tempEntries.sort((a, b) => b.score - a.score)[0];
-    const clothing = clothingLabels[bestTemp.key];
-
-    return `${bestShoe.label} with ${clothing.label}`;
-  };
-
   const handleSeasonSelect = (season: Season) => {
     setSelectedSeason(season);
     setTimeout(() => setStep(2), 300);
