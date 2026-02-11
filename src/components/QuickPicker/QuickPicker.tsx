@@ -80,8 +80,8 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const getTypeClimateScore = (frag: Fragrance, zone: TemperatureZone): number => {
     const t = frag.types;
     const rawHighHeat = (t.Fresh || 0) + (t.Citrus || 0) + (t.Aquatic || 0) + (t.Fruity || 0) + (t.Green || 0);
-    const rawTransitional = (t.Woody || 0) + (t.Floral || 0) + (t.Synthetic || 0) + (t.Powdery || 0) + (t.Earthy || 0) + (t.Fougere || 0);
-    const rawDeepCold = (t.Spicy || 0) + (t.Sweet || 0) + (t.Resinous || 0) + (t.Gourmand || 0) + (t.Leathery || 0) + (t.Smoky || 0) + (t.Oriental || 0) + (t.Creamy || 0);
+    const rawTransitional = (t.Woody || 0) + (t.Floral || 0) + (t.Synthetic || 0) + (t.Powdery || 0) + (t.Earthy || 0) + (t.Fougere || 0) + (t.Chypre || 0);
+    const rawDeepCold = (t.Spicy || 0) + (t.Sweet || 0) + (t.Resinous || 0) + (t.Gourmand || 0) + (t.Leathery || 0) + (t.Oriental || 0) + (t.Smoky || 0) + (t.Creamy || 0) + (t.Animalic || 0);
 
     const total = rawHighHeat + rawTransitional + rawDeepCold;
     if (total === 0) return 0;
