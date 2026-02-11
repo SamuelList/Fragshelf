@@ -314,6 +314,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       const shoeCategory = occasion as ShoeCategory;
       const filtered = fragrances
         .filter(frag => {
+          if (frag.liked === false) return false;
           const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
           return tempScore >= 15;
         })
@@ -687,9 +688,6 @@ Differentiate clearly between similar occasions.
                           <p className={styles.resultName}>{frag.name}</p>
                           {mode === 'intelligent' && frag.matchScore !== undefined && (
                             <p className={styles.resultScore}>Match Score: {Math.round(frag.matchScore * 2)}%</p>
-                          )}
-                          {mode === 'classic' && (
-                            <p className={styles.topCombo}>Best combo: {getTopCombo(frag)}</p>
                           )}
                           <p className={styles.resultReason}>
                             {mode === 'intelligent' && typeof selectedOccasion === 'string' && !['Athletic', 'WorkBoots', 'CasualSneakers', 'DressShoes'].includes(selectedOccasion)
