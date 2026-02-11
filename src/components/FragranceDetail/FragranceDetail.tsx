@@ -5,6 +5,58 @@ import { getChartColor } from '../../constants/colors';
 import WearabilitySpectrum from '../WearabilitySpectrum/WearabilitySpectrum';
 import styles from './FragranceDetail.module.scss';
 
+type TemperatureZone = 'highHeat' | 'transitionalMild' | 'deepCold';
+type ShoeCategory = 'Athletic' | 'WorkBoots' | 'CasualSneakers' | 'DressShoes';
+
+const clothingLabels: Record<TemperatureZone, { label: string; emoji: string }> = {
+  highHeat: { label: 'T-Shirt', emoji: '👕' },
+  transitionalMild: { label: 'Light Jacket', emoji: '🧥' },
+  deepCold: { label: 'Coat', emoji: '🧣' }
+};
+
+const shoeLabels: Record<ShoeCategory, { label: string; emoji: string }> = {
+  Athletic: { label: 'Athletic', emoji: '🏃' },
+  WorkBoots: { label: 'Work Boots', emoji: '🥾' },
+  CasualSneakers: { label: 'Casual Sneakers', emoji: '👟' },
+  DressShoes: { label: 'Dress Shoes', emoji: '👞' }
+};
+
+const getTopCombo = (frag: Fragrance): { shoe: ShoeCategory; temp: TemperatureZone } => {
+  const daily = frag.occasions.daily || 0;
+  const business = frag.occasions.business || 0;
+  const leisure = frag.occasions.leisure || 0;
+  const sport = frag.occasions.sport || 0;
+  const evening = frag.occasions.evening || 0;
+  const nightOut = frag.occasions['night out'] || 0;
+
+  const shoeScores: { key: ShoeCategory; score: number }[] = [
+    { key: 'Athletic', score: sport },
+    { key: 'WorkBoots', score: daily + (business * 0.5) },
+    { key: 'CasualSneakers', score: leisure + (daily * 0.5) + (business * 0.5) },
+    { key: 'DressShoes', score: evening + nightOut + (business * 0.5) }
+  ];
+  const bestShoe = shoeScores.sort((a, b) => b.score - a.score)[0].key;
+
+  const t = frag.types;
+  const rawHighHeat = (t.Fresh || 0) + (t.Citrus || 0) + (t.Aquatic || 0) + (t.Fruity || 0) + (t.Green || 0);
+  const rawTransitional = (t.Woody || 0) + (t.Floral || 0) + (t.Synthetic || 0) + (t.Powdery || 0) + (t.Earthy || 0) + (t.Fougere || 0) + (t.Chypre || 0);
+  const rawDeepCold = (t.Spicy || 0) + (t.Sweet || 0) + (t.Resinous || 0) + (t.Gourmand || 0) + (t.Leathery || 0) + (t.Oriental || 0) + (t.Smoky || 0) + (t.Creamy || 0) + (t.Animalic || 0);
+
+  const typeTotal = rawHighHeat + rawTransitional + rawDeepCold;
+  const typeHighHeat = typeTotal > 0 ? (rawHighHeat / typeTotal) * 100 : 0;
+  const typeTransitional = typeTotal > 0 ? (rawTransitional / typeTotal) * 100 : 0;
+  const typeDeepCold = typeTotal > 0 ? (rawDeepCold / typeTotal) * 100 : 0;
+
+  const tempScores: { key: TemperatureZone; score: number }[] = [
+    { key: 'highHeat', score: (frag.seasons.summer + typeHighHeat) / 2 },
+    { key: 'transitionalMild', score: ((frag.seasons.spring + frag.seasons.autumn) / 2 + typeTransitional) / 2 },
+    { key: 'deepCold', score: (frag.seasons.winter + typeDeepCold) / 2 }
+  ];
+  const bestTemp = tempScores.sort((a, b) => b.score - a.score)[0].key;
+
+  return { shoe: bestShoe, temp: bestTemp };
+};
+
 interface FragranceDetailProps {
   fragrance: Fragrance;
   onClose: () => void;
@@ -187,17 +239,17 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
             />
           </div>
           <div className={styles.info}>
-            {fragrance.formality && (
-              <div className={styles.formalityBadge}>
-                <span className={styles.formalityIcon}>
-                  {fragrance.formality === 'Ultra Casual' ? '🩴' : 
-                   fragrance.formality === 'Casual' ? '👟' :
-                   fragrance.formality === 'Smart Casual' ? '👔' :
-                   fragrance.formality === 'Formal' ? '🎩' : '🤵'}
-                </span>
-                <span className={styles.formalityText}>{fragrance.formality}</span>
-              </div>
-            )}
+            {(() => {
+              const combo = getTopCombo(fragrance);
+              const shoe = shoeLabels[combo.shoe];
+              const clothing = clothingLabels[combo.temp];
+              return (
+                <div className={styles.formalityBadge}>
+                  <span className={styles.formalityIcon}>{shoe.emoji}</span>
+                  <span className={styles.formalityText}>{shoe.label} with {clothing.emoji} {clothing.label}</span>
+                </div>
+              );
+            })()}
             <h2 className={styles.brand}>{fragrance.brand}</h2>
             <h3 className={styles.name}>{fragrance.name}</h3>
             {fragrance.middayTouchUp !== undefined && (
