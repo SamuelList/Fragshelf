@@ -153,10 +153,7 @@ exports.handler = async (event) => {
           }
         } catch (dbError) {
           // If column doesn't exist, run migration and retry
-          if (dbError.message && (dbError.message.includes('column "wearability" does not exist') || 
-              dbError.message.includes('column "occasion_months" does not exist') ||
-              dbError.message.includes('column "formality" does not exist') ||
-              dbError.message.includes('column "midday_touch_up" does not exist'))) {
+          if (dbError.message && dbError.message.includes('does not exist')) {
             console.log('Missing column detected, running migration...');
             await initSchema();
             
@@ -388,77 +385,82 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'PATCH' && id) {
       const body = JSON.parse(event.body);
       
-      // Build dynamic SET clause based on provided fields
-      const setClauses = [];
-      const values = {};
-      
-      if ('rating' in body) {
-        values.rating = body.rating;
-      }
-      if ('hidden' in body) {
-        values.hidden = body.hidden;
-      }
-      // Legacy support for liked
-      if ('liked' in body) {
-        values.liked = body.liked;
-      }
-      
+      const doPatch = async () => {
+        let result;
+        if ('rating' in body && 'hidden' in body) {
+          result = await sql`
+            UPDATE fragrances 
+            SET 
+              rating = ${body.rating},
+              hidden = ${body.hidden},
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+            RETURNING 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
+          `;
+        } else if ('rating' in body) {
+          result = await sql`
+            UPDATE fragrances 
+            SET 
+              rating = ${body.rating},
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+            RETURNING 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
+          `;
+        } else if ('hidden' in body) {
+          result = await sql`
+            UPDATE fragrances 
+            SET 
+              hidden = ${body.hidden},
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+            RETURNING 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
+          `;
+        } else if ('liked' in body) {
+          // Legacy support
+          result = await sql`
+            UPDATE fragrances 
+            SET 
+              liked = ${body.liked},
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+            RETURNING 
+              id, brand, name, image_url as "imageUrl",
+              seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
+          `;
+        } else {
+          return null;
+        }
+        return result;
+      };
+
       let result;
-      if ('rating' in body && 'hidden' in body) {
-        result = await sql`
-          UPDATE fragrances 
-          SET 
-            rating = ${body.rating},
-            hidden = ${body.hidden},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-          RETURNING 
-            id, brand, name, image_url as "imageUrl",
-            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
-            rating, hidden
-        `;
-      } else if ('rating' in body) {
-        result = await sql`
-          UPDATE fragrances 
-          SET 
-            rating = ${body.rating},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-          RETURNING 
-            id, brand, name, image_url as "imageUrl",
-            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
-            rating, hidden
-        `;
-      } else if ('hidden' in body) {
-        result = await sql`
-          UPDATE fragrances 
-          SET 
-            hidden = ${body.hidden},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-          RETURNING 
-            id, brand, name, image_url as "imageUrl",
-            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
-            rating, hidden
-        `;
-      } else if ('liked' in body) {
-        // Legacy support
-        result = await sql`
-          UPDATE fragrances 
-          SET 
-            liked = ${body.liked},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-          RETURNING 
-            id, brand, name, image_url as "imageUrl",
-            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
-            rating, hidden
-        `;
-      } else {
+      try {
+        result = await doPatch();
+      } catch (dbError) {
+        if (dbError.message && dbError.message.includes('does not exist')) {
+          console.log('Missing column in PATCH, running migration...');
+          await initSchema();
+          result = await doPatch();
+        } else {
+          throw dbError;
+        }
+      }
+
+      if (result === null) {
         return {
           statusCode: 400,
           headers,
