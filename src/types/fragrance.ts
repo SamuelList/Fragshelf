@@ -67,7 +67,8 @@ export interface Fragrance {
   seasonOccasions?: SeasonOccasionMatrix; // NEW: Matrix of occasions per season
   types: TypeScores;       // Must sum to 100
   wearability?: WearabilityScores; // Must sum to 100, optional for backwards compatibility
-  liked?: boolean | null;  // true = thumbs up, false = thumbs down, null/undefined = no rating
+  rating?: number | null;  // 1-5 star rating, null/undefined = no rating (3 = neutral)
+  hidden?: boolean;        // true = hidden (pushed to bottom of lists)
   review?: string;         // User's personal review or notes
   occasionMonths?: OccasionMonths; // Months for each occasion category
   formality?: Formality;   // Formality level of the fragrance

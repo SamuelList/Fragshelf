@@ -8,10 +8,15 @@ interface FragranceCardProps {
 
 const FragranceCard = ({ fragrance, onClick }: FragranceCardProps) => {
   return (
-    <div className={styles.card} onClick={() => onClick(fragrance)}>
-      {fragrance.liked !== undefined && fragrance.liked !== null && (
-        <div className={styles.likeBadge}>
-          {fragrance.liked ? '👍' : '👎'}
+    <div className={`${styles.card} ${fragrance.hidden ? styles.hiddenCard : ''}`} onClick={() => onClick(fragrance)}>
+      {fragrance.hidden && (
+        <div className={styles.hiddenBadge}>
+          🙈
+        </div>
+      )}
+      {fragrance.rating != null && fragrance.rating > 0 && !fragrance.hidden && (
+        <div className={styles.ratingBadge}>
+          <span className={styles.ratingStars}>{'★'.repeat(fragrance.rating)}</span>
         </div>
       )}
       <div className={styles.imageContainer}>

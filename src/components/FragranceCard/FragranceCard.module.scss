@@ -22,7 +22,16 @@
   }
 }
 
-.likeBadge {
+.hiddenCard {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.hiddenBadge {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -44,6 +53,38 @@
     width: 32px;
     height: 32px;
     font-size: 1.1rem;
+  }
+}
+
+.ratingBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+
+  @media (min-width: 768px) {
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+  }
+}
+
+.ratingStars {
+  color: #ffd700;
+  font-size: 0.55rem;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  @media (min-width: 768px) {
+    font-size: 0.7rem;
   }
 }
 

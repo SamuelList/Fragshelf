@@ -103,6 +103,50 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     setTimeout(() => setStep(2), 300);
   };
 
+  // Apply star-based reordering to results list
+  // 3 stars (or unrated) = no change, 4 = up 1 slot, 5 = up 2 slots, 2 = down 1 slot, 1 = down 2 slots
+  const applyStarReordering = (list: CategorizedFragrance[]) => {
+    const movedIds = new Set<string>();
+    
+    // Process from top to bottom for upward moves (5-star first, then 4-star)
+    for (let i = 0; i < list.length; i++) {
+      const frag = list[i];
+      if (movedIds.has(frag.id)) continue;
+      
+      const rating = frag.rating ?? 3; // Default to 3 (neutral)
+      const slotsToMove = rating - 3; // 5→+2, 4→+1, 3→0, 2→-1, 1→-2
+      
+      if (slotsToMove > 0) {
+        // Move up: remove from current position and insert higher
+        const newIndex = Math.max(0, i - slotsToMove);
+        if (newIndex !== i) {
+          const [item] = list.splice(i, 1);
+          list.splice(newIndex, 0, item);
+          movedIds.add(frag.id);
+        }
+      }
+    }
+    
+    // Process from bottom to top for downward moves (1-star first, then 2-star)
+    for (let i = list.length - 1; i >= 0; i--) {
+      const frag = list[i];
+      if (movedIds.has(frag.id)) continue;
+      
+      const rating = frag.rating ?? 3;
+      const slotsToMove = rating - 3;
+      
+      if (slotsToMove < 0) {
+        // Move down: remove from current position and insert lower
+        const newIndex = Math.min(list.length - 1, i - slotsToMove); // slotsToMove is negative so this adds
+        if (newIndex !== i) {
+          const [item] = list.splice(i, 1);
+          list.splice(newIndex, 0, item);
+          movedIds.add(frag.id);
+        }
+      }
+    }
+  };
+
   // Type-based climate score from fragrance accord/type data
   const getTypeClimateScore = (frag: Fragrance, zone: TemperatureZone): number => {
     const t = frag.types;
@@ -144,6 +188,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
   const handleIntelligentPick = (season: Season, occasion: OccasionKey) => {
     // Use the season-occasion matrix for intelligent picking
     const scored = fragrances
+      .filter(frag => !frag.hidden) // Exclude hidden fragrances
       .map(frag => {
         const seasonScore = frag.seasons[season] || 0;
         
@@ -172,24 +217,9 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       .sort((a, b) => b.matchScore! - a.matchScore!)
       .slice(0, 10); // Get top 10 first
 
-    // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-    // Track which fragrances have been moved to ensure each moves only once
-    const movedIds = new Set<string>();
-    
-    for (let i = 0; i < scored.length; i++) {
-      const currentFrag = scored[i];
-      if (movedIds.has(currentFrag.id)) continue;
-      
-      if (currentFrag.liked === true && i > 0) {
-        // Swap with the item above (move up 1 position)
-        [scored[i - 1], scored[i]] = [scored[i], scored[i - 1]];
-        movedIds.add(currentFrag.id);
-      } else if (currentFrag.liked === false && i < scored.length - 1) {
-        // Swap with the item below (move down 1 position)
-        [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
-        movedIds.add(currentFrag.id);
-      }
-    }
+    // Apply star rating adjustments to "Your Perfect Matches" list
+    // 3 stars = neutral (no move), 4 = up 1, 5 = up 2, 2 = down 1, 1 = down 2
+    applyStarReordering(scored);
 
     return scored;
   };
@@ -238,7 +268,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     }
 
     // Personal touch ending
-    if (frag.liked === true) {
+    if (frag.rating != null && frag.rating >= 4) {
       const endings = [
         "and you already love it!",
         "one of your favorites!",
@@ -246,7 +276,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         "already a winner!"
       ];
       parts.push(endings[Math.floor(Math.random() * endings.length)]);
-    } else if (frag.liked === false) {
+    } else if (frag.rating != null && frag.rating <= 2) {
       parts.push("maybe give it another chance?");
     } else {
       const neutralEndings = [
@@ -283,14 +313,14 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     parts.push(`${tempScore}% weather fit`);
 
     // Personal touch ending
-    if (frag.liked === true) {
+    if (frag.rating != null && frag.rating >= 4) {
       const endings = [
         "and you already love it!",
         "already one of your favorites!",
         "you know it's good!"
       ];
       parts.push(endings[Math.floor(Math.random() * endings.length)]);
-    } else if (frag.liked === false) {
+    } else if (frag.rating != null && frag.rating <= 2) {
       parts.push("maybe give it another chance?");
     } else {
       const neutralEndings = [
@@ -322,7 +352,7 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
       const shoeCategory = occasion as ShoeCategory;
       const filtered = fragrances
         .filter(frag => {
-          if (frag.liked === false) return false;
+          if (frag.hidden) return false; // Exclude hidden fragrances
           const tempScore = selectedTemperature ? getTemperatureScore(frag, selectedTemperature) : 0;
           return tempScore >= 15;
         })
@@ -351,24 +381,8 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
         .sort((a, b) => b.selectedScore - a.selectedScore)
         .slice(0, 10); // Get top 10 first
 
-      // Apply like/dislike adjustments: +1 for liked, -1 for disliked
-      // Track which fragrances have been moved to ensure each moves only once
-      const movedIds = new Set<string>();
-      
-      for (let i = 0; i < filtered.length; i++) {
-        const currentFrag = filtered[i];
-        if (movedIds.has(currentFrag.id)) continue;
-        
-        if (currentFrag.liked === true && i > 0) {
-          // Swap with the item above (move up 1 position)
-          [filtered[i - 1], filtered[i]] = [filtered[i], filtered[i - 1]];
-          movedIds.add(currentFrag.id);
-        } else if (currentFrag.liked === false && i < filtered.length - 1) {
-          // Swap with the item below (move down 1 position)
-          [filtered[i], filtered[i + 1]] = [filtered[i + 1], filtered[i]];
-          movedIds.add(currentFrag.id);
-        }
-      }
+      // Apply star rating adjustments to "Your Perfect Matches" list
+      applyStarReordering(filtered);
 
       finalResults = filtered;
     }

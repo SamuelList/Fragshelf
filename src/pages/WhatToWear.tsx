@@ -116,9 +116,21 @@ const WhatToWear = () => {
     }
   };
 
-  const handleLikeChange = async (id: string, liked: boolean | null) => {
+  const handleRatingChange = async (id: string, rating: number | null) => {
     try {
-      const updated = await fragranceAPI.updateLiked(id, liked);
+      const updated = await fragranceAPI.updateRating(id, rating);
+      setFragrances(fragrances.map(f => f.id === id ? updated : f));
+      if (selectedFragrance && selectedFragrance.id === id) {
+        setSelectedFragrance(updated);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleHiddenChange = async (id: string, hidden: boolean) => {
+    try {
+      const updated = await fragranceAPI.updateHidden(id, hidden);
       setFragrances(fragrances.map(f => f.id === id ? updated : f));
       if (selectedFragrance && selectedFragrance.id === id) {
         setSelectedFragrance(updated);
@@ -258,7 +270,8 @@ const WhatToWear = () => {
           onClose={() => setSelectedFragrance(null)}
           onDelete={handleDeleteFragrance}
           onEdit={handleEditFragrance}
-          onLikeChange={isAuthenticated ? handleLikeChange : undefined}
+          onRatingChange={isAuthenticated ? handleRatingChange : undefined}
+          onHiddenChange={isAuthenticated ? handleHiddenChange : undefined}
         />
       )}
 

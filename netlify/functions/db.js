@@ -50,6 +50,32 @@ const initSchema = async () => {
       END $$;
     `;
 
+    // Add rating column (1-5 stars, replaces liked)
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='rating'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN rating INTEGER DEFAULT NULL;
+        END IF;
+      END $$;
+    `;
+
+    // Add hidden column (replaces dislike behavior)
+    await sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='fragrances' AND column_name='hidden'
+        ) THEN
+          ALTER TABLE fragrances ADD COLUMN hidden BOOLEAN DEFAULT FALSE;
+        END IF;
+      END $$;
+    `;
+
     // Add review column if it doesn't exist (for existing databases)
     await sql`
       DO $$ 

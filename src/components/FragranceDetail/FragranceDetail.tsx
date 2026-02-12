@@ -62,16 +62,25 @@ interface FragranceDetailProps {
   onClose: () => void;
   onDelete: (id: string) => void;
   onEdit: (fragrance: Fragrance) => void;
-  onLikeChange?: (id: string, liked: boolean | null) => void;
+  onRatingChange?: (id: string, rating: number | null) => void;
+  onHiddenChange?: (id: string, hidden: boolean) => void;
 }
 
-const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }: FragranceDetailProps) => {
+const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange, onHiddenChange }: FragranceDetailProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  const [hoverStar, setHoverStar] = useState<number | null>(null);
 
-  const handleLikeClick = (liked: boolean | null) => {
-    if (onLikeChange) {
-      onLikeChange(fragrance.id, liked);
+  const handleStarClick = (star: number) => {
+    if (onRatingChange) {
+      // If clicking the same star that's already selected, remove rating
+      onRatingChange(fragrance.id, fragrance.rating === star ? null : star);
+    }
+  };
+
+  const handleHideClick = () => {
+    if (onHiddenChange) {
+      onHiddenChange(fragrance.id, !fragrance.hidden);
     }
   };
 
@@ -260,24 +269,38 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onLikeChange }:
                 </span>
               </div>
             )}
-            {onLikeChange && (
-              <div className={styles.thumbsContainer}>
-                <button
-                  className={`${styles.thumbButton} ${fragrance.liked === true ? styles.active : ''}`}
-                  onClick={() => handleLikeClick(fragrance.liked === true ? null : true)}
-                  aria-label="Like"
-                  title="Like"
-                >
-                  👍
-                </button>
-                <button
-                  className={`${styles.thumbButton} ${fragrance.liked === false ? styles.active : ''}`}
-                  onClick={() => handleLikeClick(fragrance.liked === false ? null : false)}
-                  aria-label="Dislike"
-                  title="Dislike"
-                >
-                  👎
-                </button>
+            {(onRatingChange || onHiddenChange) && (
+              <div className={styles.ratingContainer}>
+                {onRatingChange && (
+                  <div className={styles.starRating}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className={`${styles.starButton} ${
+                          (hoverStar !== null ? star <= hoverStar : (fragrance.rating ?? 0) >= star) ? styles.filled : ''
+                        }`}
+                        onClick={() => handleStarClick(star)}
+                        onMouseEnter={() => setHoverStar(star)}
+                        onMouseLeave={() => setHoverStar(null)}
+                        aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                        title={`${star} star${star > 1 ? 's' : ''}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {onHiddenChange && (
+                  <button
+                    className={`${styles.hideButton} ${fragrance.hidden ? styles.active : ''}`}
+                    onClick={handleHideClick}
+                    aria-label={fragrance.hidden ? 'Unhide' : 'Hide'}
+                    title={fragrance.hidden ? 'Unhide fragrance' : 'Hide fragrance'}
+                  >
+                    {fragrance.hidden ? '👁️' : '🙈'}
+                    <span className={styles.hideLabel}>{fragrance.hidden ? 'Unhide' : 'Hide'}</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

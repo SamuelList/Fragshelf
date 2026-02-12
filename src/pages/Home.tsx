@@ -137,13 +137,13 @@ const Home = () => {
     setOccasionFilters(filters);
   };
 
-  const handleLikeChange = async (id: string, liked: boolean | null) => {
+  const handleRatingChange = async (id: string, rating: number | null) => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
     try {
-      const updated = await fragranceAPI.updateLiked(id, liked);
+      const updated = await fragranceAPI.updateRating(id, rating);
       setFragrances(fragrances.map(f => f.id === id ? updated : f));
       // Update selectedFragrance if it's the same fragrance
       if (selectedFragrance && selectedFragrance.id === id) {
@@ -151,6 +151,24 @@ const Home = () => {
       }
     } catch (err) {
       setError('Failed to update fragrance rating');
+      console.error(err);
+    }
+  };
+
+  const handleHiddenChange = async (id: string, hidden: boolean) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    try {
+      const updated = await fragranceAPI.updateHidden(id, hidden);
+      setFragrances(fragrances.map(f => f.id === id ? updated : f));
+      // Update selectedFragrance if it's the same fragrance
+      if (selectedFragrance && selectedFragrance.id === id) {
+        setSelectedFragrance(updated);
+      }
+    } catch (err) {
+      setError('Failed to update hidden status');
       console.error(err);
     }
   };
@@ -249,6 +267,13 @@ const Home = () => {
       };
       result.sort((a, b) => getRiskScore(a) - getRiskScore(b));
     }
+    
+    // Always push hidden fragrances to the bottom
+    result.sort((a, b) => {
+      const aHidden = a.hidden ? 1 : 0;
+      const bHidden = b.hidden ? 1 : 0;
+      return aHidden - bHidden;
+    });
     
     return result;
   }, [seasonOccasionFilteredFragrances, selectedType, showSafest]);
@@ -357,7 +382,8 @@ const Home = () => {
           onClose={() => setSelectedFragrance(null)}
           onDelete={handleDeleteFragrance}
           onEdit={handleEditFragrance}
-          onLikeChange={isAuthenticated ? handleLikeChange : undefined}
+          onRatingChange={isAuthenticated ? handleRatingChange : undefined}
+          onHiddenChange={isAuthenticated ? handleHiddenChange : undefined}
         />
       )}
 

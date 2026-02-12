@@ -163,15 +163,15 @@ export const fragranceAPI = {
     saveToLocalStorage(filtered);
   },
 
-  // Update liked status
-  updateLiked: async (id: string, liked: boolean | null): Promise<Fragrance> => {
+  // Update star rating (1-5 or null)
+  updateRating: async (id: string, rating: number | null): Promise<Fragrance> => {
     try {
       const response = await fetch(`${API_URL}/fragrances/${id}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ liked }),
+        body: JSON.stringify({ rating }),
       });
-      if (!response.ok) throw new Error('Failed to update liked status');
+      if (!response.ok) throw new Error('Failed to update rating');
       const updated = await response.json();
       
       // Update localStorage backup
@@ -184,11 +184,44 @@ export const fragranceAPI = {
       
       return updated;
     } catch (error) {
-      // Fallback to localStorage update if server fails (e.g., before migration runs)
+      // Fallback to localStorage update if server fails
       const stored = loadFromLocalStorage() || [];
       const index = stored.findIndex(f => f.id === id);
       if (index !== -1) {
-        stored[index] = { ...stored[index], liked };
+        stored[index] = { ...stored[index], rating };
+        saveToLocalStorage(stored);
+        return stored[index];
+      }
+      throw error;
+    }
+  },
+
+  // Update hidden status
+  updateHidden: async (id: string, hidden: boolean): Promise<Fragrance> => {
+    try {
+      const response = await fetch(`${API_URL}/fragrances/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ hidden }),
+      });
+      if (!response.ok) throw new Error('Failed to update hidden status');
+      const updated = await response.json();
+      
+      // Update localStorage backup
+      const stored = loadFromLocalStorage() || [];
+      const index = stored.findIndex(f => f.id === id);
+      if (index !== -1) {
+        stored[index] = updated;
+        saveToLocalStorage(stored);
+      }
+      
+      return updated;
+    } catch (error) {
+      // Fallback to localStorage update if server fails
+      const stored = loadFromLocalStorage() || [];
+      const index = stored.findIndex(f => f.id === id);
+      if (index !== -1) {
+        stored[index] = { ...stored[index], hidden };
         saveToLocalStorage(stored);
         return stored[index];
       }

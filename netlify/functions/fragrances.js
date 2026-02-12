@@ -103,7 +103,8 @@ exports.handler = async (event) => {
               liked, review,
               occasion_months as "occasionMonths",
               formality,
-              midday_touch_up as "middayTouchUp"
+              midday_touch_up as "middayTouchUp",
+              rating, hidden
             FROM fragrances
             WHERE user_id = ${parseInt(userId)}
             ORDER BY created_at DESC
@@ -123,7 +124,9 @@ exports.handler = async (event) => {
             review: row.review,
             occasionMonths: row.occasionMonths,
             formality: row.formality,
-            middayTouchUp: row.middayTouchUp
+            middayTouchUp: row.middayTouchUp,
+            rating: row.rating,
+            hidden: row.hidden || false
           }));
         
           if (!id) {
@@ -166,7 +169,8 @@ exports.handler = async (event) => {
                 liked, review,
                 occasion_months as "occasionMonths",
                 formality,
-                midday_touch_up as "middayTouchUp"
+                midday_touch_up as "middayTouchUp",
+                rating, hidden
               FROM fragrances
               WHERE user_id = ${parseInt(userId)}
               ORDER BY created_at DESC
@@ -186,7 +190,9 @@ exports.handler = async (event) => {
               review: row.review,
               occasionMonths: row.occasionMonths,
               formality: row.formality,
-              middayTouchUp: row.middayTouchUp
+              middayTouchUp: row.middayTouchUp,
+              rating: row.rating,
+              hidden: row.hidden || false
             }));
             
             if (!id) {
@@ -248,7 +254,8 @@ exports.handler = async (event) => {
           RETURNING 
             id, brand, name, image_url as "imageUrl", 
             seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
         `;
         
         return {
@@ -273,7 +280,8 @@ exports.handler = async (event) => {
             RETURNING 
               id, brand, name, image_url as "imageUrl", 
               seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
           `;
           
           return {
@@ -311,7 +319,8 @@ exports.handler = async (event) => {
           RETURNING 
             id, brand, name, image_url as "imageUrl",
             seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
         `;
         
         if (result.length === 0) {
@@ -353,7 +362,8 @@ exports.handler = async (event) => {
             RETURNING 
               id, brand, name, image_url as "imageUrl",
               seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
+              occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+              rating, hidden
           `;
           
           if (result.length === 0) {
@@ -374,21 +384,87 @@ exports.handler = async (event) => {
       }
     }
 
-    // PATCH /api/fragrances/:id (for updating liked status only)
+    // PATCH /api/fragrances/:id (for updating rating/hidden status)
     if (event.httpMethod === 'PATCH' && id) {
-      const { liked } = JSON.parse(event.body);
+      const body = JSON.parse(event.body);
       
-      const result = await sql`
-        UPDATE fragrances 
-        SET 
-          liked = ${liked},
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
-        RETURNING 
-          id, brand, name, image_url as "imageUrl",
-          seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
-          occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp"
-      `;
+      // Build dynamic SET clause based on provided fields
+      const setClauses = [];
+      const values = {};
+      
+      if ('rating' in body) {
+        values.rating = body.rating;
+      }
+      if ('hidden' in body) {
+        values.hidden = body.hidden;
+      }
+      // Legacy support for liked
+      if ('liked' in body) {
+        values.liked = body.liked;
+      }
+      
+      let result;
+      if ('rating' in body && 'hidden' in body) {
+        result = await sql`
+          UPDATE fragrances 
+          SET 
+            rating = ${body.rating},
+            hidden = ${body.hidden},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+          RETURNING 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
+        `;
+      } else if ('rating' in body) {
+        result = await sql`
+          UPDATE fragrances 
+          SET 
+            rating = ${body.rating},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+          RETURNING 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
+        `;
+      } else if ('hidden' in body) {
+        result = await sql`
+          UPDATE fragrances 
+          SET 
+            hidden = ${body.hidden},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+          RETURNING 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
+        `;
+      } else if ('liked' in body) {
+        // Legacy support
+        result = await sql`
+          UPDATE fragrances 
+          SET 
+            liked = ${body.liked},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${parseInt(id)} AND user_id = ${parseInt(userId)}
+          RETURNING 
+            id, brand, name, image_url as "imageUrl",
+            seasons, occasions, season_occasions as "seasonOccasions", types, liked, review, wearability,
+            occasion_months as "occasionMonths", formality, midday_touch_up as "middayTouchUp",
+            rating, hidden
+        `;
+      } else {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No valid fields to update' })
+        };
+      }
       
       if (result.length === 0) {
         return {
