@@ -8,20 +8,20 @@ import styles from './FragranceDetail.module.scss';
 type TemperatureZone = 'highHeat' | 'transitionalMild' | 'deepCold';
 type ShoeCategory = 'Athletic' | 'WorkBoots' | 'CasualSneakers' | 'DressShoes';
 
-const clothingLabels: Record<TemperatureZone, { label: string; emoji: string }> = {
-  highHeat: { label: 'T-Shirt', emoji: '👕' },
-  transitionalMild: { label: 'Light Jacket', emoji: '🧥' },
-  deepCold: { label: 'Coat', emoji: '🧣' }
+const shoeReadable: Record<ShoeCategory, string> = {
+  Athletic: 'Athletic Shoes',
+  WorkBoots: 'Work Boots',
+  CasualSneakers: 'Casual Sneakers',
+  DressShoes: 'Dress Shoes'
 };
 
-const shoeLabels: Record<ShoeCategory, { label: string; emoji: string }> = {
-  Athletic: { label: 'Athletic', emoji: '🏃' },
-  WorkBoots: { label: 'Work Boots', emoji: '🥾' },
-  CasualSneakers: { label: 'Casual Sneakers', emoji: '👟' },
-  DressShoes: { label: 'Dress Shoes', emoji: '👞' }
+const tempReadable: Record<TemperatureZone, string> = {
+  highHeat: 'Hot Weather',
+  transitionalMild: 'Mild Weather',
+  deepCold: 'Cold Weather'
 };
 
-const getTopCombo = (frag: Fragrance): { shoe: ShoeCategory; temp: TemperatureZone } => {
+const getTop3Combos = (frag: Fragrance): Array<{ shoe: ShoeCategory; temp: TemperatureZone; score: number }> => {
   const daily = frag.occasions.daily || 0;
   const business = frag.occasions.business || 0;
   const leisure = frag.occasions.leisure || 0;
@@ -35,7 +35,6 @@ const getTopCombo = (frag: Fragrance): { shoe: ShoeCategory; temp: TemperatureZo
     { key: 'CasualSneakers', score: leisure + (daily * 0.5) + (business * 0.5) },
     { key: 'DressShoes', score: evening + nightOut + (business * 0.5) }
   ];
-  const bestShoe = shoeScores.sort((a, b) => b.score - a.score)[0].key;
 
   const t = frag.types;
   const rawHighHeat = (t.Fresh || 0) + (t.Citrus || 0) + (t.Aquatic || 0) + (t.Fruity || 0) + (t.Green || 0);
@@ -52,9 +51,16 @@ const getTopCombo = (frag: Fragrance): { shoe: ShoeCategory; temp: TemperatureZo
     { key: 'transitionalMild', score: ((frag.seasons.spring + frag.seasons.autumn) / 2 + typeTransitional) / 2 },
     { key: 'deepCold', score: (frag.seasons.winter + typeDeepCold) / 2 }
   ];
-  const bestTemp = tempScores.sort((a, b) => b.score - a.score)[0].key;
 
-  return { shoe: bestShoe, temp: bestTemp };
+  // Generate all combos, score them, return top 3
+  const combos: Array<{ shoe: ShoeCategory; temp: TemperatureZone; score: number }> = [];
+  for (const shoe of shoeScores) {
+    for (const temp of tempScores) {
+      combos.push({ shoe: shoe.key, temp: temp.key, score: shoe.score * temp.score });
+    }
+  }
+  combos.sort((a, b) => b.score - a.score);
+  return combos.slice(0, 3);
 };
 
 interface FragranceDetailProps {
@@ -190,27 +196,21 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
             <h2 className={styles.brand}>{fragrance.brand}</h2>
             <h3 className={styles.name}>{fragrance.name}</h3>
             
-            <div className={styles.badges}>
-            {(() => {
-              const combo = getTopCombo(fragrance);
-              const shoe = shoeLabels[combo.shoe];
-              const clothing = clothingLabels[combo.temp];
-              return (
-                <div className={`${styles.badge} ${styles.formalityBadge}`}>
-                  <span className={styles.formalityIcon}>{shoe.emoji}</span>
-                  <span className={styles.formalityText}>{shoe.label} with {clothing.emoji} {clothing.label}</span>
-                </div>
-              );
-            })()}
-            
             {fragrance.middayTouchUp !== undefined && (
               <div className={`${styles.badge} ${styles.touchUpBadge} ${fragrance.middayTouchUp ? styles.needsTouchUp : styles.noTouchUp}`}>
-                <span className={styles.touchUpIcon}>{fragrance.middayTouchUp ? '💧' : '✅'}</span>
                 <span className={styles.touchUpText}>
-                  {fragrance.middayTouchUp ? 'Bring for touch-up' : 'Lasts all day'}
+                  {fragrance.middayTouchUp ? 'Needs midday touch-up' : 'Lasts all day'}
                 </span>
               </div>
             )}
+
+            <div className={styles.comboList}>
+              {getTop3Combos(fragrance).map((combo, i) => (
+                <div key={i} className={`${styles.comboItem} ${i === 0 ? styles.comboPrimary : ''}`}>
+                  <span className={styles.comboRank}>{i + 1}.</span>
+                  <span className={styles.comboText}>{shoeReadable[combo.shoe]} &middot; {tempReadable[combo.temp]}</span>
+                </div>
+              ))}
             </div>
 
             {(onRatingChange || onHiddenChange) && (
@@ -224,8 +224,8 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
                           (hoverStar !== null ? star <= hoverStar : (fragrance.rating ?? 0) >= star) ? styles.filled : ''
                         }`}
                         onClick={() => handleStarClick(star)}
-                        onMouseEnter={() => setHoverStar(star)}
-                        onMouseLeave={() => setHoverStar(null)}
+                        onPointerEnter={(e) => { if (e.pointerType === 'mouse') setHoverStar(star); }}
+                        onPointerLeave={(e) => { if (e.pointerType === 'mouse') setHoverStar(null); }}
                         aria-label={`${star} star${star > 1 ? 's' : ''}`}
                         title={`${star} star${star > 1 ? 's' : ''}`}
                       >

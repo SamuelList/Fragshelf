@@ -24,8 +24,8 @@ interface CategorizedFragrance extends Fragrance {
 }
 
 const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps) => {
-  const [mode, setMode] = useState<PickerMode>(null);
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+  const [mode, setMode] = useState<PickerMode>('classic');
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(1);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedTemperature, setSelectedTemperature] = useState<TemperatureZone | null>(null);
   const [selectedOccasion, setSelectedOccasion] = useState<ShoeCategory | OccasionKey | null>(null);
@@ -593,6 +593,9 @@ Differentiate clearly between similar occasions.
                       </button>
                     ))}
                   </div>
+                  <button className={styles.backButton} onClick={handleReset}>
+                    ← Try a different picker mode
+                  </button>
                 </>
               ) : (
                 <>
@@ -615,6 +618,9 @@ Differentiate clearly between similar occasions.
                       </button>
                     ))}
                   </div>
+                  <button className={styles.backButton} onClick={handleReset}>
+                    ← Try a different picker mode
+                  </button>
                 </>
               )}
             </div>
@@ -664,6 +670,9 @@ Differentiate clearly between similar occasions.
 
               <button className={styles.backButton} onClick={() => setStep(1)}>
                 ← Back to {mode === 'classic' ? 'Weather' : 'Seasons'}
+              </button>
+              <button className={styles.backButton} onClick={handleReset}>
+                ← Try a different picker mode
               </button>
             </div>
           )}

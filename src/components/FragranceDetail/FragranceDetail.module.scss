@@ -183,6 +183,40 @@
   }
 }
 
+/* Style Combos */
+.comboList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.comboItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.comboPrimary {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.comboRank {
+  font-weight: 700;
+  min-width: 1.25rem;
+  color: var(--accent-primary);
+}
+
+.comboText {
+  white-space: nowrap;
+}
+
 .ratingContainer {
   display: flex;
   align-items: center;
@@ -197,23 +231,29 @@
 
 .starRating {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .starButton {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
   color: var(--bg-tertiary);
-  transition: transform 0.1s;
+  transition: color 0.15s;
+  padding: 0.4rem;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation; /* Prevents double-tap zoom & ghost clicks */
   
   &.filled {
     color: var(--warning);
   }
   
-  &:hover {
-    transform: scale(1.1);
+  @media (pointer: fine) {
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 }
 
