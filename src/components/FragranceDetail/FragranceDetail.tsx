@@ -248,27 +248,32 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
             />
           </div>
           <div className={styles.info}>
+            <h2 className={styles.brand}>{fragrance.brand}</h2>
+            <h3 className={styles.name}>{fragrance.name}</h3>
+            
+            <div className={styles.badges}>
             {(() => {
               const combo = getTopCombo(fragrance);
               const shoe = shoeLabels[combo.shoe];
               const clothing = clothingLabels[combo.temp];
               return (
-                <div className={styles.formalityBadge}>
+                <div className={`${styles.badge} ${styles.formalityBadge}`}>
                   <span className={styles.formalityIcon}>{shoe.emoji}</span>
                   <span className={styles.formalityText}>{shoe.label} with {clothing.emoji} {clothing.label}</span>
                 </div>
               );
             })()}
-            <h2 className={styles.brand}>{fragrance.brand}</h2>
-            <h3 className={styles.name}>{fragrance.name}</h3>
+            
             {fragrance.middayTouchUp !== undefined && (
-              <div className={`${styles.touchUpBadge} ${fragrance.middayTouchUp ? styles.needsTouchUp : styles.noTouchUp}`}>
+              <div className={`${styles.badge} ${styles.touchUpBadge} ${fragrance.middayTouchUp ? styles.needsTouchUp : styles.noTouchUp}`}>
                 <span className={styles.touchUpIcon}>{fragrance.middayTouchUp ? '💧' : '✅'}</span>
                 <span className={styles.touchUpText}>
                   {fragrance.middayTouchUp ? 'Bring for touch-up' : 'Lasts all day'}
                 </span>
               </div>
             )}
+            </div>
+
             {(onRatingChange || onHiddenChange) && (
               <div className={styles.ratingContainer}>
                 {onRatingChange && (
@@ -298,7 +303,6 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
                     title={fragrance.hidden ? 'Unhide fragrance' : 'Hide fragrance'}
                   >
                     {fragrance.hidden ? '👁️' : '🙈'}
-                    <span className={styles.hideLabel}>{fragrance.hidden ? 'Unhide' : 'Hide'}</span>
                   </button>
                 )}
               </div>
@@ -306,72 +310,73 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
           </div>
         </div>
 
-        {/* Wearability Spectrum */}
-        <WearabilitySpectrum wearability={fragrance.wearability} />
+        <div className={styles.content}>
+          {/* Wearability Spectrum */}
+          <WearabilitySpectrum wearability={fragrance.wearability} />
 
-        {/* Season-Occasion Matrix */}
-        <div className={styles.matrixSection}>
-          <h4 className={styles.matrixTitle}>Season × Occasion</h4>
-          <div className={styles.matrixContainer}>
-            <div className={styles.seasonButtons}>
-              {seasonButtons.map((season) => (
-                <button
-                  key={season.key}
-                  className={`${styles.seasonButton} ${selectedSeason === season.key ? styles.active : ''}`}
-                  onClick={() => setSelectedSeason(selectedSeason === season.key ? null : season.key)}
-                  style={{
-                    borderLeftColor: getChartColor('seasons', season.name)
-                  }}
-                >
-                  <span className={styles.seasonName}>{season.name}</span>
-                  <span className={styles.seasonValue}>{season.value}%</span>
-                </button>
-              ))}
-            </div>
-            <div className={styles.matrixChart}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={matrixOccasionsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
+          {/* Season-Occasion Matrix */}
+          <div>
+            <h4 className={styles.sectionTitle}>When to wear</h4>
+            <div className={styles.matrixContainer}>
+              <div className={styles.seasonButtons}>
+                {seasonButtons.map((season) => (
+                  <button
+                    key={season.key}
+                    className={`${styles.seasonButton} ${selectedSeason === season.key ? styles.active : ''}`}
+                    onClick={() => setSelectedSeason(selectedSeason === season.key ? null : season.key)}
+                    style={{
+                      borderLeftColor: getChartColor('seasons', season.name)
+                    }}
                   >
-                    {matrixOccasionsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                </PieChart>
-              </ResponsiveContainer>
+                    <span className={styles.seasonName}>{season.name}</span>
+                    <span className={styles.seasonValue}>{season.value}%</span>
+                  </button>
+                ))}
+              </div>
+              <div className={styles.matrixChart}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={matrixOccasionsData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {matrixOccasionsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => `${value}%`}
+                      contentStyle={{ borderRadius: '12px', background: 'var(--bg-secondary)', border: 'none', color: 'var(--text-primary)' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={styles.charts}>
-          {/* Occasions Chart */}
-          <div className={styles.chartSection}>
-            <h4>Occasions</h4>
-            <div className={styles.chartContainer}>
-              <div className={styles.chartWrapper}>
+          <div className={styles.chartsGrid}>
+            {/* Occasions Chart */}
+            <div className={styles.chartCard}>
+              <h4 className={styles.chartTitle}>Occasions</h4>
+              <div style={{ width: '100%', height: 160 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={occasionsData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={70}
-                      fill="#8884d8"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={2}
                       dataKey="value"
                     >
                       {occasionsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} />
+                        <Cell key={`cell-${index}`} fill={getChartColor('occasions', entry.name)} stroke="none" />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => `${value}%`} />
@@ -380,27 +385,24 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
               </div>
               {renderLegendList(occasionsData, 'occasions')}
             </div>
-          </div>
 
-          {/* Seasons Chart */}
-          <div className={styles.chartSection}>
-            <h4>Seasons</h4>
-            <div className={styles.chartContainer}>
-              <div className={styles.chartWrapper}>
+            {/* Seasons Chart */}
+            <div className={styles.chartCard}>
+              <h4 className={styles.chartTitle}>Seasons</h4>
+              <div style={{ width: '100%', height: 160 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={seasonsData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={70}
-                      fill="#8884d8"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={2}
                       dataKey="value"
                     >
                       {seasonsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} />
+                        <Cell key={`cell-${index}`} fill={getChartColor('seasons', entry.name)} stroke="none" />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => `${value}%`} />
@@ -409,27 +411,24 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
               </div>
               {renderLegendList(seasonsData, 'seasons')}
             </div>
-          </div>
 
-          {/* Types Chart */}
-          <div className={styles.chartSection}>
-            <h4>Fragrance Types</h4>
-            <div className={styles.chartContainer}>
-              <div className={styles.chartWrapper}>
+            {/* Types Chart */}
+            <div className={styles.chartCard}>
+              <h4 className={styles.chartTitle}>Fragrance Types</h4>
+              <div style={{ width: '100%', height: 160 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={typesData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={70}
-                      fill="#8884d8"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={2}
                       dataKey="value"
                     >
                       {typesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} />
+                        <Cell key={`cell-${index}`} fill={getChartColor('types', entry.name)} stroke="none" />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => `${value}%`} />
@@ -439,41 +438,41 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
               {renderLegendList(typesData, 'types')}
             </div>
           </div>
-        </div>
 
-        {/* Review Section */}
-        {fragrance.review && (
-          <div className={styles.reviewSection}>
-            <h4 className={styles.reviewTitle}>Review & Notes</h4>
-            <div className={styles.reviewText}>
-              {fragrance.review}
-            </div>
-          </div>
-        )}
-
-        <div className={styles.actions}>
-          {!showDeleteConfirm ? (
-            <>
-              <button className={styles.editButton} onClick={handleEditClick}>
-                Edit Fragrance
-              </button>
-              <button className={styles.deleteButton} onClick={handleDeleteClick}>
-                Delete Fragrance
-              </button>
-            </>
-          ) : (
-            <div className={styles.confirmDelete}>
-              <p className={styles.confirmText}>Are you sure you want to delete this fragrance?</p>
-              <div className={styles.confirmButtons}>
-                <button className={styles.cancelButton} onClick={handleCancelDelete}>
-                  Cancel
-                </button>
-                <button className={styles.confirmButton} onClick={handleConfirmDelete}>
-                  Yes, Delete
-                </button>
+          {/* Review Section */}
+          {fragrance.review && (
+            <div className={styles.reviewSection}>
+              <h4 className={styles.sectionTitle}>Notes & Review</h4>
+              <div className={styles.reviewText}>
+                {fragrance.review}
               </div>
             </div>
           )}
+
+          <div className={styles.actions}>
+            {!showDeleteConfirm ? (
+              <>
+                <button className={styles.editButton} onClick={handleEditClick}>
+                  Edit Fragrance
+                </button>
+                <button className={styles.deleteButton} onClick={handleDeleteClick}>
+                  Delete
+                </button>
+              </>
+            ) : (
+              <div className={styles.confirmDelete}>
+                <p className={styles.confirmText}>Are you sure?</p>
+                <div className={styles.confirmButtons}>
+                  <button className={styles.cancelButton} onClick={handleCancelDelete}>
+                    Cancel
+                  </button>
+                  <button className={styles.confirmButton} onClick={handleConfirmDelete}>
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
