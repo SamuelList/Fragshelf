@@ -16,9 +16,9 @@ const shoeReadable: Record<ShoeCategory, string> = {
 };
 
 const tempReadable: Record<TemperatureZone, string> = {
-  highHeat: 'Hot Weather',
-  transitionalMild: 'Mild Weather',
-  deepCold: 'Cold Weather'
+  highHeat: 'T-Shirt Weather',
+  transitionalMild: 'Light Jacket Weather',
+  deepCold: 'Coat Weather'
 };
 
 const getTop3Combos = (frag: Fragrance): Array<{ shoe: ShoeCategory; temp: TemperatureZone; score: number }> => {

@@ -87,10 +87,10 @@ const QuickPicker = ({ fragrances, onClose, onFragranceClick }: QuickPickerProps
     };
   };
 
-  const clothingLabels: Record<TemperatureZone, { label: string; emoji: string }> = {
-    highHeat: { label: 'T-Shirt', emoji: '👕' },
-    transitionalMild: { label: 'Light Jacket', emoji: '🧥' },
-    deepCold: { label: 'Coat', emoji: '🧣' }
+  const clothingLabels: Record<TemperatureZone, { label: string }> = {
+    highHeat: { label: 'T-Shirt' },
+    transitionalMild: { label: 'Light Jacket' },
+    deepCold: { label: 'Coat' }
   };
 
   const handleSeasonSelect = (season: Season) => {
@@ -506,9 +506,9 @@ Differentiate clearly between similar occasions.
   ];
 
   const temperatureZones = [
-    { key: 'highHeat' as TemperatureZone, label: 'High Heat', emoji: '🔥', color: '#FF4500', description: 'Peak summer warmth' },
-    { key: 'transitionalMild' as TemperatureZone, label: 'Transitional Mild', emoji: '🌤️', color: '#F0A030', description: 'Spring & fall weather' },
-    { key: 'deepCold' as TemperatureZone, label: 'Deep Cold', emoji: '❄️', color: '#4682B4', description: 'Winter chill' }
+    { key: 'highHeat' as TemperatureZone, label: 'T-Shirt', emoji: '👕', color: '#FF4500', description: 'Peak summer warmth' },
+    { key: 'transitionalMild' as TemperatureZone, label: 'Light Jacket', emoji: '🧥', color: '#F0A030', description: 'Spring & fall weather' },
+    { key: 'deepCold' as TemperatureZone, label: 'Coat', emoji: '🧣', color: '#4682B4', description: 'Winter chill' }
   ];
 
   const shoeCategories = [
@@ -573,8 +573,8 @@ Differentiate clearly between similar occasions.
                 <>
                   <div className={styles.stepHeader}>
                     <span className={styles.stepNumber}>Step 1 of 2</span>
-                    <h2 className={styles.stepTitle}>How's the Weather?</h2>
-                    <p className={styles.stepSubtitle}>Pick the temperature vibe</p>
+                    <h2 className={styles.stepTitle}>What Are You Wearing?</h2>
+                    <p className={styles.stepSubtitle}>Pick based on the weather outside</p>
                   </div>
 
                   <div className={styles.temperatureGrid}>
@@ -669,7 +669,7 @@ Differentiate clearly between similar occasions.
               )}
 
               <button className={styles.backButton} onClick={() => setStep(1)}>
-                ← Back to {mode === 'classic' ? 'Weather' : 'Seasons'}
+                ← Back to {mode === 'classic' ? 'Clothing' : 'Seasons'}
               </button>
               <button className={styles.backButton} onClick={handleReset}>
                 ← Try a different picker mode
