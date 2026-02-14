@@ -173,73 +173,12 @@ const FragranceDetail = ({ fragrance, onClose, onDelete, onEdit, onRatingChange,
     );
   };
 
-  // Generate gradient based on season percentages
-  const generateSeasonGradient = () => {
-    const seasonColors = {
-      winter: '#a2cbff',
-      spring: '#badc82',
-      summer: '#fed766',
-      autumn: '#d9b1be'
-    };
-    
-    const orderedSeasons = ['winter', 'autumn', 'spring', 'summer'] as const;
-    const stops: Array<{ color: string; position: number; percentage: number }> = [];
-    let totalPercentage = 0;
-    
-    // Collect all seasons with their percentages
-    orderedSeasons.forEach(season => {
-      const percentage = fragrance.seasons[season] || 0;
-      if (percentage > 0) {
-        stops.push({ color: seasonColors[season], position: totalPercentage, percentage });
-        totalPercentage += percentage;
-      }
-    });
-    
-    if (stops.length === 0) {
-      return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    }
-    
-    // Create smooth gradient with fixed blend zones (5% blend area)
-    const blendSize = 20; // Fixed 5% blend zone between colors
-    const gradientStops: string[] = [];
-    
-    stops.forEach((stop, index) => {
-      if (index === 0) {
-        // First color starts at 0%
-        gradientStops.push(`${stop.color} 0%`);
-      }
-      
-      if (index === stops.length - 1) {
-        // Last color extends to 100%
-        const blendStart = Math.max(0, stop.position - blendSize / 2);
-        if (blendStart > stop.position - 1) {
-          gradientStops.push(`${stop.color} ${blendStart}%`);
-        }
-        gradientStops.push(`${stop.color} ${stop.position}%`);
-        gradientStops.push(`${stop.color} 100%`);
-      } else {
-        // Middle colors: blend zone around transition point
-        const nextStop = stops[index + 1];
-        const transitionPoint = stop.position + stop.percentage;
-        const blendStart = transitionPoint - blendSize / 2;
-        const blendEnd = transitionPoint + blendSize / 2;
-        
-        // Current color holds until blend starts
-        gradientStops.push(`${stop.color} ${blendStart}%`);
-        // Blend to next color
-        gradientStops.push(`${nextStop.color} ${blendEnd}%`);
-      }
-    });
-    
-    return `linear-gradient(0deg, ${gradientStops.join(', ')})`;
-  };
-
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={onClose}>×</button>
         
-        <div className={styles.header} style={{ background: generateSeasonGradient() }}>
+        <div className={styles.header}>
           <div className={styles.imageContainer}>
             <img 
               src={fragrance.imageUrl} 

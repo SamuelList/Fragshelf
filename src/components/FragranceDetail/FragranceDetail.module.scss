@@ -78,8 +78,8 @@
   text-align: center;
   gap: 1.5rem;
   position: relative;
-  background: linear-gradient(to bottom, transparent, var(--bg-secondary)), 
-              var(--header-gradient, var(--bg-secondary)); /* Fallback */
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--bg-tertiary);
   
   @media (min-width: 768px) {
     flex-direction: row;
